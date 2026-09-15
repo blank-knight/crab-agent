@@ -1,29 +1,10 @@
 export interface SetupStatusSnapshot {
   provider_configured?: boolean
-  /** Additive launch-profile fields (newer backends only; absent on older
-   *  ones). Carried for consumers that read the record — readiness itself
-   *  still keys on `provider_configured` + `setup.runtime_check`. */
-  ready?: boolean
-  free_tier?: boolean
-  other_providers?: boolean
-  inference_provider?: string
-  /** Present only when the boot bootstrap could not create the free-tier
-   *  identity: the failure code, its sentence, and whether / when a retry can
-   *  succeed. Same shape as `free_tier.status`. */
-  error?: string
-  error_code?: string
-  retryable?: boolean
-  retry_after?: number
 }
 
 export interface RuntimeCheckSnapshot {
   error?: string
-  /** True when the resolved route is the free tier rather than a credential of
-   *  the user's own. Absent on older backends. */
-  free_tier?: boolean
-  model?: string
   ok?: boolean
-  provider?: string
 }
 
 export interface RuntimeReadinessSignals {
@@ -35,25 +16,15 @@ export interface RuntimeReadinessSignals {
 
 export interface RuntimeReadinessOptions {
   defaultReason?: string
-  requestedProvider?: string
   unknownReady?: boolean
 }
 
 export interface RuntimeReadinessResult {
   checksDisagree: boolean
-  /** Passed through from `setup.runtime_check`: the resolved route is the free
-   *  tier. Undefined when the check did not answer (older backend, transport
-   *  fallback) — never read it as "not free tier". */
-  freeTier?: boolean
-  /** Passed through from `setup.runtime_check`: the model the route resolved
-   *  to. Undefined when the check did not answer. */
-  model?: string
   ready: boolean
   reason: null | string
   source: 'fallback' | 'runtime_check' | 'setup_status'
 }
-
-export type RuntimeReadinessDisplay = 'checking' | 'needs_setup' | 'ready' | 'unavailable'
 
 export type RuntimeReadinessRequester = <T = unknown>(method: string, params?: Record<string, unknown>) => Promise<T>
 
@@ -83,25 +54,21 @@ function normalizeMessage(value: null | string | undefined): null | string {
 
 async function requestWithFallback<T>(
   requestGateway: RuntimeReadinessRequester,
-  method: string,
-  params?: Record<string, unknown>
+  method: string
 ): Promise<{ error: null | string; value: null | T }> {
   try {
-    return { error: null, value: await requestGateway<T>(method, params) }
+    return { error: null, value: await requestGateway<T>(method) }
   } catch (error) {
     return { error: toErrorMessage(error), value: null }
   }
 }
 
 export async function fetchRuntimeReadinessSignals(
-  requestGateway: RuntimeReadinessRequester,
-  requestedProvider?: string
+  requestGateway: RuntimeReadinessRequester
 ): Promise<RuntimeReadinessSignals> {
-  const runtimeParams = requestedProvider?.trim() ? { provider: requestedProvider.trim() } : undefined
-
   const [setup, runtime] = await Promise.all([
     requestWithFallback<SetupStatusSnapshot>(requestGateway, 'setup.status'),
-    requestWithFallback<RuntimeCheckSnapshot>(requestGateway, 'setup.runtime_check', runtimeParams)
+    requestWithFallback<RuntimeCheckSnapshot>(requestGateway, 'setup.runtime_check')
   ])
 
   return {
@@ -126,21 +93,12 @@ export function interpretRuntimeReadiness(
   const runtimeFailure = normalizeMessage(signals.runtime?.error) ?? normalizeMessage(signals.runtimeError)
   const setupFailure = normalizeMessage(signals.setupError)
 
-  // Route facts the check reported, carried through untouched so consumers
-  // (free-tier chrome) don't have to re-issue setup.runtime_check. Left
-  // undefined when the check said nothing — "absent" and "false" differ.
-  const route = {
-    freeTier: typeof signals.runtime?.free_tier === 'boolean' ? signals.runtime.free_tier : undefined,
-    model: normalizeMessage(signals.runtime?.model) ?? undefined
-  }
-
   const checksDisagree =
     typeof setupConfigured === 'boolean' && typeof runtimeOk === 'boolean' && setupConfigured !== runtimeOk
 
   if (typeof runtimeOk === 'boolean') {
     if (runtimeOk) {
       return {
-        ...route,
         checksDisagree,
         ready: true,
         reason: null,
@@ -155,7 +113,6 @@ export function interpretRuntimeReadiness(
     }
 
     return {
-      ...route,
       checksDisagree,
       ready: false,
       reason,
@@ -165,7 +122,6 @@ export function interpretRuntimeReadiness(
 
   if (typeof setupConfigured === 'boolean') {
     return {
-      ...route,
       checksDisagree: false,
       ready: setupConfigured,
       reason: setupConfigured ? null : (runtimeFailure ?? setupFailure ?? defaultReason),
@@ -174,7 +130,6 @@ export function interpretRuntimeReadiness(
   }
 
   return {
-    ...route,
     checksDisagree: false,
     ready: unknownReady,
     reason: unknownReady ? null : (runtimeFailure ?? setupFailure ?? defaultReason),
@@ -182,26 +137,11 @@ export function interpretRuntimeReadiness(
   }
 }
 
-export function runtimeReadinessDisplay(status: RuntimeReadinessResult | null): RuntimeReadinessDisplay {
-  if (status === null) {
-    return 'checking'
-  }
-
-  if (status.ready) {
-    return 'ready'
-  }
-
-  // Credentials exist but runtime resolution failed. Calling that "needs
-  // setup" sends users back through onboarding for provider/quota failures
-  // that setup cannot repair; the reason tooltip carries the specific cause.
-  return status.checksDisagree ? 'unavailable' : 'needs_setup'
-}
-
 export async function evaluateRuntimeReadiness(
   requestGateway: RuntimeReadinessRequester,
   options: RuntimeReadinessOptions = {}
 ): Promise<RuntimeReadinessResult> {
-  const signals = await fetchRuntimeReadinessSignals(requestGateway, options.requestedProvider)
+  const signals = await fetchRuntimeReadinessSignals(requestGateway)
 
   return interpretRuntimeReadiness(signals, options)
 }

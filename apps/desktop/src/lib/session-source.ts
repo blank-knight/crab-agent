@@ -1,7 +1,4 @@
-import { normalize } from '@/lib/text'
-
 const SOURCE_LABELS: Record<string, string> = {
-  acp: 'ACP',
   api_server: 'API',
   bluebubbles: 'iMessage',
   cli: 'CLI',
@@ -10,12 +7,9 @@ const SOURCE_LABELS: Record<string, string> = {
   discord: 'Discord',
   email: 'Email',
   gateway: 'Gateway',
-  kanban: 'Kanban',
   local: 'Local',
   matrix: 'Matrix',
   mattermost: 'Mattermost',
-  oneshot: 'One-shot',
-  photon: 'Photon',
   qqbot: 'QQ',
   signal: 'Signal',
   slack: 'Slack',
@@ -30,7 +24,6 @@ const SOURCE_LABELS: Record<string, string> = {
 
 const SOURCE_ALIASES: Record<string, string[]> = {
   bluebubbles: ['apple messages', 'imessage'],
-  photon: ['imessage', 'messages'],
   cli: ['terminal'],
   desktop: ['app', 'gui'],
   local: ['machine'],
@@ -44,19 +37,8 @@ const SOURCE_ALIASES: Record<string, string[]> = {
 // Sources that run on the local machine rather than an external messaging
 // platform. A handoff *from* one of these isn't a platform origin worth a badge.
 // Exported so the recents fetch can keep these in the main list while the
-// messaging fetch excludes them. `acp` runs as a local stdio process spawned
-// by an editor, and its rows must never land in the messaging slice either.
-export const LOCAL_SESSION_SOURCE_IDS = [
-  'acp',
-  'cli',
-  'codex',
-  'desktop',
-  'gateway',
-  'kanban',
-  'local',
-  'oneshot',
-  'tui'
-]
+// messaging fetch excludes them.
+export const LOCAL_SESSION_SOURCE_IDS = ['cli', 'codex', 'desktop', 'gateway', 'local', 'tui']
 const LOCAL_SOURCE_IDS = new Set(LOCAL_SESSION_SOURCE_IDS)
 
 // External messaging platforms that each get their own self-managed sidebar
@@ -71,7 +53,6 @@ export const MESSAGING_SESSION_SOURCE_IDS = [
   'signal',
   'whatsapp',
   'bluebubbles',
-  'photon',
   'homeassistant',
   'email',
   'sms',
@@ -95,7 +76,9 @@ export function isMessagingSource(source: null | string | undefined): boolean {
 }
 
 export function normalizeSessionSource(source: null | string | undefined): string | null {
-  return normalize(source) || null
+  const id = source?.trim().toLowerCase()
+
+  return id || null
 }
 
 /**

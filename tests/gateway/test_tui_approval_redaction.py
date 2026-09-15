@@ -15,44 +15,52 @@ import pytest
 
 
 class TestTuiApprovalEmitRedaction:
-    @staticmethod
-    def _sent(monkeypatch):
-        """Capture the ``approval`` server request frame ``_emit_approval_request`` sends."""
-        from tui_gateway import server as tui_server, server_requests
-
-        sent = {}
-        monkeypatch.setattr(server_requests, "send_async",
-                            lambda method, sid, params, on_result: (sent.update(method=method, sid=sid, params=params),
-                                                                    lambda reason: None)[1])
-        monkeypatch.setattr(tui_server, "_sessions", {"sess-1": {"session_key": "key-1"}})
-        return tui_server, sent
-
     def test_emit_approval_request_redacts_command_in_payload(self, monkeypatch):
-        tui_server, sent = self._sent(monkeypatch)
+        from tui_gateway import server as tui_server
+
+        emitted = {}
+        monkeypatch.setattr(
+            tui_server, "_emit",
+            lambda event, sid, payload=None: emitted.update(
+                {"event": event, "sid": sid, "payload": payload}
+            ),
+        )
         raw = "curl -H 'Authorization: token ghp_01...6789' https://api.github.com"
         tui_server._emit_approval_request("sess-1", {"command": raw, "description": "x"})
 
-        assert sent["method"] == "approval" and sent["sid"] == "sess-1"
+        assert emitted["event"] == "approval.request"
         # credential removed, non-command field + command structure preserved
-        assert "ghp_01...6789" not in sent["params"]["command"]
-        assert sent["params"]["description"] == "x"
-        assert "github.com" in sent["params"]["command"]
+        assert "ghp_01...6789" not in emitted["payload"]["command"]
+        assert emitted["payload"]["description"] == "x"
+        assert "github.com" in emitted["payload"]["command"]
 
-    @pytest.mark.parametrize(
-        ("allow_session", "allow_permanent", "expected"),
-        [
-            (True, True, ["once", "session", "always", "deny"]),
-            (True, False, ["once", "session", "deny"]),
-            (False, False, ["once", "deny"]),
-        ],
-    )
-    def test_emit_approval_request_honors_allowed_scopes(
-        self, monkeypatch, allow_session, allow_permanent, expected
-    ):
-        tui_server, sent = self._sent(monkeypatch)
-        tui_server._emit_approval_request(
-            "sess-1",
-            {"allow_permanent": allow_permanent, "allow_session": allow_session, "command": "<write to AGENTS.md>"},
+    def test_emit_approval_request_handles_missing_command(self, monkeypatch):
+        from tui_gateway import server as tui_server
+
+        emitted = {}
+        monkeypatch.setattr(
+            tui_server, "_emit",
+            lambda event, sid, payload=None: emitted.update({"payload": payload}),
         )
+        tui_server._emit_approval_request("s", {"description": "no command here"})
+        assert emitted["payload"] == {"description": "no command here"}
+        tui_server._emit_approval_request("s", None)
+        assert emitted["payload"] == {}
 
-        assert sent["params"]["choices"] == expected
+    def test_no_raw_command_emit_in_approval_registrations(self):
+        """Every register_gateway_notify approval callback must route through the
+        redacting `_emit_approval_request` helper — no registration may emit the
+        raw payload via `_emit("approval.request", ...)` directly. The ONLY
+        allowed raw emit is inside the helper itself."""
+        from tui_gateway import server as tui_server
+
+        src = inspect.getsource(tui_server)
+        raw_emits = src.count('_emit("approval.request"')
+        assert raw_emits == 1, (
+            f'expected exactly 1 raw _emit("approval.request") (inside the '
+            f"redacting helper), found {raw_emits} — a registration may be "
+            f"emitting the unredacted command"
+        )
+        assert "_emit_approval_request(sid, data)" in src, (
+            "registration lambdas must route through _emit_approval_request"
+        )

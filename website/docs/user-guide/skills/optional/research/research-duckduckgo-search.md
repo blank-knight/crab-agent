@@ -1,14 +1,14 @@
 ---
-title: "Duckduckgo Search — Free keyless web, news, and image search via ddgs"
+title: "Duckduckgo Search — Free web search via DuckDuckGo — text, news, images, videos"
 sidebar_label: "Duckduckgo Search"
-description: "Free keyless web, news, and image search via ddgs"
+description: "Free web search via DuckDuckGo — text, news, images, videos"
 ---
 
 {/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
 # Duckduckgo Search
 
-Free keyless web, news, and image search via ddgs.
+Free web search via DuckDuckGo — text, news, images, videos. No API key needed. Prefer the `ddgs` CLI when installed; use the Python DDGS library only after verifying that `ddgs` is available in the current runtime.
 
 ## Skill metadata
 
@@ -21,7 +21,7 @@ Free keyless web, news, and image search via ddgs.
 | License | MIT |
 | Platforms | linux, macos, windows |
 | Tags | `search`, `duckduckgo`, `web-search`, `free`, `fallback` |
-| Related skills | [`arxiv`](../../bundled/research/research-arxiv.md) |
+| Related skills | [`arxiv`](/docs/user-guide/skills/bundled/research/research-arxiv) |
 
 ## Reference: full SKILL.md
 

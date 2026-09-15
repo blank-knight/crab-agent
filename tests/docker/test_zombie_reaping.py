@@ -12,16 +12,22 @@ docstring.
 """
 from __future__ import annotations
 
+import subprocess
 import time
 
-from tests.docker.conftest import docker_exec, docker_exec_sh, start_container
+from tests.docker.conftest import docker_exec, docker_exec_sh
 
 
 def test_orphan_zombies_reaped(
     built_image: str, container_name: str,
 ) -> None:
     """Spawn an orphan child that exits immediately. PID 1 must reap it."""
-    start_container(built_image, container_name, cmd="sleep 60")
+    subprocess.run(
+        ["docker", "run", "-d", "--name", container_name, built_image,
+         "sleep", "60"],
+        check=True, capture_output=True, timeout=30,
+    )
+    time.sleep(2)
 
     # `( ( sleep 0.1 & ) & ); sleep 1` creates a grandchild detached from
     # the original docker exec session — it becomes an orphan reparented
@@ -29,18 +35,11 @@ def test_orphan_zombies_reaped(
     docker_exec_sh(
         container_name, "( ( sleep 0.1 & ) & ); sleep 1", timeout=10,
     )
+    time.sleep(1)
 
-    # Poll for zombies-absent instead of a fixed sleep: reaping is
-    # asynchronous (SIGCHLD) and can lag on a loaded host.
-    deadline = time.monotonic() + 10
-    zombies = ["(never checked)"]
-    while time.monotonic() < deadline:
-        r = docker_exec(container_name, "ps", "axo", "stat,pid,comm")
-        zombies = [
-            line for line in r.stdout.split("\n")
-            if line.strip().startswith("Z")
-        ]
-        if not zombies:
-            break
-        time.sleep(0.5)
+    r = docker_exec(container_name, "ps", "axo", "stat,pid,comm")
+    zombies = [
+        line for line in r.stdout.split("\n")
+        if line.strip().startswith("Z")
+    ]
     assert not zombies, f"Zombies not reaped by PID 1: {zombies}"

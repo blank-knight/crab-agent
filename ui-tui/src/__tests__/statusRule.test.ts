@@ -59,18 +59,18 @@ describe('statusRuleWidths', () => {
 
 describe('statusBarSegments', () => {
   it('shows every segment on a wide terminal', () => {
-    const { compactCtx, ...segments } = statusBarSegments(120)
+    const s = statusBarSegments(120)
 
-    expect(compactCtx).toBe(false)
-    expect(Object.values(segments).every(Boolean)).toBe(true)
-  })
-
-  it('sheds cache/latency/tps read-outs first as the terminal narrows', () => {
-    // 96/104/110-col breakpoints: these are the lowest-priority perf
-    // read-outs, so they disappear before any pre-existing segment.
-    expect(statusBarSegments(108)).toMatchObject({ cacheHit: true, latency: true, tps: false })
-    expect(statusBarSegments(100)).toMatchObject({ cacheHit: true, latency: false, tps: false })
-    expect(statusBarSegments(94)).toMatchObject({ cacheHit: false, latency: false, tps: false, subagents: true })
+    expect(s).toEqual({
+      compactCtx: false,
+      bar: true,
+      duration: true,
+      compressions: true,
+      voice: true,
+      bg: true,
+      subagents: true,
+      cost: true
+    })
   })
 
   it('collapses the context bar to a token count on narrow terminals', () => {
@@ -79,17 +79,19 @@ describe('statusBarSegments', () => {
     expect(s.compactCtx).toBe(true)
     expect(s.bar).toBe(false)
     expect(s.duration).toBe(false)
+    expect(s.cost).toBe(false)
   })
 
   it('sheds tail segments in priority order as the terminal narrows', () => {
-    // the context bar is the last of the tail to go.
+    // cost is the first to go, the context bar the last of the tail.
     const order: (keyof ReturnType<typeof statusBarSegments>)[] = [
       'bar',
       'duration',
       'compressions',
       'voice',
       'bg',
-      'subagents'
+      'subagents',
+      'cost'
     ]
 
     let prevCount = Infinity
@@ -109,6 +111,7 @@ describe('busyIndicatorWidth', () => {
     // unicode is a 1-col braille spinner with no verb; far slimmer than the
     // kaomoji face which carries a wide glyph + rotating verb.
     expect(busyIndicatorWidth('unicode', false)).toBeLessThan(busyIndicatorWidth('kaomoji', false))
+    expect(busyIndicatorWidth('unicode', false)).toBe(1)
   })
 
   it('reserves room for the elapsed-time tail only when a turn is timed', () => {

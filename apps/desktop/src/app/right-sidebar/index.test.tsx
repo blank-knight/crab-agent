@@ -2,71 +2,74 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { HermesReadDirResult } from '@/global'
-import { $connection, $selectedStoredSessionId, $workspaceCwdOwner, setCurrentCwd } from '@/store/session'
+import { $connection, setCurrentCwd } from '@/store/session'
 
 import { resetProjectTreeState } from './files/use-project-tree'
 
 import { RightSidebarPane } from './index'
 
 const readDir = vi.fn<(path: string) => Promise<HermesReadDirResult>>()
+const selectPaths = vi.fn()
+
+function ok(entries: { name: string; path: string; isDirectory: boolean }[]): HermesReadDirResult {
+  return { entries }
+}
 
 function installBridge() {
-  ;(window as unknown as { hermesDesktop: { readDir: typeof readDir } }).hermesDesktop = { readDir }
+  ;(
+    window as unknown as {
+      hermesDesktop: {
+        readDir: typeof readDir
+        selectPaths: typeof selectPaths
+      }
+    }
+  ).hermesDesktop = { readDir, selectPaths }
 }
 
 describe('RightSidebarPane', () => {
   beforeEach(() => {
     $connection.set(null)
-    $selectedStoredSessionId.set(null)
-    $workspaceCwdOwner.set(null)
     resetProjectTreeState()
+    setCurrentCwd('/repo')
     readDir.mockReset()
-    readDir.mockResolvedValue({ entries: [{ isDirectory: false, name: 'README.md', path: '/repo/README.md' }] })
+    selectPaths.mockReset()
+    readDir.mockResolvedValue(ok([{ name: 'README.md', path: '/repo/README.md', isDirectory: false }]))
+    selectPaths.mockResolvedValue(['/repo-next'])
     installBridge()
   })
 
   afterEach(() => {
     cleanup()
     $connection.set(null)
-    $selectedStoredSessionId.set(null)
-    $workspaceCwdOwner.set(null)
     setCurrentCwd('')
     resetProjectTreeState()
     delete (window as unknown as { hermesDesktop?: unknown }).hermesDesktop
   })
 
-  it('renders the tree whenever the session has a working dir (repo or not) — no picker', async () => {
-    setCurrentCwd('/repo')
+  it('refreshes the current tree without opening the folder picker', async () => {
+    const onChangeCwd = vi.fn()
 
-    render(<RightSidebarPane onActivateFile={vi.fn()} onActivateFolder={vi.fn()} />)
+    render(<RightSidebarPane onActivateFile={vi.fn()} onActivateFolder={vi.fn()} onChangeCwd={onChangeCwd} />)
 
-    const refresh = await screen.findByRole('button', { name: 'Refresh tree' })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh tree' }).hasAttribute('disabled')).toBe(false))
 
     readDir.mockClear()
-    fireEvent.click(refresh)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh tree' }))
+
     await waitFor(() => expect(readDir).toHaveBeenCalledWith('/repo'))
+    expect(selectPaths).not.toHaveBeenCalled()
 
-    // The freeform folder picker is retired.
-    expect(screen.queryByRole('button', { name: 'Open folder' })).toBeNull()
-  })
+    fireEvent.click(screen.getByRole('button', { name: 'Open folder' }))
 
-  it('does not read a retained cwd while it belongs to a previous session', async () => {
-    $selectedStoredSessionId.set('new-session')
-    $workspaceCwdOwner.set('previous-session')
-    setCurrentCwd('/home/doug/default-profile-workspace')
-
-    render(<RightSidebarPane onActivateFile={vi.fn()} onActivateFolder={vi.fn()} />)
-
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'Refresh tree' })).toBeNull())
-    expect(readDir).not.toHaveBeenCalled()
-  })
-
-  it('shows no tree for a detached chat (no working dir)', async () => {
-    setCurrentCwd('')
-
-    render(<RightSidebarPane onActivateFile={vi.fn()} onActivateFolder={vi.fn()} />)
-
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'Refresh tree' })).toBeNull())
-    expect(readDir).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(selectPaths).toHaveBeenCalledWith({
+        defaultPath: '/repo',
+        directories: true,
+        multiple: false,
+        title: 'Change working directory'
+      })
+    )
+    await waitFor(() => expect(onChangeCwd).toHaveBeenCalledWith('/repo-next'))
   })
 })

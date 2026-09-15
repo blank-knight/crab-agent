@@ -1,15 +1,12 @@
-import { useStore } from '@nanostores/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useI18n } from '@/i18n'
-import { $settingsRequestProfile } from '@/store/settings-scope'
+import type { EnvVarInfo } from '@/types/hermes'
 
 import { CredentialKeyCard, credentialPlaceholder, credentialRowLabel } from './credential-key-ui'
 import { useEnvCredentials } from './env-credentials'
 import { asText } from './helpers'
-import { SettingsContent, SettingsSkeleton } from './primitives'
-import { SettingsProfileScope } from './profile-scope'
-import { useDeepLinkHighlight } from './use-deep-link-highlight'
+import { LoadingState, SettingsContent } from './primitives'
 
 // Sub-views surfaced as sidebar subnav under Tools & Keys (see settings/index.tsx).
 export const KEYS_VIEWS = ['tools', 'settings'] as const
@@ -30,82 +27,62 @@ const VIEW_CATEGORIES: Record<KeysView, readonly string[]> = {
   tools: ['tool']
 }
 
-const credentialElementId = (key: string) => `credential-key-${key}`
-
 export function KeysSettings({ view }: KeysSettingsProps) {
   const { t } = useI18n()
-  // Shared settings "Applies to" scope: fetch + edit the selected profile's
-  // env store instead of the active one (undefined → active, the default
-  // path — request-shaped so the API helpers never see a primary-targeting
-  // null).
-  const scopeProfile = useStore($settingsRequestProfile)
-  const { rowProps, vars } = useEnvCredentials(scopeProfile)
+  const { rowProps, vars } = useEnvCredentials()
   const [openKey, setOpenKey] = useState<null | string>(null)
 
   useEffect(() => {
     setOpenKey(null)
-  }, [scopeProfile, view])
+  }, [view])
 
-  const entries = useMemo(() => {
+  const groups = useMemo(() => {
     if (!vars) {
       return []
     }
 
-    const cats = VIEW_CATEGORIES[view]
+    return KEYS_VIEWS.flatMap(v => {
+      const cats = VIEW_CATEGORIES[v]
 
-    return Object.entries(vars)
-      .filter(([, info]) => !info.channel_managed && cats.includes(asText(info.category)))
-      .sort(([a], [b]) => a.localeCompare(b))
-  }, [vars, view])
+      const entries = Object.entries(vars)
+        .filter(([, info]) => !info.channel_managed && cats.includes(asText(info.category)))
+        .sort(([a], [b]) => a.localeCompare(b))
 
-  const renderableKeys = useMemo(() => new Set(entries.map(([key]) => key)), [entries])
-
-  const resolveDeepLink = useCallback((key: string) => {
-    setOpenKey(key)
-  }, [])
-
-  const deepLinkReady = useCallback((key: string) => renderableKeys.has(key), [renderableKeys])
-
-  // Deep link from ⌘K / Capabilities env-var rows (?tab=keys&key=<ENV_KEY>):
-  // scroll the credential card into view, flash it, and expand it. Only
-  // consume keys rendered by this sub-view so a stale Tools/Settings pairing
-  // cannot keep trying to mount a target this pane never shows.
-  useDeepLinkHighlight({
-    elementId: credentialElementId,
-    onResolve: resolveDeepLink,
-    param: 'key',
-    ready: deepLinkReady
-  })
+      return entries.length === 0 ? [] : [{ category: v, entries }]
+    })
+  }, [vars])
 
   if (!vars) {
-    return <SettingsSkeleton sections={[{ rows: 5 }]} />
+    return <LoadingState label={t.settings.keys.loading} />
   }
+
+  const visible = groups.filter(g => g.category === view)
 
   return (
     <SettingsContent>
-      <SettingsProfileScope className="mb-5" />
-      {entries.length > 0 ? (
-        <div className="grid gap-2">
-          {entries.map(([key, info]) => {
+      {visible.map(group => (
+        <div className="grid gap-2" key={group.category}>
+          {group.entries.map(([key, info]: [string, EnvVarInfo]) => {
             const label = credentialRowLabel(key, info)
 
             return (
-              <div className="scroll-mt-6 rounded-[6px]" id={credentialElementId(key)} key={key}>
-                <CredentialKeyCard
-                  expanded={openKey === key}
-                  info={info}
-                  label={label}
-                  onExpand={() => setOpenKey(key)}
-                  onToggle={() => setOpenKey(prev => (prev === key ? null : key))}
-                  placeholder={credentialPlaceholder(key, info, label)}
-                  rowProps={rowProps}
-                  varKey={key}
-                />
-              </div>
+              <CredentialKeyCard
+                expanded={openKey === key}
+                info={info}
+                key={key}
+                label={label}
+                onExpand={() => setOpenKey(key)}
+                onToggle={() => setOpenKey(prev => (prev === key ? null : key))}
+                placeholder={credentialPlaceholder(key, info, label)}
+                rowProps={rowProps}
+                varKey={key}
+              />
             )
           })}
         </div>
-      ) : (
+      ))}
+
+      {visible.length === 0 && (
         <div className="rounded-lg border border-dashed border-(--ui-stroke-tertiary) px-4 py-8 text-center text-[length:var(--conversation-caption-font-size)] text-muted-foreground">
           {t.settings.keys.empty}
         </div>

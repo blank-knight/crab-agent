@@ -51,7 +51,6 @@ def test_prompt_toolkit_model_picker_defers_confirmation_off_key_handler(monkeyp
         _invalidate=lambda **_kwargs: None,
     )
     self_._close_model_picker = _bound(cli_mod.HermesCLI._close_model_picker, self_)
-    self_._commit_picker_result = _bound(cli_mod.HermesCLI._commit_picker_result, self_)
     self_._confirm_and_apply_model_switch_result = (
         lambda *_args: captured.setdefault("ran_inline", True)
     )
@@ -60,17 +59,8 @@ def test_prompt_toolkit_model_picker_defers_confirmation_off_key_handler(monkeyp
     # which defaults to True (persist-by-default). Simulate that call.
     _bound(cli_mod.HermesCLI._handle_model_picker_selection, self_)(persist_global=True)
 
-    # Picking a model opens the reasoning-effort step (no commit yet); "Keep current effort"
-    # (the last effort row) commits with the historical arity.
-    from hermes_cli.cli_model_switch_mixin import _picker_reasoning_rows
-    assert self_._model_picker_state["stage"] == "reasoning"
-    assert "started" not in captured
-    self_._model_picker_state["selected"] = len(_picker_reasoning_rows()) - 1
-    _bound(cli_mod.HermesCLI._handle_model_picker_selection, self_)(persist_global=True)
-
     assert self_._model_picker_state is None
     assert captured["started"] is True
     assert captured["daemon"] is True
-    # Third arg is the fresh picker custom_providers snapshot (None here).
-    assert captured["args"] == (result, True, None)
+    assert captured["args"] == (result, True)
     assert "ran_inline" not in captured

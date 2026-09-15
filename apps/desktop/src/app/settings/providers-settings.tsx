@@ -6,36 +6,25 @@ import { runInTerminal } from '@/app/right-sidebar/store'
 import {
   FEATURED_ID,
   FeaturedProviderRow,
-  FireworksProviderRow,
-  LocalModelsProviderRow,
-  OpenRouterProviderRow,
+  KeyProviderRow,
   ProviderRow,
   providerTitle,
   sortProviders
-} from '@/components/onboarding'
+} from '@/components/desktop-onboarding-overlay'
 import { Button } from '@/components/ui/button'
-import { RowButton } from '@/components/ui/row-button'
 import { SearchField } from '@/components/ui/search-field'
-import { Tip } from '@/components/ui/tooltip'
-import { disconnectOAuthProvider, listOAuthProviders } from '@/hermes'
+import { disconnectOAuthProvider, getGlobalModelInfo, getHermesConfigRecord, listOAuthProviders } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { Check, ChevronDown, ChevronRight, KeyRound, Loader2, Terminal, Trash2 } from '@/lib/icons'
-import { normalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
-import { confirm } from '@/store/confirm'
-import { $localModelsEnabled } from '@/store/local-models-flag'
 import { notify, notifyError } from '@/store/notifications'
 import { $desktopOnboarding, startManualLocalEndpoint, startManualProviderOAuth } from '@/store/onboarding'
-import { $settingsRequestProfile } from '@/store/settings-scope'
 import type { EnvVarInfo, OAuthProvider } from '@/types/hermes'
 
 import { isKeyVar, ProviderKeyRows } from './credential-key-ui'
-import { CustomEndpointsSettings } from './custom-endpoints-settings'
 import { SettingsCategoryHeading, useEnvCredentials } from './env-credentials'
 import { providerGroup, providerMeta, providerPriority } from './helpers'
-import { LocalModelsSettings } from './local-models-settings'
-import { SettingsContent, SettingsSkeleton } from './primitives'
-import { SettingsProfileScope } from './profile-scope'
+import { LoadingState, SettingsContent } from './primitives'
 
 // The embedded terminal (and thus the "run disconnect command" path) only
 // exists in the Electron desktop shell, not the web dashboard.
@@ -52,7 +41,7 @@ function GroupLabel({ children }: { children: ReactNode }) {
 }
 
 // Sub-views surfaced as a sidebar subnav: account sign-in vs raw API keys.
-export const PROVIDER_VIEWS = ['accounts', 'keys', 'custom-endpoints', 'local'] as const
+export const PROVIDER_VIEWS = ['accounts', 'keys'] as const
 
 export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 
@@ -76,40 +65,21 @@ function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGr
       continue
     }
 
-    // A shared credential (for example DASHSCOPE_API_KEY) can belong to more
-    // than one built-in route. Expand its provider profiles into card-scoped
-    // rows while keeping the same env-var key for save/remove operations.
-    const scopedInfos = info.provider_profiles?.length
-      ? info.provider_profiles.map(profile => ({
-          ...info,
-          description: profile.description || info.description,
-          provider: profile.provider,
-          provider_label: profile.provider_label,
-          provider_primary: profile.primary,
-          url: profile.url ?? info.url
-        }))
-      : [info]
+    // Prefer the backend-supplied provider label/id so the Keys tab groups by
+    // the same identity the CLI picker uses; fall back to the prefix guess.
+    const name = info.provider_label?.trim() || info.provider?.trim() || providerGroup(key)
 
-    for (const scopedInfo of scopedInfos) {
-      // Prefer the backend-supplied provider label/id so the Keys tab groups by
-      // the same identity the CLI picker uses; fall back to the prefix guess.
-      const name = scopedInfo.provider_label?.trim() || scopedInfo.provider?.trim() || providerGroup(key)
-
-      if (name === 'Other') {
-        continue
-      }
-
-      buckets.set(name, [...(buckets.get(name) ?? []), [key, scopedInfo]])
+    if (name === 'Other') {
+      continue
     }
+
+    buckets.set(name, [...(buckets.get(name) ?? []), [key, info]])
   }
 
   const groups: ProviderKeyGroup[] = []
 
   for (const [name, entries] of buckets) {
-    const primary =
-      entries.find(([k, i]) => i.provider_primary && isKeyVar(k, i)) ??
-      entries.find(([k, i]) => !i.advanced && isKeyVar(k, i)) ??
-      entries.find(([k, i]) => isKeyVar(k, i))
+    const primary = entries.find(([k, i]) => !i.advanced && isKeyVar(k, i)) ?? entries.find(([k, i]) => isKeyVar(k, i))
 
     if (!primary) {
       continue
@@ -142,29 +112,24 @@ function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGr
 
 // Deliberately a near-1:1 replica of the first-run onboarding picker
 // (`Picker` in desktop-onboarding-overlay): same recommended card, same
-// always-visible Local models row, same provider rows, same "Other
-// providers" disclosure (Fireworks and OpenRouter quick-key rows live
-// inside it on both surfaces), and the same bottom-right "I have an API
-// key" affordance. The leaf cards are the exact shared components, so
-// the two surfaces stay visually identical. Selecting a provider hands
-// off to the shared onboarding overlay, which runs that provider's real
-// sign-in flow; the key affordances open the API-key catalog below.
+// provider rows, same "Other providers" disclosure, same OpenRouter quick-key
+// row, and the same bottom-right "I have an API key" affordance. The leaf cards
+// are the exact shared components, so the two surfaces stay visually identical.
+// Selecting a provider hands off to the shared onboarding overlay, which runs
+// that provider's real sign-in flow; the key affordances open the API-key
+// catalog below.
 function OAuthPicker({
   disconnecting,
   onDisconnect,
   onTerminalDisconnect,
   onWantApiKey,
-  onWantLocalModels,
-  providers,
-  profile
+  providers
 }: {
   disconnecting: null | string
   onDisconnect: (provider: OAuthProvider) => void
   onTerminalDisconnect: (provider: OAuthProvider) => void
   onWantApiKey: () => void
-  onWantLocalModels: () => void
   providers: OAuthProvider[]
-  profile?: string
 }) {
   const { t } = useI18n()
   const p = t.settings.providers
@@ -175,18 +140,23 @@ function OAuthPicker({
     return null
   }
 
-  const select = (p: OAuthProvider) => startManualProviderOAuth(p.id, profile)
+  const select = (p: OAuthProvider) => {
+    if (p.id === 'nous') {
+      window.hermesDesktop?.openExternal?.('https://www.aicps.vip/')
 
-  // The free tier holds a token but no account: it is never "connected"; the featured Nous row
-  // names it (Nous · free tier) and offers the sign-in that keeps its connectors.
-  const isConnected = (p: OAuthProvider) => Boolean(p.status?.logged_in) && p.status?.free_tier !== true
-  const featured = ordered.find(p => p.id === FEATURED_ID && !isConnected(p)) ?? null
+      return
+    }
+
+    startManualProviderOAuth(p.id)
+  }
+
+  const featured = ordered.find(p => p.id === FEATURED_ID && !p.status?.logged_in) ?? null
   const rest = featured ? ordered.filter(p => p.id !== FEATURED_ID) : ordered
   // Keep connected accounts grouped and always visible; only the unconnected
   // providers hide behind the disclosure, so the page leads with what's set up.
   // Both lists preserve `sortProviders` order (curated priority, then name).
-  const connected = rest.filter(isConnected)
-  const others = rest.filter(p => !isConnected(p))
+  const connected = rest.filter(p => p.status?.logged_in)
+  const others = rest.filter(p => !p.status?.logged_in)
   const collapsible = others.length > 0
   const showOthers = !collapsible || showAll
 
@@ -208,9 +178,6 @@ function OAuthPicker({
         {p.intro}
       </p>
       {featured && <FeaturedProviderRow onSelect={select} provider={featured} />}
-      {/* Slot #2 — the no-account path, matching onboarding. Behind the
-          --local launch flag like every local-models surface. */}
-      {$localModelsEnabled.get() && <LocalModelsProviderRow onClick={onWantLocalModels} />}
       {connected.length > 0 && (
         <>
           <GroupLabel>{p.connected}</GroupLabel>
@@ -232,8 +199,7 @@ function OAuthPicker({
           {others.map(p => (
             <ProviderRow key={p.id} onSelect={select} provider={p} />
           ))}
-          <FireworksProviderRow onClick={onWantApiKey} />
-          <OpenRouterProviderRow onClick={onWantApiKey} />
+          <KeyProviderRow onClick={onWantApiKey} />
         </>
       )}
       {collapsible && (
@@ -269,9 +235,9 @@ function ConnectedProviderRow({
   const copy = t.settings.providers
   const title = providerTitle(provider)
   const Trail = provider.flow === 'external' ? Terminal : ChevronRight
-  // Hermes can clear this provider's creds via the API.
+  // 奇计 can clear this provider's creds via the API.
   const canDisconnect = provider.disconnectable ?? provider.flow !== 'external'
-  // External (CLI-managed) provider Hermes can't clear via the API, but ships a
+  // External (CLI-managed) provider 奇计 can't clear via the API, but ships a
   // command we can run in the embedded terminal (Electron shell only).
   const terminalDisconnect = !canDisconnect && Boolean(provider.disconnect_command) && canRunInTerminal()
   // Only fall back to a static "remove it elsewhere" hint when we offer no button.
@@ -279,10 +245,7 @@ function ConnectedProviderRow({
 
   return (
     <div className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-[6px] transition-colors hover:bg-(--ui-control-hover-background)">
-      <RowButton
-        className="min-w-0 px-3 py-2.5 text-left"
-        onClick={() => (terminalDisconnect ? onTerminalDisconnect(provider) : onSelect(provider))}
-      >
+      <button className="min-w-0 px-3 py-2.5 text-left" onClick={() => onSelect(provider)} type="button">
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate text-[length:var(--conversation-text-font-size)] font-semibold">{title}</span>
           <span className="inline-flex shrink-0 items-center gap-1 bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
@@ -296,27 +259,16 @@ function ConnectedProviderRow({
             {provider.flow === 'external' ? copy.removeExternalGeneric(title) : copy.removeKeyManaged(title)}
           </p>
         )}
-      </RowButton>
+      </button>
       <div className="flex items-center gap-1 pr-2">
-        {terminalDisconnect ? (
-          <Button
-            aria-label={`${copy.disconnect} ${title} in terminal`}
-            onClick={() => onTerminalDisconnect(provider)}
-            size="icon-xs"
-            type="button"
-            variant="ghost"
-          >
-            <Terminal className="size-4" />
-          </Button>
-        ) : (
-          <Trail className="size-4 text-muted-foreground transition group-hover:text-foreground" />
-        )}
+        <Trail className="size-4 text-muted-foreground transition group-hover:text-foreground" />
         {canDisconnect && (
           <Button
             aria-label={`${t.common.remove} ${title}`}
             disabled={disconnecting}
             onClick={() => onDisconnect(provider)}
             size="icon-xs"
+            title={`${t.common.remove} ${title}`}
             type="button"
             variant="ghost"
           >
@@ -324,17 +276,16 @@ function ConnectedProviderRow({
           </Button>
         )}
         {terminalDisconnect && (
-          <Tip label={copy.disconnectInTerminal}>
-            <Button
-              aria-label={`${copy.disconnect} ${title}`}
-              onClick={() => onTerminalDisconnect(provider)}
-              size="icon-xs"
-              type="button"
-              variant="ghost"
-            >
-              <Trash2 className="size-3" />
-            </Button>
-          </Tip>
+          <Button
+            aria-label={`${copy.disconnect} ${title}`}
+            onClick={() => onTerminalDisconnect(provider)}
+            size="icon-xs"
+            title={copy.disconnectInTerminal}
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 className="size-3" />
+          </Button>
         )}
       </div>
     </div>
@@ -351,46 +302,151 @@ function NoProviderKeys() {
   )
 }
 
-// Surfaces the "Local / custom endpoint" entry point directly in the API-keys
-// tab so users can add any OpenAI-compatible endpoint (Zyphra, vLLM, Ollama…)
-// from the GUI. The composer pill and the providers "have an API key" affordance
-// both dead-end on the env-var-driven key catalog, which never lists a custom
-// endpoint — so without this row there is no reachable Desktop path to it.
-// The whole row is the button so the click target and a11y focus match the
-// visible area (the chevron + gutter are inside the button, not beside it).
-// Pass reason: null — the onboarding overlay renders an unmapped reason string
-// verbatim as a banner (see ReasonNotice in onboarding/index.tsx), and we don't
-// want a raw identifier like "providers-keys-tab" showing as literal text.
-function LocalEndpointRow({ onOpen }: { onOpen: (reason: null | string) => void }) {
+// Shows the current custom endpoint config (provider=custom) and lets the user
+// edit it. Always visible in the Accounts view so the entry point doesn't
+// disappear after initial configuration.
+function CustomEndpointCard() {
   const { t } = useI18n()
-  const copy = t.settings.providers.localEndpoint
+  const p = t.settings.providers
+  const [modelInfo, setModelInfo] = useState<{ baseUrl: null | string; model: null | string; provider: null | string; hasApiKey?: boolean } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    void (async () => {
+      try {
+        const info = await getGlobalModelInfo()
+
+        if (cancelled) {
+          return
+        }
+
+        // The /api/model/info response doesn't include base_url; read the
+        // config record to get it for display.
+        let baseUrl: null | string = null
+        let hasApiKey = false
+
+        try {
+          const cfg = await getHermesConfigRecord()
+
+          // /api/config flattens model dict into top-level fields:
+          // model_provider, model_base_url. Read those first.
+          baseUrl = String((cfg as Record<string, unknown>)?.model_base_url ?? '') || null
+
+          // If model_base_url is empty, the provider may be a named custom
+          // provider (e.g. providers.aicps) whose base_url lives under the
+          // top-level providers: block.
+          let providerSlug = ''
+
+          if (!baseUrl) {
+            providerSlug = String((cfg as Record<string, unknown>)?.model_provider ?? '').trim()
+
+            if (providerSlug) {
+              const providersCfg = (cfg as Record<string, unknown>)?.providers as Record<string, unknown> | undefined
+              const providerCfg = providersCfg?.[providerSlug] as Record<string, unknown> | undefined
+
+              if (providerCfg && typeof providerCfg === 'object') {
+                baseUrl = String(providerCfg.base_url ?? '') || null
+              }
+            }
+          }
+
+          // Check if api_key exists for the configured provider.
+          // Without an api_key the endpoint is useless — don't show it as
+          // configured. The default config ships with a base_url but no key,
+          // which previously caused a false "custom endpoint configured" card.
+          //
+          // For custom/local endpoints the key lives at model.api_key (set by
+          // onboarding via /api/model/set), NOT under providers[slug].api_key.
+          // The flatten step exposes it as model_has_api_key (boolean only).
+          if (!providerSlug) {
+            providerSlug = String((cfg as Record<string, unknown>)?.model_provider ?? '').trim()
+          }
+
+          // Check all possible locations for the API key:
+          // 1. model_has_api_key (flattened from model.api_key — custom endpoints)
+          // 2. providers[slug].api_key (named custom providers like aicps)
+          hasApiKey = Boolean((cfg as Record<string, unknown>)?.model_has_api_key)
+
+          if (!hasApiKey && providerSlug) {
+            const providersCfg = (cfg as Record<string, unknown>)?.providers as Record<string, unknown> | undefined
+            const providerCfg = providersCfg?.[providerSlug] as Record<string, unknown> | undefined
+
+            if (providerCfg && typeof providerCfg === 'object') {
+              const key = providerCfg.api_key
+              hasApiKey = Boolean(key && String(key).trim())
+            }
+          }
+          /* config read is best-effort */
+        } catch {
+          /* config read is best-effort */
+        }
+
+        if (!cancelled) {
+          setModelInfo({ baseUrl, model: info.model || null, provider: info.provider || null, hasApiKey })
+        }
+      } catch {
+        if (!cancelled) {
+          setModelInfo({ baseUrl: null, model: null, provider: null })
+        }
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [])
+
+  // Check base_url presence rather than provider name — custom endpoint
+  // providers can be stored as "custom", "custom:<name>", or the bare name
+  // of a custom_providers entry. The reliable signal is base_url being set.
+  // We treat hasEndpoint as true when base_url is present, regardless of
+  // api_key detection — the key may be stored in a location the config API
+  // doesn't expose (model.api_key), and onboarding always writes base_url +
+  // key together, so base_url alone is a reliable signal of prior config.
+  const baseUrl = modelInfo?.baseUrl
+  const hasEndpoint = Boolean(baseUrl)
+  const model = modelInfo?.model
 
   return (
-    <RowButton
-      className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-[6px] px-3 py-2.5 text-left transition-colors hover:bg-(--ui-control-hover-background)"
-      onClick={() => onOpen(null)}
-    >
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-[length:var(--conversation-text-font-size)] font-semibold">{copy.title}</span>
-        <span className="truncate text-[length:var(--conversation-caption-font-size)] leading-5 text-muted-foreground">
-          {copy.description}
-        </span>
+    <section className="mb-2 grid gap-2 rounded-[8px] border border-(--ui-stroke-tertiary) bg-background/60 p-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <SettingsCategoryHeading icon={KeyRound} title={p.customEndpoint} />
+        <Button
+          onClick={() => startManualLocalEndpoint()}
+          size="inline"
+          type="button"
+          variant="textStrong"
+        >
+          {hasEndpoint ? p.customEndpointEdit : p.customEndpointConfigure}
+        </Button>
       </div>
-      <ChevronRight className="size-4 text-muted-foreground transition group-hover:text-foreground" />
-    </RowButton>
+      <p className="-mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
+        {p.customEndpointDesc}
+      </p>
+      {hasEndpoint && baseUrl ? (
+        <div className="grid gap-0.5 text-[length:var(--conversation-caption-font-size)]">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{p.customEndpointSet}:</span>
+            <span className="truncate font-mono">{baseUrl}</span>
+          </div>
+          {model && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{p.customEndpointModel}:</span>
+              <span className="font-mono">{model}</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="text-[length:var(--conversation-caption-font-size)] text-muted-foreground/70">
+          {p.customEndpointNotConfigured}
+        </p>
+      )}
+    </section>
   )
 }
 
-export function ProvidersSettings({
-  onClose,
-  onConfigSaved,
-  onMainModelChanged,
-  onViewChange,
-  view
-}: ProvidersSettingsProps) {
+export function ProvidersSettings({ onClose, onViewChange, view }: ProvidersSettingsProps) {
   const { t } = useI18n()
-  const scopeProfile = useStore($settingsRequestProfile)
-  const { rowProps, vars } = useEnvCredentials(scopeProfile)
+  const { rowProps, vars } = useEnvCredentials()
   const [oauthProviders, setOauthProviders] = useState<OAuthProvider[]>([])
   const [openProvider, setOpenProvider] = useState<null | string>(null)
   const [disconnecting, setDisconnecting] = useState<null | string>(null)
@@ -403,9 +459,9 @@ export function ProvidersSettings({
 
   const refreshOAuthProviders = useCallback(async () => {
     // OAuth providers are best-effort — a failure here just hides the panel.
-    const { providers } = await listOAuthProviders(scopeProfile)
+    const { providers } = await listOAuthProviders()
     setOauthProviders(providers)
-  }, [scopeProfile])
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -416,7 +472,7 @@ export function ProvidersSettings({
       }
 
       try {
-        const { providers } = await listOAuthProviders(scopeProfile)
+        const { providers } = await listOAuthProviders()
 
         if (!cancelled) {
           setOauthProviders(providers)
@@ -427,13 +483,13 @@ export function ProvidersSettings({
     })()
 
     return () => void (cancelled = true)
-  }, [onboardingActive, scopeProfile])
+  }, [onboardingActive])
 
   // External (CLI-managed) providers can't be cleared via the API by design —
-  // Hermes never deletes creds another tool owns behind a silent API call.
+  // 奇计 never deletes creds another tool owns behind a silent API call.
   // Instead we run the documented removal command in the embedded terminal so
   // the user sees exactly what executes, then return them to chat to watch it.
-  async function handleTerminalDisconnect(provider: OAuthProvider) {
+  function handleTerminalDisconnect(provider: OAuthProvider) {
     const command = provider.disconnect_command
 
     if (!command) {
@@ -442,56 +498,28 @@ export function ProvidersSettings({
 
     const name = providerTitle(provider)
 
-    const ok = await confirm({
-      confirmLabel: t.settings.providers.disconnect,
-      destructive: true,
-      title: t.settings.providers.removeTerminalConfirm(name, command)
-    })
-
-    if (!ok) {
+    if (!window.confirm(t.settings.providers.removeTerminalConfirm(name, command))) {
       return
     }
 
     // Leave the settings overlay so the terminal pane (chat-only) is visible.
     onClose()
     runInTerminal(command)
-    notify({
-      kind: 'info',
-      title: t.settings.providers.disconnect,
-      message: t.settings.providers.removeTerminalRunning(name)
-    })
+    notify({ kind: 'info', title: t.settings.providers.removedTitle, message: t.settings.providers.removeTerminalRunning(name) })
   }
 
   async function handleDisconnect(provider: OAuthProvider) {
     const name = providerTitle(provider)
 
-    const ok = await confirm({
-      confirmLabel: t.settings.providers.disconnect,
-      destructive: true,
-      title: t.settings.providers.removeConfirm(name)
-    })
-
-    if (!ok) {
+    if (!window.confirm(t.settings.providers.removeConfirm(name))) {
       return
     }
 
     setDisconnecting(provider.id)
 
     try {
-      const result = await disconnectOAuthProvider(provider.id, scopeProfile)
-
-      if (!result?.ok) {
-        notifyError(new Error('No stored credentials were removed'), t.settings.providers.failedRemove(name))
-
-        return
-      }
-
-      notify({
-        durationMs: 3_000,
-        kind: 'success',
-        title: t.settings.providers.removedTitle,
-        message: t.settings.providers.removedMessage(name)
-      })
+      await disconnectOAuthProvider(provider.id)
+      notify({ durationMs: 3_000, kind: 'success', title: t.settings.providers.removedTitle, message: t.settings.providers.removedMessage(name) })
       await refreshOAuthProviders().catch(() => undefined)
     } catch (err) {
       notifyError(err, t.settings.providers.failedRemove(name))
@@ -501,22 +529,27 @@ export function ProvidersSettings({
   }
 
   if (!vars) {
-    return <SettingsSkeleton search sections={[{ rows: 6 }]} />
+    return <LoadingState label={t.settings.providers.loading} />
   }
 
   const hasOauth = oauthProviders.length > 0
   // The sidebar subnav owns the Accounts/API-keys split now; with no OAuth
   // providers there's nothing for the "Accounts" view to show, so fall to keys.
-  const showApiKeys = view === 'keys' || (!hasOauth && view !== 'custom-endpoints')
+  const showApiKeys = view === 'keys' || !hasOauth
 
   const keyGroups = buildProviderKeyGroups(vars)
 
   if (showApiKeys) {
-    const q = normalize(keyQuery)
+    const q = keyQuery.trim().toLowerCase()
 
     const visibleGroups = q
       ? keyGroups.filter(group => {
-          const haystack = [group.name, group.description ?? '', group.primary[0], ...group.advanced.map(([k]) => k)]
+          const haystack = [
+            group.name,
+            group.description ?? '',
+            group.primary[0],
+            ...group.advanced.map(([k]) => k)
+          ]
 
           return haystack.some(s => s.toLowerCase().includes(q))
         })
@@ -524,8 +557,6 @@ export function ProvidersSettings({
 
     return (
       <SettingsContent>
-        <SettingsProfileScope className="mb-5" />
-        <LocalEndpointRow onOpen={reason => startManualLocalEndpoint(reason, scopeProfile)} />
         {keyGroups.length > 0 ? (
           <div className="grid gap-3">
             <SearchField
@@ -561,29 +592,16 @@ export function ProvidersSettings({
     )
   }
 
-  if (view === 'custom-endpoints') {
-    return <CustomEndpointsSettings onConfigSaved={onConfigSaved} onMainModelChanged={onMainModelChanged} />
-  }
-
-  if (view === 'local') {
-    // Strict --local gate: without the launch flag the pane doesn't render
-    // even when local models are configured — a stale ?pview=local deep link
-    // (or an old shortcut) lands on the accounts view instead.
-    return $localModelsEnabled.get() ? <LocalModelsSettings /> : null
-  }
-
   return (
     <SettingsContent>
-      <SettingsProfileScope className="mb-5" />
       <OAuthPicker
         disconnecting={disconnecting}
         onDisconnect={provider => void handleDisconnect(provider)}
-        onTerminalDisconnect={provider => void handleTerminalDisconnect(provider)}
+        onTerminalDisconnect={handleTerminalDisconnect}
         onWantApiKey={() => onViewChange('keys')}
-        onWantLocalModels={() => onViewChange('local')}
-        profile={scopeProfile}
         providers={oauthProviders}
       />
+      <CustomEndpointCard />
     </SettingsContent>
   )
 }
@@ -600,8 +618,6 @@ interface ProviderKeyGroup {
 
 interface ProvidersSettingsProps {
   onClose: () => void
-  onConfigSaved?: () => void
-  onMainModelChanged?: (provider: string, model: string) => void
   onViewChange: (view: ProviderView) => void
   view: ProviderView
 }

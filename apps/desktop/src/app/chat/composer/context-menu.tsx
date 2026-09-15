@@ -18,7 +18,6 @@ import { useI18n } from '@/i18n'
 import { Clipboard, FileText, FolderOpen, type IconComponent, ImageIcon, Link, MessageSquareText } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
-import { useComposerAttachmentProviders } from './contrib'
 import { GHOST_ICON_BTN } from './controls'
 import type { ChatBarState } from './types'
 
@@ -40,14 +39,11 @@ export function ContextMenu({
   // window (composer "+" anchor), so we promoted it to a real Dialog —
   // easier to grow with search / descriptions, and no positioning math.
   const [snippetsOpen, setSnippetsOpen] = useState(false)
-  // `composer.attachments` contributions — plugin/core-registered rows that
-  // extend this menu through the same registry as every other surface.
-  const attachmentProviders = useComposerAttachmentProviders()
 
   return (
     <>
       <DropdownMenu>
-        <Tip label={state.tools.label} placement="control">
+        <Tip label={state.tools.label} side="top">
           <DropdownMenuTrigger asChild>
             <Button
               aria-label={state.tools.label}
@@ -77,11 +73,7 @@ export function ContextMenu({
           <ContextMenuItem disabled={!onPickImages} icon={ImageIcon} onSelect={onPickImages}>
             {c.images}
           </ContextMenuItem>
-          <ContextMenuItem
-            disabled={!onPasteClipboardImage}
-            icon={Clipboard}
-            onSelect={onPasteClipboardImage ? () => void onPasteClipboardImage() : undefined}
-          >
+          <ContextMenuItem disabled={!onPasteClipboardImage} icon={Clipboard} onSelect={onPasteClipboardImage}>
             {c.pasteImage}
           </ContextMenuItem>
           <ContextMenuItem icon={Link} onSelect={onOpenUrlDialog}>
@@ -93,18 +85,6 @@ export function ContextMenu({
           <ContextMenuItem icon={MessageSquareText} onSelect={() => setSnippetsOpen(true)}>
             {c.promptSnippets}
           </ContextMenuItem>
-
-          {attachmentProviders.length > 0 && <DropdownMenuSeparator />}
-          {attachmentProviders.map(provider => (
-            <DropdownMenuItem
-              className="text-[length:var(--conversation-tool-font-size)] focus:bg-(--ui-bg-tertiary)"
-              key={provider.key}
-              onSelect={() => void provider.run({ insertText: onInsertText })}
-            >
-              <Codicon name={provider.icon ?? 'plug'} size="0.875rem" />
-              <span>{provider.label}</span>
-            </DropdownMenuItem>
-          ))}
 
           <DropdownMenuSeparator />
 
@@ -127,7 +107,7 @@ function PromptSnippetsDialog({ onInsertText, onOpenChange, open }: PromptSnippe
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md gap-3">
         <DialogHeader>
           <DialogTitle>{c.snippetsTitle}</DialogTitle>
           <DialogDescription>{c.snippetsDesc}</DialogDescription>
@@ -187,7 +167,7 @@ interface ContextMenuItemProps {
 interface ContextMenuProps {
   onInsertText: (text: string) => void
   onOpenUrlDialog: () => void
-  onPasteClipboardImage?: (opts?: { silent?: boolean }) => Promise<boolean> | void
+  onPasteClipboardImage?: () => void
   onPickFiles?: () => void
   onPickFolders?: () => void
   onPickImages?: () => void

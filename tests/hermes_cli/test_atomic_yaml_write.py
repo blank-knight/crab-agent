@@ -3,7 +3,7 @@
 from unittest.mock import patch
 
 import pytest
-import hermes_yaml as yaml
+import yaml
 
 from utils import atomic_yaml_write
 
@@ -25,7 +25,7 @@ class TestAtomicYamlWrite:
         original = {"preserved": True}
         target.write_text(yaml.safe_dump(original), encoding="utf-8")
 
-        with patch("utils.yaml.safe_dump", side_effect=SimulatedAbort):
+        with patch("utils.yaml.dump", side_effect=SimulatedAbort):
             with pytest.raises(SimulatedAbort):
                 atomic_yaml_write(target, {"new": True})
 
@@ -33,36 +33,11 @@ class TestAtomicYamlWrite:
         assert len(tmp_files) == 0
         assert yaml.safe_load(target.read_text(encoding="utf-8")) == original
 
+    def test_appends_extra_content(self, tmp_path):
+        target = tmp_path / "data.yaml"
 
-    def test_writes_unicode_unescaped_and_round_trips(self, tmp_path):
-        """Emoji/kaomoji are written as real UTF-8, not fragile escape sequences.
-
-        Regression for GitHub #51356: without allow_unicode=True, PyYAML emitted
-        astral-plane chars (emoji) as 8-digit `\\UXXXXXXXX` escapes inside
-        multi-line double-quoted strings wrapped with `\\` continuations, which
-        stricter/non-PyYAML parsers and hand-edits broke into unclosed quotes,
-        corrupting the entire config.
-        """
-        target = tmp_path / "config.yaml"
-        # Mirrors the default personalities + skin cursor shipped in cli.py.
-        data = {
-            "personalities": {
-                "kawaii": "kawaii desu~! (◕‿◕) ★ ♪ ヽ(>∀<☆)ノ",
-                "catgirl": "nya~! (=^･ω･^=) ฅ^•ﻌ•^ฅ",
-                "surfer": "Cowabunga! 🤙 totally rad bro",
-                "hype": "LET'S GOOOO!!! 🔥 LEGENDARY!",
-            },
-            "display": {"cursor": " ▉"},
-        }
-
-        atomic_yaml_write(target, data)
+        atomic_yaml_write(target, {"key": "value"}, extra_content="\n# comment\n")
 
         text = target.read_text(encoding="utf-8")
-        # No escape artifacts of any kind — real characters on disk.
-        assert "\\U" not in text
-        assert "\\u" not in text
-        # Real glyphs are present verbatim.
-        assert "🔥" in text
-        assert "(=^･ω･^=)" in text
-        # And it reloads to exactly what was written.
-        assert yaml.safe_load(text) == data
+        assert "key: value" in text
+        assert "# comment" in text

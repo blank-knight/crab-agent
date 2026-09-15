@@ -1,65 +1,31 @@
-import { LOCALE_ENDONYMS } from '@hermes/shared/i18n'
-
-import { normalize } from '@/lib/text'
-
 import type { Locale } from './types'
 
-export const DEFAULT_LOCALE: Locale = 'en'
+export const DEFAULT_LOCALE: Locale = 'zh'
 
 export const LOCALE_OPTIONS = [
   {
     id: 'en',
-    name: LOCALE_ENDONYMS.en,
+    name: 'English',
     englishName: 'English',
     configValue: 'en'
   },
   {
     id: 'zh',
-    name: LOCALE_ENDONYMS.zh,
+    name: '简体中文',
     englishName: 'Simplified Chinese',
     configValue: 'zh'
   },
   {
     id: 'zh-hant',
-    name: LOCALE_ENDONYMS['zh-hant'],
+    name: '繁體中文',
     englishName: 'Traditional Chinese',
     configValue: 'zh-hant'
   },
   {
     id: 'ja',
-    name: LOCALE_ENDONYMS.ja,
+    name: '日本語',
     englishName: 'Japanese',
     configValue: 'ja'
-  },
-  {
-    id: 'ar',
-    name: LOCALE_ENDONYMS.ar,
-    englishName: 'Arabic',
-    configValue: 'ar'
-  },
-  {
-    id: 'ru',
-    name: LOCALE_ENDONYMS.ru,
-    englishName: 'Russian',
-    configValue: 'ru'
-  },
-  {
-    id: 'fr',
-    name: LOCALE_ENDONYMS.fr,
-    englishName: 'French',
-    configValue: 'fr'
-  },
-  {
-    id: 'de',
-    name: LOCALE_ENDONYMS.de,
-    englishName: 'German',
-    configValue: 'de'
-  },
-  {
-    id: 'es',
-    name: LOCALE_ENDONYMS.es,
-    englishName: 'Spanish',
-    configValue: 'es'
   }
 ] as const satisfies readonly { configValue: string; englishName: string; id: Locale; name: string }[]
 
@@ -96,58 +62,7 @@ const LOCALE_ALIASES: Record<string, Locale> = {
   zh_hant_hk: 'zh-hant',
   ja: 'ja',
   'ja-jp': 'ja',
-  ja_jp: 'ja',
-  ar: 'ar',
-  'ar-sa': 'ar',
-  ar_sa: 'ar',
-  'ar-ae': 'ar',
-  ar_ae: 'ar',
-  'ar-eg': 'ar',
-  ar_eg: 'ar',
-  arabic: 'ar',
-  العربية: 'ar',
-  ru: 'ru',
-  'ru-ru': 'ru',
-  ru_ru: 'ru',
-  'ru-by': 'ru',
-  'ru-kz': 'ru',
-  russian: 'ru',
-  'russian-russian': 'ru',
-  русский: 'ru',
-  руский: 'ru',
-  fr: 'fr',
-  'fr-fr': 'fr',
-  fr_fr: 'fr',
-  'fr-be': 'fr',
-  fr_be: 'fr',
-  'fr-ca': 'fr',
-  fr_ca: 'fr',
-  'fr-ch': 'fr',
-  fr_ch: 'fr',
-  french: 'fr',
-  français: 'fr',
-  francais: 'fr',
-  de: 'de',
-  'de-de': 'de',
-  de_de: 'de',
-  'de-at': 'de',
-  de_at: 'de',
-  'de-ch': 'de',
-  de_ch: 'de',
-  german: 'de',
-  deutsch: 'de',
-  es: 'es',
-  'es-es': 'es',
-  es_es: 'es',
-  'es-mx': 'es',
-  es_mx: 'es',
-  'es-ar': 'es',
-  es_ar: 'es',
-  'es-419': 'es',
-  es_419: 'es',
-  spanish: 'es',
-  español: 'es',
-  espanol: 'es'
+  ja_jp: 'ja'
 }
 
 export function isLocale(value: unknown): value is Locale {
@@ -159,39 +74,25 @@ export function normalizeLocale(value: unknown): Locale {
     return DEFAULT_LOCALE
   }
 
-  return LOCALE_ALIASES[normalize(value)] ?? DEFAULT_LOCALE
+  return LOCALE_ALIASES[value.trim().toLowerCase()] ?? DEFAULT_LOCALE
 }
 
 export function isSupportedLocaleValue(value: unknown): boolean {
-  return typeof value === 'string' && LOCALE_ALIASES[normalize(value)] != null
-}
-
-/** OS tags can include regions absent from the picker aliases, such as ru-UA. */
-export function osPreferredLocale(tag: string | null | undefined): Locale | null {
-  if (!tag) {
-    return null
-  }
-
-  const exact = LOCALE_ALIASES[normalize(tag)]
-
-  if (exact) {
-    return exact
-  }
-
-  const base = tag.split(/[-_]/)[0]
-
-  return (base && LOCALE_ALIASES[normalize(base)]) || null
-}
-
-/** An explicit choice must win even when it differs from the OS language. */
-export function resolveInitialLocale(saved: string | null | undefined, osLocale: string | null | undefined): Locale {
-  if (isSupportedLocaleValue(saved)) {
-    return normalizeLocale(saved)
-  }
-
-  return osPreferredLocale(osLocale) ?? DEFAULT_LOCALE
+  return typeof value === 'string' && LOCALE_ALIASES[value.trim().toLowerCase()] != null
 }
 
 export function localeConfigValue(locale: Locale): string {
   return LOCALE_OPTIONS.find(item => item.id === locale)?.configValue ?? DEFAULT_LOCALE
+}
+
+/**
+ * 从浏览器/系统语言设置推断 locale（兜底用，不依赖 gateway config）。
+ * navigator.language 返回如 "zh-CN"、"en-US"、"ja-JP"。
+ */
+export function detectSystemLocale(): Locale {
+  if (typeof navigator === 'undefined' || !navigator.language) {
+    return DEFAULT_LOCALE
+  }
+
+  return normalizeLocale(navigator.language)
 }

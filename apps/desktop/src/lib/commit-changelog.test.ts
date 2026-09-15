@@ -50,6 +50,7 @@ describe('buildCommitChangelog', () => {
     ])
 
     expect(groups.map(g => g.id)).toEqual(['new', 'fixed', 'faster'])
+    expect(groups[0]).toMatchObject({ label: "What's new" })
     expect(groups[0].items[0]).toBe('Add NSIS prereq detection page')
     expect(groups[1].items[0]).toBe('Jitter when dragging')
   })
@@ -76,9 +77,7 @@ describe('buildCommitChangelog', () => {
   it('falls back to a neutral placeholder when every commit is filtered or empty', () => {
     const groups = buildCommitChangelog([{ summary: 'chore: bump' }, { summary: 'ci: stuff' }])
 
-    expect(groups).toHaveLength(1)
-    expect(groups[0].id).toBe('other')
-    expect(groups[0].items).toHaveLength(1)
+    expect(groups).toEqual([{ id: 'other', items: ['Improvements and fixes'], label: 'In this update' }])
   })
 
   it('dedupes identical subjects and caps the items per group', () => {

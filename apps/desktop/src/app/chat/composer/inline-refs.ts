@@ -1,5 +1,4 @@
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
-import { translateNow } from '@/i18n'
 import { contextPath } from '@/lib/chat-runtime'
 
 import type { DroppedFile } from '../hooks/use-composer-actions'
@@ -8,29 +7,50 @@ import {
   composerPlainText,
   normalizeComposerEditorDom,
   placeCaretEnd,
-  refChipElement,
-  RICH_INPUT_SLOT
+  refChipElement
 } from './rich-editor'
 
 /** A chip to insert: a raw `@kind:value` string, or a typed value + display label. */
 export type InlineRefInput = string | { kind: string; label?: string; value: string }
 
-/** A dragged sidebar session — carried in-memory by the pointer drag session
- *  (session-drag.ts); sessions never ride native DnD. */
+/** MIME for an in-app session drag (sidebar row → composer). */
+export const HERMES_SESSION_MIME = 'application/x-hermes-session'
+
 export interface SessionDragPayload {
   id: string
   profile: string
   title: string
 }
 
-/** A session's friendly display label — its title, or a localized fallback. */
-export const sessionLabel = ({ id, title }: SessionDragPayload) =>
-  title || translateNow('sidebar.row.untitledChat', id.slice(0, 8))
+export function writeSessionDrag(transfer: DataTransfer, payload: SessionDragPayload) {
+  transfer.setData(HERMES_SESSION_MIME, JSON.stringify(payload))
+  transfer.effectAllowed = 'copy'
+}
+
+export function dragHasSession(transfer: DataTransfer | null) {
+  return Boolean(transfer) && Array.from(transfer!.types || []).includes(HERMES_SESSION_MIME)
+}
+
+export function readSessionDrag(transfer: DataTransfer | null): null | SessionDragPayload {
+  const raw = transfer?.getData(HERMES_SESSION_MIME)
+
+  if (!raw) {
+    return null
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<SessionDragPayload>
+
+    return parsed.id ? { id: parsed.id, profile: parsed.profile || 'default', title: parsed.title || '' } : null
+  } catch {
+    return null
+  }
+}
 
 /** Build a `@session:<profile>/<id>` chip. Value carries the metadata the agent
  * needs to resolve the link (session_search); label shows the friendly title. */
-export function sessionInlineRef(payload: SessionDragPayload): InlineRefInput {
-  return { kind: 'session', label: sessionLabel(payload), value: `${payload.profile || 'default'}/${payload.id}` }
+export function sessionInlineRef({ id, profile, title }: SessionDragPayload): InlineRefInput {
+  return { kind: 'session', label: title || `chat ${id.slice(0, 8)}`, value: `${profile || 'default'}/${id}` }
 }
 
 export function dragHasAttachments(transfer: DataTransfer | null, pathsMime: string) {
@@ -38,15 +58,11 @@ export function dragHasAttachments(transfer: DataTransfer | null, pathsMime: str
     return false
   }
 
-  const types = Array.from(transfer.types || [])
-
-  // A browser link drag carries `text/uri-list` (on Windows also a virtual
-  // shortcut File); accept it so the link lands as an `@url:` chip.
-  if (types.includes(pathsMime) || types.includes('text/uri-list')) {
+  if (Array.from(transfer.types || []).includes(pathsMime)) {
     return true
   }
 
-  if (types.includes('Files')) {
+  if (Array.from(transfer.types || []).includes('Files')) {
     return true
   }
 
@@ -54,10 +70,6 @@ export function dragHasAttachments(transfer: DataTransfer | null, pathsMime: str
 }
 
 export function droppedFileInlineRef(candidate: DroppedFile, cwd: string | null | undefined) {
-  if (candidate.url) {
-    return `@url:${formatRefValue(candidate.url)}`
-  }
-
   if (!candidate.path) {
     return null
   }
@@ -106,12 +118,7 @@ function plainTextInRange(editor: HTMLDivElement, range: Range, edge: 'after' | 
     slice.setStart(range.endContainer, range.endOffset)
   }
 
-  // Carry the editor's slot marker: composerPlainText appends a trailing "\n"
-  // to any other block element, so a bare <div> made `beforeText` always look
-  // like it ended in whitespace and the separating space was never inserted —
-  // a chip dropped after a word came out glued to it (`review@file:...`).
   const container = document.createElement('div')
-  container.dataset.slot = RICH_INPUT_SLOT
   container.appendChild(slice.cloneContents())
 
   return composerPlainText(container)
@@ -142,30 +149,18 @@ function buildRefFragment(
   return fragment
 }
 
-export function insertInlineRefsIntoEditor(
-  editor: HTMLDivElement,
-  refs: readonly InlineRefInput[],
-  { interactive = true }: { interactive?: boolean } = {}
-) {
+export function insertInlineRefsIntoEditor(editor: HTMLDivElement, refs: readonly InlineRefInput[]) {
   const parsed = refs.map(parseInlineRef).filter((ref): ref is NonNullable<typeof ref> => ref !== null)
-  const hasEmptySentinel = editor.childNodes.length === 1 && editor.firstChild?.nodeName === 'BR'
 
   if (!parsed.length) {
     return null
   }
 
-  if (hasEmptySentinel) {
-    editor.replaceChildren()
-  }
+  editor.focus({ preventScroll: true })
 
-  if (interactive) {
-    editor.focus({ preventScroll: true })
-  }
-
-  const selection = interactive ? window.getSelection() : null
-
+  const selection = window.getSelection()
   const range =
-    !hasEmptySentinel && selection?.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)
+    selection?.rangeCount && editor.contains(selection.getRangeAt(0).commonAncestorContainer)
       ? selection.getRangeAt(0)
       : null
 
@@ -191,10 +186,7 @@ export function insertInlineRefsIntoEditor(
         needsBeforeSpace: current.length > 0 && !/\s$/.test(current)
       })
     )
-
-    if (interactive) {
-      placeCaretEnd(editor)
-    }
+    placeCaretEnd(editor)
   }
 
   normalizeComposerEditorDom(editor)

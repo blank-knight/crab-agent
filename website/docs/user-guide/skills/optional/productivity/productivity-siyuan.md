@@ -1,14 +1,14 @@
 ---
-title: "Siyuan — Query and edit a SiYuan knowledge base via its API"
+title: "Siyuan"
 sidebar_label: "Siyuan"
-description: "Query and edit a SiYuan knowledge base via its API"
+description: "SiYuan Note API for searching, reading, creating, and managing blocks and documents in a self-hosted knowledge base via curl"
 ---
 
 {/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
 # Siyuan
 
-Query and edit a SiYuan knowledge base via its API.
+SiYuan Note API for searching, reading, creating, and managing blocks and documents in a self-hosted knowledge base via curl.
 
 ## Skill metadata
 
@@ -21,7 +21,7 @@ Query and edit a SiYuan knowledge base via its API.
 | License | MIT |
 | Platforms | linux, macos, windows |
 | Tags | `SiYuan`, `Notes`, `Knowledge Base`, `PKM`, `API` |
-| Related skills | [`obsidian`](../../bundled/note-taking/note-taking-obsidian.md), [`notion`](../../bundled/productivity/productivity-notion.md) |
+| Related skills | [`obsidian`](/docs/user-guide/skills/bundled/note-taking/note-taking-obsidian), [`notion`](/docs/user-guide/skills/bundled/productivity/productivity-notion) |
 
 ## Reference: full SKILL.md
 

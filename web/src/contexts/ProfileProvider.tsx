@@ -5,14 +5,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useLocation, useSearchParams } from "react-router";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { api, setManagementProfile } from "@/lib/api";
 import { ProfileContext } from "@/contexts/profile-context";
-import {
-  dashboardInitialProfile,
-  initialProfileScope,
-  shouldAdoptActiveProfile,
-} from "@/lib/profile-bootstrap";
 
 /**
  * Machine-level management-profile scope.
@@ -43,13 +38,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const [profiles, setProfiles] = useState<string[]>([]);
   const [currentProfile, setCurrentProfile] = useState("default");
-  const bootstrapProfile = dashboardInitialProfile();
 
-  // An explicit URL wins; profile-less deep links inherit the unified-launch
-  // preselection injected by the server. Afterwards state leads and the URL
-  // follows.
+  // Initial value comes from the URL (deep link / refresh / unified-launch
+  // preselect); afterwards state leads and the URL follows.
   const [profile, setProfileState] = useState(
-    () => initialProfileScope(searchParams, bootstrapProfile),
+    () => searchParams.get("profile") ?? "",
   );
 
   // Mirror into the api module synchronously on every render where it
@@ -99,17 +92,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const active = info.active || "default";
         setCurrentProfile(current);
 
-        // Explicit URL and unified-launch bootstrap scopes win. Without
-        // either, align the switcher with the sticky active profile so Chat
-        // and management pages match what Profiles shows as "active".
-        if (
-          shouldAdoptActiveProfile(
-            urlProfile,
-            bootstrapProfile,
-            current,
-            active,
-          )
-        ) {
+        // Deep links (?profile=) win. Otherwise align the switcher with the
+        // sticky active profile so Chat and management pages match what the
+        // Profiles page shows as "active" (machine dashboard runs as
+        // `current`, usually default).
+        if (urlProfile === null && active !== current) {
           setManagementProfile(active);
           setProfileState(active);
         }

@@ -1,14 +1,14 @@
 ---
-title: "Docker Management — Manage Docker containers, images, volumes, and Compose"
+title: "Docker Management"
 sidebar_label: "Docker Management"
-description: "Manage Docker containers, images, volumes, and Compose"
+description: "Manage Docker containers, images, volumes, networks, and Compose stacks — lifecycle ops, debugging, cleanup, and Dockerfile optimization"
 ---
 
 {/* This page is auto-generated from the skill's SKILL.md by website/scripts/generate-skill-docs.py. Edit the source SKILL.md, not this page. */}
 
 # Docker Management
 
-Manage Docker containers, images, volumes, and Compose.
+Manage Docker containers, images, volumes, networks, and Compose stacks — lifecycle ops, debugging, cleanup, and Dockerfile optimization.
 
 ## Skill metadata
 
@@ -194,8 +194,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Password comes from the POSTGRES_PASSWORD secret, not the URL
-      - DATABASE_URL=postgres://mydb_user@db:5432/mydb
+      - DATABASE_URL=postgres://user:pass@db:5432/mydb
     depends_on:
       db:
         condition: service_healthy
