@@ -70,6 +70,18 @@ const { gitRootForIpc } = require('./git-root.cjs')
 const { worktreesForIpc } = require('./git-worktrees.cjs')
 const { OFFICIAL_REPO_HTTPS_URL, isOfficialSshRemote } = require('./update-remote.cjs')
 const { readLocalHeadSha, checkUpdatesViaHttp } = require('./update-http-fallback.cjs')
+const {
+  alreadyHasDisableGpu,
+  buildDisableGpuRelaunchArgs,
+  decideWindowsGpuStackCookieLaunch,
+  gpuStackCookieFallbackMarker,
+  isHermesDesktopGpuOverrideOff,
+  markerAfterSuccessfulGpuStackCookieBoot,
+  readGpuStackCookieMarker,
+  shouldRelaunchForRendererStackCookieCrashLoop,
+  shouldSurfaceErrorForRendererStackCookieCrashLoop,
+  writeGpuStackCookieMarker
+} = require('./windows-stack-cookie-fallback.cjs')
 const { runRebuildWithRetry } = require('./update-rebuild.cjs')
 const {
   buildPosixCleanupScript,
@@ -176,6 +188,43 @@ if (REMOTE_DISPLAY_REASON) {
 }
 
 ipcMain.handle('hermes:get-remote-display-reason', () => REMOTE_DISPLAY_REASON)
+
+// ── 上游 #108047：Windows 0xC0000409 渲染进程崩溃循环自愈 ──
+// 部分 Windows 主机渲染进程反复死于 STATUS_STACK_BUFFER_OVERRUN
+// (0xC0000409)。恢复手段是禁 GPU（不是降 sandbox——那条路由
+// STATUS_BREAKPOINT / #38216 专属）。必须在 app `ready` 之前执行；
+// 上面 remote-display 块已套过开关时跳过，但仍维护 sticky per-version
+// marker 让开始菜单启动也能恢复。来源：上游 2e36513ef9 + 085d9ee608。
+let windowsGpuStackCookieFallbackActive = false
+let windowsGpuStackCookieFallbackSticky = false
+let windowsGpuStackCookieRelaunchAttempted = false
+
+if (IS_WINDOWS) {
+  const windowsGpuUserData = app.getPath('userData')
+  const gpuStackCookieDecision = decideWindowsGpuStackCookieLaunch({
+    argv: process.argv,
+    marker: readGpuStackCookieMarker(windowsGpuUserData),
+    env: process.env,
+    appVersion: app.getVersion()
+  })
+
+  windowsGpuStackCookieFallbackActive = gpuStackCookieDecision.enable
+  windowsGpuStackCookieFallbackSticky = gpuStackCookieDecision.nextMarker.state === 'fallback'
+
+  try {
+    writeGpuStackCookieMarker(windowsGpuUserData, gpuStackCookieDecision.nextMarker)
+  } catch {
+    void 0
+  }
+
+  if (gpuStackCookieDecision.enable && !REMOTE_DISPLAY_REASON) {
+    app.disableHardwareAcceleration()
+    app.commandLine.appendSwitch('disable-gpu-compositing')
+    console.log(
+      `[hermes] Windows GPU stack-cookie fallback enabled (${gpuStackCookieDecision.reason}); disabling GPU hardware acceleration (0xC0000409 / #108047)`
+    )
+  }
+}
 
 // Keep the renderer running at full speed while the window is in the background
 // or occluded. The chat transcript streams to screen through a
@@ -6335,6 +6384,21 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show()
+
+    // ── 上游 #108047：成功启动后更新 GPU stack-cookie marker ──
+    // 本次启动若为该问题禁了 GPU（sticky），保持 fallback；否则标记
+    // 干净启动，让下次应用更新可以重新探测硬件加速。
+    try {
+      writeGpuStackCookieMarker(
+        app.getPath('userData'),
+        markerAfterSuccessfulGpuStackCookieBoot({
+          fallbackActive: windowsGpuStackCookieFallbackSticky,
+          appVersion: app.getVersion()
+        })
+      )
+    } catch (error) {
+      rememberLog(`[gpu] stack-cookie marker update after main-window reveal failed: ${error?.message || error}`)
+    }
   })
 
   mainWindow.on('will-enter-full-screen', () => sendWindowStateChanged(true))
@@ -6376,6 +6440,60 @@ function createWindow() {
         rememberLog(
           `[renderer] suppressing reload: ${rendererReloadTimes.length} crashes within ${RENDERER_RELOAD_WINDOW_MS}ms (likely a crash loop)`
         )
+
+        // ── 上游 #108047：0xC0000409 崩溃循环一次性禁 GPU 重启 ──
+        // 检查先于一切：确保 0xC0000409 永远不会搭 --no-sandbox 便车。
+        // 若 GPU fallback 无法执行，则维持本 fork 原有死窗口兜底
+        // （上游加载错误页；本 fork 无该页面设施，不新增 UI，仅记日志）。
+        const stackCookieCrashLoop = {
+          reason: details?.reason,
+          exitCode: details?.exitCode,
+          alreadyGpuDisabled:
+            Boolean(REMOTE_DISPLAY_REASON) ||
+            windowsGpuStackCookieFallbackActive ||
+            alreadyHasDisableGpu(process.argv, process.env),
+          relaunchAttempted: windowsGpuStackCookieRelaunchAttempted,
+          gpuOverrideOff: isHermesDesktopGpuOverrideOff(process.env)
+        }
+
+        if (shouldRelaunchForRendererStackCookieCrashLoop(stackCookieCrashLoop)) {
+          windowsGpuStackCookieRelaunchAttempted = true
+          windowsGpuStackCookieFallbackActive = true
+          windowsGpuStackCookieFallbackSticky = true
+
+          try {
+            writeGpuStackCookieMarker(
+              app.getPath('userData'),
+              gpuStackCookieFallbackMarker('renderer-crash-loop', app.getVersion())
+            )
+          } catch {
+            void 0
+          }
+
+          rememberLog(
+            '[renderer] Windows stack-cookie crash loop (0xC0000409); relaunching once with GPU disabled (#108047)'
+          )
+
+          try {
+            // 与 update-relaunch 同款惯用法：relaunch 登记 + app.exit(0)
+            // 立即退出，绕过 will-quit 的清理路径（before-quit 里的
+            // backend SIGTERM/日志 flush 由 electron 内部 quit 流程兜底）。
+            app.relaunch({ args: buildDisableGpuRelaunchArgs(process.argv.slice(1)) })
+            app.exit(0)
+          } catch (err) {
+            rememberLog(`[renderer] GPU-disable relaunch failed: ${err?.message || err}`)
+          }
+
+          return
+        }
+
+        if (shouldSurfaceErrorForRendererStackCookieCrashLoop(stackCookieCrashLoop)) {
+          rememberLog(
+            '[renderer] Windows stack-cookie crash loop (0xC0000409) with GPU fallback unavailable; keeping window suppressed (#108047)'
+          )
+
+          return
+        }
 
         return
       }
