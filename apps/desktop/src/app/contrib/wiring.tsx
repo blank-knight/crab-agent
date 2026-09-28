@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from 'react-router'
 
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { BootFailureOverlay } from '@/components/boot-failure-overlay'
+import { ClientUpdateOverlay } from '@/components/client-update-overlay'
 import { ConfirmHost } from '@/components/confirm-host'
 import { DesktopInstallOverlay } from '@/components/desktop-install-overlay'
 import { ExternalOpenFailedDialog } from '@/components/external-open-failed-dialog'
@@ -43,6 +44,7 @@ import { activateWakeIndicator } from '@/lib/wake-indicator'
 import { playWakeSound } from '@/lib/wake-sound'
 import { $billingSettingsRequest } from '@/store/billing-block'
 import { $desktopBoot } from '@/store/boot'
+import { checkClientUpdate } from '@/store/client-update'
 import { requestVoiceConversationStart } from '@/store/composer'
 import { $activeConnectionId } from '@/store/connections'
 import { $cronReviewRequest, setCronFocusJobId } from '@/store/cron'
@@ -221,6 +223,13 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const backendRestartRequest = useStore($backendRestartRequest)
   const cronReviewRequest = useStore($cronReviewRequest)
   const currentCwd = useStore($currentCwd)
+
+  // qiji: 客户端更新检查（URL 通道：PHP 后端 /update/check → downloadurl）。
+  // git 更新轮询不适用（离线包无 git 仓库）；DEV 豁免在 store 内（连生产后端
+  // 的 dev 实例不会误触发强制更新阻断开发）。
+  useEffect(() => {
+    void checkClientUpdate()
+  }, [])
 
   // Generic in-app route intents raised by toast recovery buttons (Open Keys,
   // Open Gateways, Maintenance …) fired from stores with no router context.
@@ -1333,6 +1342,8 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       {/* The full real overlay set (mirrors DesktopController's `overlays`). */}
       <RemoteDisplayBanner />
       {!isAuxiliaryWindow() && <DesktopInstallOverlay />}
+      {/* 客户端更新覆盖层：强制更新阻断 / 下载进度（登录页之上） */}
+      {!isAuxiliaryWindow() && <ClientUpdateOverlay />}
       {!isAuxiliaryWindow() && (
         <OnboardingChatGate
           enabled={gatewayState === 'open'}

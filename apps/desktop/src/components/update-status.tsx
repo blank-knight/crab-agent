@@ -9,6 +9,7 @@ import { type Translations, useI18n } from '@/i18n'
 import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, RefreshCw } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { shortVersion } from '@/lib/version-label'
+import { checkClientUpdate } from '@/store/client-update'
 import {
   $backendUpdateApply,
   $backendUpdateChecking,
@@ -282,6 +283,11 @@ export function UpdateStatusCard({
 
   const handleCheck = async (): Promise<void> => {
     setJustChecked(false)
+    // qiji: 客户端更新走 fa_version URL 通道（PHP 后端），与 git 通道并行检查——
+    // 生产 build 的 git 通道已在主进程短路为 unsupported，fa_version 才是真实结果。
+    if (!isBackend) {
+      void checkClientUpdate({ manual: true })
+    }
     const next = await (isBackend ? checkBackendUpdates({ force: true }) : checkUpdates({ force: true }))
     setJustChecked(Boolean(next))
   }
