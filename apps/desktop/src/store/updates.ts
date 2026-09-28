@@ -244,8 +244,17 @@ function isRemoteMode(): boolean {
 function mapBackendCheck(res: BackendUpdateCheckResponse): DesktopUpdateStatus {
   const behind = res.behind ?? 0
 
+  // 上游 #119801：`behind: null` 来自受支持(git)后端时是端点的"检查没跑成"
+  // 答案(GitHub 不可达/限流/离线),解释在 `message` 里。折成 0 会让浮层
+  // 在检查失败时报"后端已是最新版"并吞掉该消息。映射为本地检查路径
+  // 已用的失败态,浮层显示原因+重试;只有真正跑过的检查才允许说"没有
+  // 更新"。不能自更新的后端也答 behind: null,但 can_apply: false 先走
+  // 不支持分支——那些不能变成失败。
+  const checkFailed = res.can_apply && res.behind === null
+
   return {
     supported: res.can_apply,
+    error: checkFailed ? 'check-failed' : undefined,
     message: res.message ?? undefined,
     behind: behind > 0 ? behind : 0,
     targetSha: res.update_available ? `backend:${res.current_version}` : undefined,

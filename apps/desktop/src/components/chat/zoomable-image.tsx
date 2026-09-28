@@ -1,12 +1,14 @@
 'use client'
 
-import { type ComponentProps, useState } from 'react'
+import { useStore } from '@nanostores/react'
+import { type ComponentProps } from 'react'
 
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useImageDownload } from '@/hooks/use-image-download'
 import { useI18n } from '@/i18n'
 import { Download } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { $transcriptLightbox, closeTranscriptLightbox, openTranscriptLightbox } from '@/store/transcript-lightbox'
 
 export interface ZoomableImageProps extends ComponentProps<'img'> {
   containerClassName?: string
@@ -22,7 +24,13 @@ export function ZoomableImage({ className, containerClassName, src, alt, slot, .
   const { t } = useI18n()
   const copy = t.desktop
   const { download, saving } = useImageDownload(src)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
+  // 上游 #123018：打开标志放在按源身份键控的 store 里，不是组件局部
+  // state——流式输出时聊天行（及其中 markdown 叶子）会例行重挂载
+  // （渲染预算分片丢行、流式重解析重挂叶子），以前会把用户打开的
+  // 灯箱无操作地关掉。重挂载的行读同一个 store，重新呈现自己开着的
+  // 对话框。
+  const openSrc = useStore($transcriptLightbox)
+  const lightboxOpen = openSrc !== null && openSrc === src
   const canOpen = Boolean(src)
 
   return (
@@ -34,7 +42,7 @@ export function ZoomableImage({ className, containerClassName, src, alt, slot, .
         <button
           className="contents"
           disabled={!canOpen}
-          onClick={() => canOpen && setLightboxOpen(true)}
+          onClick={() => canOpen && openTranscriptLightbox(src ?? '')}
           title={canOpen ? copy.openImage : undefined}
           type="button"
         >
@@ -49,7 +57,7 @@ export function ZoomableImage({ className, containerClassName, src, alt, slot, .
           alt={alt}
           copy={copy}
           onClick={download}
-          onOpenChange={setLightboxOpen}
+          onOpenChange={open => (open ? openTranscriptLightbox(src ?? '') : closeTranscriptLightbox(src ?? ''))}
           open={lightboxOpen}
           saving={saving}
           src={src}
