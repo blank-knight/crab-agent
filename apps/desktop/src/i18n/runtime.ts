@@ -63,6 +63,12 @@ export function getRuntimeI18nLocale(): Locale {
   return $runtimeLocale.get()
 }
 
+/** qiji: 当前是否中文（zh / zh-hant）——技能翻译层用 */
+export function isZhLocale(): boolean {
+  const locale = $runtimeLocale.get()
+  return locale === 'zh' || locale === 'zh-hant'
+}
+
 export function translateNow(key: string, ...args: unknown[]): string {
   return translateFrom(locale => TRANSLATIONS[locale], $runtimeLocale.get(), key, args)
 }

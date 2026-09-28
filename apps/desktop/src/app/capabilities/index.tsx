@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
+import { cn } from '@/lib/utils'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { useStoreSelector } from '@/lib/use-session-slice'
@@ -11,6 +12,7 @@ import { $gateway } from '@/store/gateway'
 import { OFFICIAL_SKILLS_KEY } from '@/store/hub-actions'
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
+import { PAGE_INSET_X } from '../layout-constants'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { PanelEmpty } from '../overlays/panel'
 import { PageSearchShell } from '../page-search-shell'
@@ -18,6 +20,7 @@ import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { prefetchCatalogWhenIdle } from './catalog/catalog-data'
 import { ConnectorsTab } from './connectors/connectors-tab'
+import { MarketPanel } from '../skills/market-panel'
 import { PluginsTab } from './plugins/plugins-tab'
 import { CapabilityScopeSelector, useCapabilityScope } from './scope-selector'
 import { SKILLS_QUERY_KEY, skillSearchTerms, useSkillsQuery } from './skills/skills-data'
@@ -28,7 +31,7 @@ import { ToolsetsTab } from './toolsets/toolsets-tab'
 
 // Skills Hub browsing lives inside the Skills tab. Legacy `?tab=hub`
 // links fall back to 'skills' via useRouteEnumParam.
-const CAPABILITY_MODES = ['skills', 'toolsets', 'connectors', 'plugins'] as const
+const CAPABILITY_MODES = ['skills', 'toolsets', 'connectors', 'plugins', 'market'] as const
 
 type CapabilityMode = (typeof CAPABILITY_MODES)[number]
 
@@ -164,6 +167,12 @@ export function CapabilitiesView({
         skills={skills ?? []}
       />
     ),
+    // qiji 0.17.7+: 技能广场——平台运营的上架技能市场（后端 skillmarket 接口）
+    market: () => (
+      <div className={cn('h-full overflow-y-auto py-3', PAGE_INSET_X)}>
+        <MarketPanel />
+      </div>
+    ),
     toolsets: () => (
       <ToolsetsTab key={`toolsets-${scope.key}`} profile={scope.profile} query={query} toolsets={toolsets ?? []} />
     )
@@ -190,7 +199,8 @@ export function CapabilitiesView({
         { id: 'skills', label: t.skills.tabSkills, meta: skills?.length ?? null },
         { id: 'toolsets', label: t.skills.tabToolsets, meta: toolsets ? visibleToolsetCount(toolsets) : null },
         { id: 'connectors', label: t.connectorsPage.title },
-        { id: 'plugins', label: t.skills.tabPlugins }
+        { id: 'plugins', label: t.skills.tabPlugins },
+        { id: 'market', label: t.settings.account.skillmarket.title }
       ]}
     >
       <div className="flex h-full flex-col">
