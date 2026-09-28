@@ -226,12 +226,29 @@ function MediaAttachment({ path }: { path: string }) {
 }
 
 function childrenToText(children: unknown): string {
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children).trim()
+  return flattenChildrenToText(children).trim()
+}
+
+// 上游 #121321：[`v1.0.1`](url) 的标签到达时是 <code> 元素而非纯
+// 字符串——扁平化提取文本作为 fallbackLabel；以前直接丢弃会让链接
+// 落进 title 拉取 / URL-slug 兜底路径。
+function flattenChildrenToText(node: unknown): string {
+  if (node === null || node === undefined || typeof node === 'boolean') {
+    return ''
   }
 
-  if (Array.isArray(children) && children.every(c => typeof c === 'string' || typeof c === 'number')) {
-    return children.join('').trim()
+  if (typeof node === 'string' || typeof node === 'number') {
+    return String(node)
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(flattenChildrenToText).join('')
+  }
+
+  if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
+    const element = node as { props?: { children?: unknown } }
+
+    return flattenChildrenToText(element.props?.children)
   }
 
   return ''

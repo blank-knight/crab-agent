@@ -101,10 +101,20 @@ export function urlSlugTitleLabel(value: string): string {
       continue
     }
 
-    const titled = cleaned.replace(/\b[a-z]/g, c => c.toUpperCase())
+    // 上游 #121321：词组 slug 照旧首字母大写（`some-guide` →
+    // `Some Guide`），但"看起来像大小写敏感标识符"的无分隔符 token
+    // ——含数字、点或混合大小写，如 release tag（`v1.0.1`）或文件名
+    // （`README.md`）——保留精确大小写，链接永不发明不同的标识符。
+    // 纯小写词（`quantumcomputing`）仍首字母大写。
+    const looksLikeIdentifier = /\d/.test(cleaned) || /[A-Z]/.test(cleaned) || cleaned.includes('.')
 
-    if (titled.length >= 4) {
-      return titled
+    const label =
+      looksLikeIdentifier && !cleaned.includes(' ')
+        ? cleaned
+        : cleaned.replace(/\b[a-z]/g, c => c.toUpperCase())
+
+    if (label.length >= 4) {
+      return label
     }
   }
 
