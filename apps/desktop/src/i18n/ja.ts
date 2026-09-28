@@ -504,7 +504,9 @@ export const ja = defineLocale({
       about: '情報',
       billing: '請求',
       notifications: '通知',
-      vault: 'パスワードとログイン'
+      vault: 'パスワードとログイン',
+      market: 'テーママーケット',
+      account: 'アカウント'
     },
     vault: {
       title: 'パスワードとログイン',

@@ -911,7 +911,9 @@ export const en: Translations = {
       about: 'About',
       billing: 'Billing',
       notifications: 'Notifications',
-      vault: 'Passwords & Logins'
+      vault: 'Passwords & Logins',
+      market: 'Theme Market',
+      account: 'Account'
     },
     plugins: {
       title: 'Desktop plugins',

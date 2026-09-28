@@ -604,7 +604,9 @@ export const zh = defineLocale({
       about: '关于',
       billing: '账单',
       notifications: '通知',
-      vault: '密码与登录'
+      vault: '密码与登录',
+      market: '主题市场',
+      account: '个人中心'
     },
     vault: {
       title: '密码与登录',

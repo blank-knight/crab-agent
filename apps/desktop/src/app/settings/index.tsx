@@ -18,17 +18,20 @@ import {
   Info,
   Keyboard,
   KeyRound,
+  Palette,
   RefreshCw,
   Search,
   Settings2,
   ShieldLock,
   Upload,
+  Users,
   Wrench,
   Zap
 } from '@/lib/icons'
 import { isEditableTarget } from '@/lib/keybinds/combo'
 import { typeToFocusChar } from '@/lib/keybinds/composer-focus-keys'
 import { cn } from '@/lib/utils'
+import { $auth } from '@/store/auth'
 import { $commandPaletteOpen, openCommandPalettePage } from '@/store/command-palette'
 import { confirm } from '@/store/confirm'
 import { $activeConnectionId } from '@/store/connections'
@@ -43,6 +46,7 @@ import { OverlayMain, OverlayNav, type OverlayNavGroup, OverlaySplitLayout } fro
 import { OverlayView } from '../overlays/overlay-view'
 
 import { AboutSettings } from './about-settings'
+import { AccountSettings } from './account-settings'
 import { AppearanceSettings } from './appearance-settings'
 import { BILLING_VIEWS, BillingSettings, type BillingSubView } from './billing'
 import { deriveBillingView, useBillingState, useSubscriptionState } from './billing/use-billing-state'
@@ -51,6 +55,7 @@ import { SECTIONS } from './constants'
 import { GatewaySettings } from './gateway-settings'
 import { KeybindSettings } from './keybind-settings'
 import { KEYS_VIEWS, KeysSettings, type KeysView } from './keys-settings'
+import { MarketSettings } from './market-settings'
 import { movedSettingsTabRedirect } from './moved-tabs'
 import { NotificationsSettings } from './notifications-settings'
 import { SettingsBreadcrumbContext } from './primitives'
@@ -73,6 +78,8 @@ const SETTINGS_VIEWS: readonly SettingsViewId[] = [
   'vault',
   'notifications',
   'billing',
+  'market',
+  'account',
   'sessions',
   'about'
 ]
@@ -81,6 +88,9 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   const scopeProfile = useStore($settingsScopeProfile)
   const activeConnectionId = useStore($activeConnectionId)
   const { t } = useI18n()
+  // qiji 账号联动：平台 key 用户(is_custom_key=0)隐藏模型配置段；
+  // 已登录才显示个人中心入口
+  const authState = useStore($auth)
   const navigate = useNavigate()
   const { hash, pathname, search } = useLocation()
 
@@ -378,6 +388,25 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             onSelect: () => setActiveView('keys')
           },
           {
+            active: activeView === 'market',
+            icon: Palette,
+            id: 'market',
+            label: t.settings.nav.market,
+            onSelect: () => setActiveView('market')
+          },
+          ...(authState.token
+            ? [
+                {
+                  active: activeView === 'account',
+                  gapBefore: true,
+                  icon: Users,
+                  id: 'account',
+                  label: t.settings.nav.account,
+                  onSelect: () => setActiveView('account')
+                }
+              ]
+            : []),
+          {
             active: activeView === 'sessions',
             icon: Archive,
             id: 'sessions',
@@ -412,6 +441,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
       }),
     [
       activeView,
+      authState.token,
       billingView,
       canViewPlans,
       keysView,
@@ -515,6 +545,10 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   const activeSettingsContent =
     activeView === 'config:appearance' ? (
       <AppearanceSettings subpage={subpage} />
+    ) : activeView === 'market' ? (
+      <MarketSettings />
+    ) : activeView === 'account' ? (
+      <AccountSettings />
     ) : activeView === 'about' ? (
       <AboutSettings subpage={subpage} />
     ) : activeView === 'gateway' || activeView === 'connections' ? (

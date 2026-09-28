@@ -554,7 +554,9 @@ export const ru = defineLocale({
       sessions: 'Сеансы',
       about: 'О программе',
       billing: 'Оплата',
-      notifications: 'Уведомления'
+      notifications: 'Уведомления',
+      market: 'Маркет тем',
+      account: 'Личный кабинет'
     },
     plugins: {
       title: 'Плагины приложения',

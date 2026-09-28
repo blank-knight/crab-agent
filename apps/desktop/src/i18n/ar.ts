@@ -517,7 +517,9 @@ export const ar = defineLocale({
       about: 'حول',
       notifications: 'الإشعارات',
       keybinds: 'اختصارات لوحة المفاتيح',
-      vault: 'كلمات المرور وتسجيلات الدخول'
+      vault: 'كلمات المرور وتسجيلات الدخول',
+      market: 'سوق السمات',
+      account: 'الحساب الشخصي'
     },
     vault: {
       title: 'كلمات المرور وتسجيلات الدخول',

@@ -850,7 +850,9 @@ export const deOverrides = {
       about: 'Über',
       billing: 'Abrechnung',
       notifications: 'Benachrichtigungen',
-      vault: 'Passwörter & Logins'
+      vault: 'Passwörter & Logins',
+      market: 'Theme-Markt',
+      account: 'Konto'
     },
     plugins: {
       title: 'Desktop-Plugins',

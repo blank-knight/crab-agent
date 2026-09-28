@@ -850,7 +850,9 @@ export const esOverrides = {
       about: 'Acerca de',
       billing: 'Facturación',
       notifications: 'Notificaciones',
-      vault: 'Contraseñas e inicios de sesión'
+      vault: 'Contraseñas e inicios de sesión',
+      market: 'Mercado de temas',
+      account: 'Cuenta'
     },
     plugins: {
       title: 'Plugins de escritorio',

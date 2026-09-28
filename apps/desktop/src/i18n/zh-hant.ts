@@ -458,7 +458,9 @@ export const zhHant = defineLocale({
       about: '關於',
       billing: '帳單',
       notifications: '通知',
-      vault: '密碼與登入'
+      vault: '密碼與登入',
+      market: '主題市場',
+      account: '個人中心'
     },
     vault: {
       title: '密碼與登入',

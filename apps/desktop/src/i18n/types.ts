@@ -768,6 +768,8 @@ export interface Translations {
       billing: string
       notifications: string
       vault: string
+      market: string
+      account: string
     }
     plugins: {
       title: string

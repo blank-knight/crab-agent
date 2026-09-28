@@ -849,7 +849,9 @@ export const frOverrides = {
       about: 'À propos',
       billing: 'Facturation',
       notifications: 'Notifications',
-      vault: 'Mots de passe et identifiants'
+      vault: 'Mots de passe et identifiants',
+      market: 'Marché des thèmes',
+      account: 'Compte'
     },
     plugins: {
       title: 'Plugins du desktop',
