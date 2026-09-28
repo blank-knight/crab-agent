@@ -22,6 +22,7 @@ import { ExternalOpenFailedDialog } from '@/components/external-open-failed-dial
 import { FindBar } from '@/components/find-bar'
 import { FreeTierSignInDialog } from '@/components/free-tier/sign-in-dialog'
 import { GatewayConnectingOverlay } from '@/components/gateway-connecting-overlay'
+import { LoginOverlay } from '@/components/login-overlay'
 import { NotificationStack } from '@/components/notifications'
 import { DesktopOnboardingOverlay } from '@/components/onboarding'
 import { OnboardingChatGate } from '@/components/onboarding-chat/gate'
@@ -42,6 +43,7 @@ import { type ChatMessage, chatMessageText } from '@/lib/chat-messages'
 import { isMessagingSource } from '@/lib/session-source'
 import { activateWakeIndicator } from '@/lib/wake-indicator'
 import { playWakeSound } from '@/lib/wake-sound'
+import { $auth, isTokenExpired } from '@/store/auth'
 import { $billingSettingsRequest } from '@/store/billing-block'
 import { $desktopBoot } from '@/store/boot'
 import { checkClientUpdate } from '@/store/client-update'
@@ -216,6 +218,9 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const actionsRef = useRef<WiringActions | null>(null)
 
   const gatewayState = useStore($gatewayState)
+  // qiji: 登录门控派生——useStore($auth) 订阅重渲染,登出/token 过期即弹登录层
+  const authState = useStore($auth)
+  const needLogin = !authState.token || isTokenExpired()
   const activeSessionId = useStore($activeSessionId)
   const billingSettingsRequest = useStore($billingSettingsRequest)
   const poolLimitsSettingsRequest = useStore($poolLimitsSettingsRequest)
@@ -1382,6 +1387,16 @@ export function ContribWiring({ children }: { children: ReactNode }) {
         profile={activeGatewayProfile}
       />
       <UpdatesOverlay />
+      {/* qiji 登录覆盖层：未登录/token 过期时显示，顶层遮罩，不依赖 gatewayState */}
+      {!isAuxiliaryWindow() && needLogin && (
+        <LoginOverlay
+          onLoggedIn={() => {
+            // qiji 账号隔离：登录可能切换了账号（不同专属 profile）。旧账号
+            // 的会话行绝不能残留——立即清空，待列表按新账号的锁重新拉取。
+            $sessions.set([])
+          }}
+        />
+      )}
       <GatewayConnectingOverlay />
       <BootFailureOverlay />
       <CommandPalette />

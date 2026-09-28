@@ -3,6 +3,7 @@ import { atom, batch, computed } from 'nanostores'
 
 import type { HermesConnection } from '@/global'
 import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
+import { accountLockedProfile } from '@/lib/account-profile'
 import { sortByProfileOrder as sortProfilesByOrder } from '@/lib/profile-order'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import {
@@ -951,6 +952,19 @@ $showAllProfiles.subscribe(value => persistBoolean(SHOW_ALL_PROFILES_STORAGE_KEY
 export const $profileScope = computed([$showAllProfiles, $activeGatewayProfile], (showAll, gateway) =>
   showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
 )
+
+// qiji 账号隔离：已登录账号强制退出“所有 profile”聚合视图（localStorage
+// 粘性开关可能在锁定前留下），boot 收尾与会话列表刷新前调用，确保首屏
+// 不拉跨账号数据。
+export function enforceAccountProfileLock(): void {
+  try {
+    if (accountLockedProfile() && $showAllProfiles.get()) {
+      $showAllProfiles.set(false)
+    }
+  } catch {
+    // account-profile 依赖 localStorage/$auth，异常时宁可不锁也不炸
+  }
+}
 
 // Switch the active context to `name`: leave "All profiles" mode, point new
 // chats at it, and swap the single live gateway onto its backend (which moves

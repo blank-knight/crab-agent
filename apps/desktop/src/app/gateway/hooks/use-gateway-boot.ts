@@ -22,6 +22,7 @@ import {
 } from '@/lib/gateway-liveness-policy'
 import { resolveDesktopGatewayWsUrl } from '@/lib/gateway-ws-url'
 import { BACKEND_BOOT_WAIT_TIMEOUT_MS, RECONNECT_ATTEMPT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
+import { $auth, isAuthenticated } from '@/store/auth'
 import {
   $desktopBoot,
   applyDesktopBootProgress,
@@ -65,12 +66,7 @@ import {
 import { watchLocalRuntimeJobs } from '@/store/local-runtime-jobs'
 import { notify, notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
 import { loadPoolLimits } from '@/store/pool-limits'
-import {
-  $activeGatewayProfile,
-  normalizeProfileKey,
-  refreshActiveProfile,
-  touchActiveGatewayBackend
-} from '@/store/profile'
+import { $activeGatewayProfile, enforceAccountProfileLock, normalizeProfileKey, refreshActiveProfile, touchActiveGatewayBackend } from '@/store/profile'
 import { requestBackendRestart } from '@/store/recovery-requests'
 import {
   $activeSessionId,
@@ -269,6 +265,26 @@ export function useGatewayBoot({
     // AFTER the mint but BEFORE the renderer publishes it is newer than the
     // snapshot and would otherwise be lost until the next toggle (#108641).
     let pendingWindowState: HermesWindowState | null = null
+
+    // qiji 登录门控：未登录不启动后端（登录页背后不 boot 旧 profile，
+    // 避免登录切档双 spawn+双 reload 闪烁）。登录成功由 $auth 订阅补启动。
+    // ⚠ nanostores subscribe 会同步先触发一次回调——那时下方 async function
+    // boot 还未声明（TDZ），回调必须 defer 到微任务后执行。
+    let wantBoot = isAuthenticated()
+    let authUnsub: (() => void) | null = null
+
+    if (!wantBoot) {
+      authUnsub = $auth.subscribe(() => {
+        queueMicrotask(() => {
+          if (!wantBoot && isAuthenticated()) {
+            wantBoot = true
+            authUnsub?.()
+            authUnsub = null
+            void boot()
+          }
+        })
+      })
+    }
 
     const publish = (next: HermesConnection | null) => {
       if (next && pendingWindowState) {
@@ -1486,6 +1502,9 @@ export function useGatewayBoot({
           return
         }
 
+        // qiji 账号隔离：boot 收尾兜底——已登录账号强制关掉“所有 profile”
+        // 聚合视图，会话列表刷新前执行，确保首屏不拉跨账号数据。
+        enforceAccountProfileLock()
         completeDesktopBoot()
         bootCompleted = true
         bootRetryAttempt = 0
@@ -1568,12 +1587,13 @@ export function useGatewayBoot({
 
     if (adoptedFromHmr) {
       void adoptBoot()
-    } else {
+    } else if (wantBoot) {
       void boot()
     }
 
     return () => {
       cancelled = true
+      authUnsub?.()
       offSwitchLifecycle()
       endGatewaySwitch()
       clearReconnectTimer()
