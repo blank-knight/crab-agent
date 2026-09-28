@@ -248,6 +248,8 @@ import {
 } from './find-in-page'
 import { createFirstRunSetupGate } from './first-run-setup-gate'
 import { registerFsIpc } from './fs-ipc'
+// qiji 商业层（品牌/壁纸/技能市场/客户端更新/诊断/listDir）— 隔离区模块。
+import { registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme } from './qiji'
 import type {
   GatewayFileSaveContext,
   GatewayFileSaveDeps,
@@ -1525,6 +1527,8 @@ app.setAboutPanelOptions({
 // from this machine; remote paths are proxied through the configured gateway
 // with main-process authentication. This avoids whole-file data URLs and keeps
 // playback seekable and Range-aware. Must be registered before app readiness.
+// qiji: 壁纸协议同窗口注册（渲染层引用本地壁纸绕开 file:// 限制）。
+registerQijiWallpaperScheme()
 protocol.registerSchemesAsPrivileged([
   {
     scheme: MEDIA_PROTOCOL,
@@ -18155,6 +18159,17 @@ registerFsIpc({
 // Git-driven features (worktrees, review pane, repo scan) — see git-ipc.ts.
 registerGitIpc({ resolveGitBinary, resolveGhBinary })
 
+// qiji 商业层 IPC（OEM品牌/壁纸/技能市场/客户端更新/诊断/listDir）。
+// 上游同步注意：merge upstream 时这是唯一的 qiji 接线块之一。
+registerQijiIpc({
+  hermesHome: HERMES_HOME,
+  rememberLog,
+  getMainWindow: () => mainWindow,
+  getTray: () => minimizeToTray.getTray(),
+  resolveHermesVersion: () => app.getVersion() || '0.0.0-dev',
+  readBootstrapMarker
+})
+
 // Client-side loopback callback for MCP OAuth against remote backends — see
 // mcp-oauth-callback-ipc.ts.
 registerMcpOauthCallbackIpc()
@@ -18849,6 +18864,8 @@ app.whenReady().then(() => {
   installMediaPermissions()
   installDownloadHandling()
   registerMediaProtocol()
+  // qiji: 壁纸协议 handler（app ready 后）。
+  registerQijiWallpaperProtocol()
   installEmbedReferer()
   installRemoteHeaderRules()
 

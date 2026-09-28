@@ -301,6 +301,9 @@ export function createMinimizeToTray(options: Options) {
     setEnabled,
     registerWindow,
     restore,
+    // qiji OEM 品牌推送(hermes:oem-brand:set)需要读当前托盘实例更新 tooltip;
+    // 只读访问器,不暴露销毁/重建。
+    getTray: () => tray,
     // Call only AFTER the active-work guard accepts the quit. Cancelling the
     // prompt must leave hiding and its recovery affordance intact.
     beginQuit: () => {
