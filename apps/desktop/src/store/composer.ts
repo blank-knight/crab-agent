@@ -148,6 +148,9 @@ export function removeComposerAttachment(id: string): ComposerAttachment | null 
   const removed = current.find(attachment => attachment.id === id) || null
   $composerAttachments.set(current.filter(attachment => attachment.id !== id))
 
+  // 上游 #63682：移除 chip 时释放它的 blob: 预览。
+  revokeAttachmentPreviewUrl(removed?.previewUrl)
+
   return removed
 }
 
@@ -171,6 +174,11 @@ export function updateComposerAttachment(attachment: ComposerAttachment): boolea
 }
 
 export function clearComposerAttachments() {
+  // 上游 #63682：清空时释放全部 blob: 预览。
+  for (const attachment of $composerAttachments.get()) {
+    revokeAttachmentPreviewUrl(attachment.previewUrl)
+  }
+
   $composerAttachments.set([])
 }
 
@@ -286,6 +294,17 @@ export function clearComposerTerminalSelections() {
   $composerTerminalSelections.set({})
 }
 
+/** 上游 #63682：释放 OS 拖图创建的 blob: chip 预览 URL。 */
+function revokeAttachmentPreviewUrl(url?: string | null) {
+  if (url?.startsWith('blob:')) {
+    try {
+      URL.revokeObjectURL(url)
+    } catch {
+      // 尽力而为——失效 URL 不能打断 chip 移除流程
+    }
+  }
+}
+
 function upsertAttachment(attachments: ComposerAttachment[], attachment: ComposerAttachment) {
   const index = attachments.findIndex(item => item.id === attachment.id)
 
@@ -295,6 +314,12 @@ function upsertAttachment(attachments: ComposerAttachment[], attachment: Compose
 
   const next = [...attachments]
   next[index] = attachment
+
+  // 上游 #63682：被顶掉的旧 blob: 预览要释放（防内存泄漏）。
+  const previous = attachments[index]
+  if (previous?.previewUrl && previous.previewUrl !== attachment.previewUrl) {
+    revokeAttachmentPreviewUrl(previous.previewUrl)
+  }
 
   return next
 }

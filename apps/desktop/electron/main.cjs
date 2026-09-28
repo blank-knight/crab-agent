@@ -1054,10 +1054,19 @@ function openExternalUrl(rawUrl) {
 
   // `file://` URLs come from the artifacts panel (the renderer can't open
   // them itself because Chromium blocks file:// navigation from the app
-  // origin). Hand them to `shell.openPath`, which dispatches to the OS
-  // file association. If the OS can't open it (`error` is a non-empty
-  // string), fall back to revealing the file in the system file manager.
+  // origin). Reveal the file in the system file manager instead of
+  // dispatching to the OS file association: on Windows, archive artifacts
+  // (.gz/.tar) have no usable association, and handing the path back to the
+  // OS shell bounces the open through the default (Chromium) handler, which
+  // re-downloads the file — an infinite download loop (上游 #53170).
+  // Reveal-in-folder never re-opens the file, so it can't loop.
+  //
+  // A short per-path dedupe window additionally absorbs renderer-side double
+  // clicks and retry storms so repeated open requests can't pile up windows.
   if (parsed.protocol === 'file:') {
+    const FILE_REVEAL_DEDUPE_MS = 1_500
+    if (!globalThis.recentFileReveals) globalThis.recentFileReveals = new Map()
+    const recentFileReveals = globalThis.recentFileReveals
     let localPath
     try {
       localPath = resolveRequestedPathForIpc(parsed.toString(), { purpose: 'Open external file' })
@@ -1065,22 +1074,28 @@ function openExternalUrl(rawUrl) {
       return false
     }
 
-    void shell
-      .openPath(localPath)
-      .then(error => {
-        if (!error) {
-          return
-        }
+    const now = Date.now()
+    const lastReveal = recentFileReveals.get(localPath)
 
-        rememberLog(`[file] openPath failed: ${error}; revealing in folder instead`)
+    if (lastReveal !== undefined && now - lastReveal < FILE_REVEAL_DEDUPE_MS) {
+      rememberLog(`[file] duplicate reveal request within ${FILE_REVEAL_DEDUPE_MS}ms; ignored: ${localPath}`)
+      return true
+    }
 
-        try {
-          shell.showItemInFolder(localPath)
-        } catch (revealError) {
-          rememberLog(`[file] showItemInFolder failed: ${revealError.message}`)
-        }
-      })
-      .catch(error => rememberLog(`[file] openPath rejected: ${error.message}`))
+    recentFileReveals.set(localPath, now)
+
+    // Prune stale entries so the map can't grow without bound over a long session.
+    for (const [stalePath, ts] of recentFileReveals) {
+      if (now - ts >= FILE_REVEAL_DEDUPE_MS && stalePath !== localPath) {
+        recentFileReveals.delete(stalePath)
+      }
+    }
+
+    try {
+      shell.showItemInFolder(localPath)
+    } catch (revealError) {
+      rememberLog(`[file] reveal in folder failed: ${revealError.message}`)
+    }
 
     return true
   }

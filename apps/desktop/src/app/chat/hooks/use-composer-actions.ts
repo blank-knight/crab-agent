@@ -329,7 +329,7 @@ export function useComposerActions({ activeSessionId, currentCwd, requestGateway
     [currentCwd]
   )
 
-  const attachImagePath = useCallback(async (filePath: string) => {
+  const attachImagePath = useCallback(async (filePath: string, previewSource?: Blob | null) => {
     if (!filePath) {
       return false
     }
@@ -343,6 +343,18 @@ export function useComposerActions({ activeSessionId, currentCwd, requestGateway
     }
 
     attachToMain(baseAttachment)
+
+    // 上游 #63682：OS 拖拽/剪贴板自带 File/Blob 时，chip 预览用
+    // URL.createObjectURL，绝不把整图 base64 过 IPC（Windows 资源
+    // 管理器拖图会冻结整个窗口的根因）。仅路径可用（回形针选择）
+    // 时保留原 IPC data-URL 预览路径。
+    if (previewSource && previewSource.size > 0) {
+      const previewUrl = URL.createObjectURL(previewSource)
+
+      addComposerAttachment({ ...baseAttachment, previewUrl })
+
+      return true
+    }
 
     try {
       const previewUrl = await window.hermesDesktop?.readFileDataUrl(filePath)
@@ -380,7 +392,10 @@ export function useComposerActions({ activeSessionId, currentCwd, requestGateway
           return false
         }
 
-        return attachImagePath(savedPath)
+        // 上游 #63682：把手里的 blob 直接传给 attachImagePath 做
+        // object-URL chip 预览——不要把刚落盘的临时文件再读成
+        // data URL（二次 base64 过 IPC 就是冻结路径）。
+        return attachImagePath(savedPath, blob)
       } catch (err) {
         notifyError(err, copy.imageAttachFailed)
 
@@ -509,7 +524,11 @@ export function useComposerActions({ activeSessionId, currentCwd, requestGateway
         const isImage = file.type.startsWith('image/') || isImagePath(file.name) || (filePath && isImagePath(filePath))
 
         if (isImage) {
-          if ((filePath && (await attachImagePath(filePath))) || (await attachImageBlob(file))) {
+          // 上游 #63682：blob 优先——把 File 传给 attachImagePath
+          // 直接生成 object-URL 预览，路径仅作兜底（老 shell 存不了
+          // buffer 时）。同时保住 macOS 短命截图路径的 blob 持久化
+          // 优先序（#63682 前的既有行为）。
+          if ((await attachImageBlob(file)) || (filePath && (await attachImagePath(filePath, file)))) {
             attached = true
 
             continue
