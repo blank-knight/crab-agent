@@ -949,9 +949,18 @@ $showAllProfiles.subscribe(value => persistBoolean(SHOW_ALL_PROFILES_STORAGE_KEY
 // gateway so opening/selecting a profile (which swaps the gateway) moves the
 // whole sidebar with it — a real context switch, not a separate filter to keep
 // in sync.
-export const $profileScope = computed([$showAllProfiles, $activeGatewayProfile], (showAll, gateway) =>
-  showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
-)
+// qiji 账号隔离：登录账号锁定专属 profile 时，scope 钉死为锁定 profile。
+// 拉取侧（listAllProfileSessions）同样以锁值为准强制收敛——两侧必须用
+// 同一个真值，否则 boot 竞态下 $activeGatewayProfile 停在初值 'default'
+// 时，渲染过滤条件变成 行profile(acc_xxx) === 'default'，拉回的本人会话
+// 全部被滤掉，侧栏空列表。锁值与拉取收敛同源，不经过可竞态的网关变量。
+export const $profileScope = computed([$showAllProfiles, $activeGatewayProfile], (showAll, gateway) => {
+  const locked = accountLockedProfile()
+
+  if (locked) {return locked}
+
+  return showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
+})
 
 // qiji 账号隔离：已登录账号强制退出“所有 profile”聚合视图（localStorage
 // 粘性开关可能在锁定前留下），boot 收尾与会话列表刷新前调用，确保首屏

@@ -36,6 +36,7 @@ import { displayModelName, modelDisplayParts } from '@/lib/model-status-label'
 import { reasoningEffortLabel } from '@/lib/reasoning-effort'
 import { foldIncludes, normalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
+import { $auth } from '@/store/auth'
 import { $customModels, addCustomModel, customModelCandidate, withCustomModels } from '@/store/custom-models'
 import { $localModelsEnabled } from '@/store/local-models-flag'
 import {
@@ -256,6 +257,23 @@ export function ModelCatalogMenu({
 
   const current = controller.current
 
+  // qiji 平台限定：代理链 models 非空时，菜单只显示清单内的模型
+  const { platformModels } = useStore($auth)
+
+  const filteredProviders = useMemo(() => {
+    const list = pickerProviders
+
+    if (!platformModels.length) {return list}
+    const allow = new Set(platformModels.map(m => m.toLowerCase()))
+
+    return list
+      .map(p => ({
+        ...p,
+        models: (p.models ?? []).filter(m => allow.has(String(m).toLowerCase()))
+      }))
+      .filter(p => (p.models ?? []).length > 0)
+  }, [pickerProviders, platformModels])
+
   const q = normalize(search)
 
   // In-flight downloads render inside the Local provider group when it
@@ -275,8 +293,8 @@ export function ModelCatalogMenu({
   )
 
   const groups = useMemo(
-    () => groupModels(pickerProviders, search, { model: current.model, provider: current.provider }, shownKeys),
-    [pickerProviders, search, current.model, current.provider, shownKeys]
+    () => groupModels(filteredProviders, search, { model: current.model, provider: current.provider }, shownKeys),
+    [filteredProviders, search, current.model, current.provider, shownKeys]
   )
 
   // Presets are searchable rows like everything else — an unfiltered preset

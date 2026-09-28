@@ -61,8 +61,34 @@ export function markReasoningEffortPending(state: ClientSessionState): ClientSes
   return state.reasoningEffortPending === false ? state : { ...state, reasoningEffortPending: true }
 }
 
+// qiji 技能脚手架标记（与服务端 agent/skill_commands.py 的 builder 保持
+// 同语义）。preview 只有前 60 字符，指令 marker 大概率已被截断——能还
+// 原指令就还原，还原不了（截断/裸调用）统一显示「使用技能 <名>」。
+const SKILL_SCAFFOLD_PREFIX_RE = /^\[IMPORTANT: The user has invoked the "([^"]+)"/
+
+export function stripSkillScaffolding(text: string): string {
+  if (!SKILL_SCAFFOLD_PREFIX_RE.test(text)) {
+    return text
+  }
+
+  const m = SKILL_SCAFFOLD_PREFIX_RE.exec(text)
+
+  return m ? `使用技能 ${m[1]}` : text
+}
+
 export function sessionTitle(session: SessionInfo): string {
-  return session.title?.trim() || session.preview?.trim() || 'Untitled session'
+  const title = session.title?.trim()
+
+  if (title) {
+    return title
+  }
+
+  // qiji 技能脚手架清洗：服务端 preview 取首条 user 消息前 60 字符，技能
+  // 直发会话落库的首条消息是 "[IMPORTANT: …]" 脚手架——标题为空等 LLM
+  // 异步生成的窗口期，侧栏会闪英文内部标记。渲染层剥离，别让中间态见人。
+  const preview = stripSkillScaffolding(session.preview?.trim() || '')
+
+  return preview || 'Untitled session'
 }
 
 /** What a session is called before it has been sent — and before its composer
