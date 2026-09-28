@@ -688,7 +688,8 @@ export const en: Translations = {
     exitHud: 'Exit HUD mode',
     resetHudLayout: 'Reset HUD size and position',
     layoutEditor: 'Layout editor',
-    layoutEditorTitle: mod => `Layout editor — ${mod}-click resets the layout`
+    layoutEditorTitle: mod => `Layout editor — ${mod}-click resets the layout`,
+    accountPill: (name, score) => `${name} · credits ${score} (open account)`
   },
 
   keybinds: {
@@ -1373,6 +1374,74 @@ export const en: Translations = {
     },
     about: {
       updates: 'Updates'
+    },
+    account: {
+      heading: 'Account',
+      notLoggedIn: 'Not logged in. Please sign in first.',
+      loadFailed: 'Failed to load profile',
+      retry: 'Retry',
+      profile: {
+        title: 'Profile',
+        nickname: 'Nickname',
+        nicknamePlaceholder: 'Set a nickname',
+        email: 'Email',
+        emailPlaceholder: 'For notifications (optional)',
+        mobile: 'Mobile',
+        agent: 'Agent',
+        joinedAt: 'Joined',
+        save: 'Save',
+        saving: 'Saving…',
+        saved: 'Saved'
+      },
+      avatar: {
+        title: 'Avatar',
+        desc: 'Pick an avatar you like'
+      },
+      score: {
+        title: 'Credits',
+        balance: 'Balance',
+        mode: 'Mode',
+        modeFormal: 'Formal',
+        modeTrial: 'Trial'
+      },
+      recharge: {
+        title: 'Redeem',
+        desc: 'Enter a recharge code from your agent. Credits arrive instantly.',
+        placeholder: 'Enter recharge code',
+        submit: 'Redeem',
+        submitting: 'Redeeming…',
+        success: (added, remain) => `Success: +${added} credits, balance ${remain}`
+      },
+      plans: {
+        title: 'Plans',
+        empty: 'No plans available',
+        buy: 'Buy',
+        buying: 'Creating order…',
+        payDisabled: 'Online payment unavailable',
+        payOpened: 'Payment page opened, credits arrive automatically',
+        paid: 'Paid, credits delivered',
+        unit: 'credits',
+        contactAgent: 'Contact your provider'
+      },
+      scorelogs: {
+        title: 'History',
+        empty: 'No records yet',
+        loadMore: 'Load more',
+        noMore: 'No more',
+        cols: { time: 'Time', memo: 'Description', change: 'Change', balance: 'Balance' }
+      },
+      skillmarket: {
+        title: 'Skill Market',
+        desc: 'Browse and install platform skills. Restart to activate',
+        empty: 'No skills yet',
+        install: 'Install',
+        installing: 'Installing…',
+        installed: 'Installed',
+        installOk: 'Installed. Restart the app to activate',
+        installFail: 'Install failed',
+        loadFail: 'Failed to load skills',
+        downloads: 'downloads'
+      }
     },
     config: {
       minimizeToTrayTitle: 'Minimize to tray',

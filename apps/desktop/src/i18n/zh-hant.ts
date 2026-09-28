@@ -354,7 +354,8 @@ export const zhHant = defineLocale({
     unmuteHaptics: '開啟觸感回饋',
     openSettings: '開啟設定',
     openStarmap: '開啟記憶圖譜',
-    resetHudLayout: '重設 HUD 大小和位置'
+    resetHudLayout: '重設 HUD 大小和位置',
+    accountPill: (name, score) => `${name} · 積分 ${score}（點擊開啟個人中心）`
   },
 
   language: {
@@ -1104,6 +1105,74 @@ export const zhHant = defineLocale({
     },
     about: {
       updates: '更新'
+    },
+    account: {
+      heading: '個人中心',
+      notLoggedIn: '未登入，請先登入奇計帳號',
+      loadFailed: '載入個人資訊失敗',
+      retry: '重試',
+      profile: {
+        title: '個人資訊',
+        nickname: '暱稱',
+        nicknamePlaceholder: '設定一個暱稱',
+        email: '電子郵件',
+        emailPlaceholder: '用於接收通知（選填）',
+        mobile: '手機號碼',
+        agent: '所屬代理',
+        joinedAt: '註冊時間',
+        save: '儲存修改',
+        saving: '儲存中…',
+        saved: '已儲存'
+      },
+      avatar: {
+        title: '頭像',
+        desc: '選擇一個喜歡的頭像'
+      },
+      score: {
+        title: '積分',
+        balance: '剩餘積分',
+        mode: '帳號模式',
+        modeFormal: '正式',
+        modeTrial: '體驗'
+      },
+      recharge: {
+        title: '積分儲值',
+        desc: '輸入代理發放的儲值碼，兌換後積分立即到帳',
+        placeholder: '請輸入儲值碼',
+        submit: '兌換',
+        submitting: '兌換中…',
+        success: (added, remain) => `儲值成功：+${added} 積分，目前餘額 ${remain}`
+      },
+      plans: {
+        title: '方案購買',
+        empty: '暫無可購方案',
+        buy: '購買',
+        buying: '下單中…',
+        payDisabled: '暫未開通線上支付',
+        payOpened: '已開啟支付頁面，完成後積分自動到帳',
+        paid: '支付成功，積分已到帳',
+        unit: '積分',
+        contactAgent: '聯絡服務商開通'
+      },
+      scorelogs: {
+        title: '積分明細',
+        empty: '暫無紀錄',
+        loadMore: '載入更多',
+        noMore: '沒有更多了',
+        cols: { time: '時間', memo: '說明', change: '變動', balance: '餘額' }
+      },
+      skillmarket: {
+        title: '技能市場',
+        desc: '瀏覽並安裝平台提供的擴充技能，安裝後重新啟動生效',
+        empty: '暫無上架技能',
+        install: '安裝',
+        installing: '安裝中…',
+        installed: '已安裝',
+        installOk: '安裝成功，重新啟動桌面端後生效',
+        installFail: '安裝失敗',
+        loadFail: '技能列表載入失敗',
+        downloads: '次下載'
+      }
     },
     config: {
       minimizeToTrayTitle: '最小化至系統匣',

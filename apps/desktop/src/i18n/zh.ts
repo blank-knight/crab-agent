@@ -398,7 +398,8 @@ export const zh = defineLocale({
     exitHud: '退出 HUD 模式',
     resetHudLayout: '重置 HUD 大小和位置',
     layoutEditor: '布局编辑器',
-    layoutEditorTitle: mod => `布局编辑器 — ${mod} 点击重置布局`
+    layoutEditorTitle: mod => `布局编辑器 — ${mod} 点击重置布局`,
+    accountPill: (name, score) => `${name} · 积分 ${score}（点击打开个人中心）`
   },
 
   keybinds: {
@@ -1320,6 +1321,74 @@ export const zh = defineLocale({
     },
     about: {
       updates: '更新'
+    },
+    account: {
+      heading: '个人中心',
+      notLoggedIn: '未登录，请先登录奇计账号',
+      loadFailed: '加载个人信息失败',
+      retry: '重试',
+      profile: {
+        title: '个人信息',
+        nickname: '昵称',
+        nicknamePlaceholder: '设置一个昵称',
+        email: '邮箱',
+        emailPlaceholder: '用于接收通知（选填）',
+        mobile: '手机号',
+        agent: '所属代理',
+        joinedAt: '注册时间',
+        save: '保存修改',
+        saving: '保存中…',
+        saved: '已保存'
+      },
+      avatar: {
+        title: '头像',
+        desc: '选择一个喜欢的头像'
+      },
+      score: {
+        title: '积分',
+        balance: '剩余积分',
+        mode: '账号模式',
+        modeFormal: '正式',
+        modeTrial: '体验'
+      },
+      recharge: {
+        title: '积分充值',
+        desc: '输入代理发放的充值码，兑换后积分立即到账',
+        placeholder: '请输入充值码',
+        submit: '兑换',
+        submitting: '兑换中…',
+        success: (added, remain) => `充值成功：+${added} 积分，当前余额 ${remain}`
+      },
+      plans: {
+        title: '套餐购买',
+        empty: '暂无可购套餐',
+        buy: '购买',
+        buying: '下单中…',
+        payDisabled: '暂未开通在线支付',
+        payOpened: '已打开支付页面，完成后积分自动到账',
+        paid: '支付成功，积分已到账',
+        unit: '积分',
+        contactAgent: '联系服务商开通'
+      },
+      scorelogs: {
+        title: '积分明细',
+        empty: '暂无记录',
+        loadMore: '加载更多',
+        noMore: '没有更多了',
+        cols: { time: '时间', memo: '说明', change: '变动', balance: '余额' }
+      },
+      skillmarket: {
+        title: '技能市场',
+        desc: '浏览并安装平台提供的扩展技能，安装后重启生效',
+        empty: '暂无上架技能',
+        install: '安装',
+        installing: '安装中…',
+        installed: '已安装',
+        installOk: '安装成功，重启客户端后生效',
+        installFail: '安装失败',
+        loadFail: '技能列表加载失败',
+        downloads: '次下载'
+      }
     },
     config: {
       minimizeToTrayTitle: '最小化到托盘',

@@ -633,7 +633,8 @@ export const esOverrides = {
     exitHud: 'Salir del modo HUD',
     resetHudLayout: 'Restablecer el tamaño y la posición del HUD',
     layoutEditor: 'Editor de diseño',
-    layoutEditorTitle: mod => `Editor de diseño — clic ${mod} restablece el diseño`
+    layoutEditorTitle: mod => `Editor de diseño — clic ${mod} restablece el diseño`,
+    accountPill: (name, score) => `${name} · créditos ${score} (abrir cuenta)`
   },
   keybinds: {
     title: 'Atajos de teclado',
@@ -1625,6 +1626,74 @@ export const esOverrides = {
     },
     about: {
       updates: 'Actualizaciones'
+    },
+    account: {
+      heading: 'Cuenta',
+      notLoggedIn: 'No has iniciado sesión. Inicia sesión primero.',
+      loadFailed: 'No se pudo cargar el perfil',
+      retry: 'Reintentar',
+      profile: {
+        title: 'Perfil',
+        nickname: 'Apodo',
+        nicknamePlaceholder: 'Establece un apodo',
+        email: 'Correo electrónico',
+        emailPlaceholder: 'Para notificaciones (opcional)',
+        mobile: 'Teléfono móvil',
+        agent: 'Agente',
+        joinedAt: 'Fecha de registro',
+        save: 'Guardar cambios',
+        saving: 'Guardando…',
+        saved: 'Guardado'
+      },
+      avatar: {
+        title: 'Avatar',
+        desc: 'Elige un avatar que te guste'
+      },
+      score: {
+        title: 'Créditos',
+        balance: 'Saldo',
+        mode: 'Modo de cuenta',
+        modeFormal: 'Formal',
+        modeTrial: 'Prueba'
+      },
+      recharge: {
+        title: 'Recargar créditos',
+        desc: 'Introduce un código de recarga proporcionado por tu agente; los créditos se abonan al instante.',
+        placeholder: 'Introduce el código de recarga',
+        submit: 'Canjear',
+        submitting: 'Canjeando…',
+        success: (added, remain) => `Completado: +${added} créditos, saldo ${remain}`
+      },
+      plans: {
+        title: 'Comprar planes',
+        empty: 'No hay planes disponibles',
+        buy: 'Comprar',
+        buying: 'Creando pedido…',
+        payDisabled: 'Pago en línea no disponible',
+        payOpened: 'Página de pago abierta, los créditos se abonan automáticamente',
+        paid: 'Pagado, créditos abonados',
+        unit: 'créditos',
+        contactAgent: 'Contacta con tu proveedor'
+      },
+      scorelogs: {
+        title: 'Historial',
+        empty: 'Aún no hay registros',
+        loadMore: 'Cargar más',
+        noMore: 'No hay más',
+        cols: { time: 'Hora', memo: 'Descripción', change: 'Cambio', balance: 'Saldo' }
+      },
+      skillmarket: {
+        title: 'Mercado de habilidades',
+        desc: 'Explora e instala habilidades de la plataforma; se activan al reiniciar',
+        empty: 'Aún no hay habilidades',
+        install: 'Instalar',
+        installing: 'Instalando…',
+        installed: 'Instalada',
+        installOk: 'Instalada. Reinicia la app para activarla',
+        installFail: 'Error al instalar',
+        loadFail: 'Error al cargar la lista de habilidades',
+        downloads: 'descargas'
+      }
     },
     config: {
       minimizeToTrayTitle: 'Minimizar a la bandeja',

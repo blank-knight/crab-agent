@@ -366,7 +366,8 @@ export const ja = defineLocale({
     unmuteHaptics: '触覚フィードバックをオン',
     openSettings: '設定を開く',
     openStarmap: 'メモリグラフを開く',
-    resetHudLayout: 'HUD のサイズと位置をリセット'
+    resetHudLayout: 'HUD のサイズと位置をリセット',
+    accountPill: (name, score) => `${name} · クレジット ${score}（アカウントを開く）`
   },
 
   language: {
@@ -1048,6 +1049,74 @@ export const ja = defineLocale({
     }),
     about: {
       updates: '更新'
+    },
+    account: {
+      heading: 'アカウント',
+      notLoggedIn: '未ログインです。先にログインしてください。',
+      loadFailed: 'プロフィールの読み込みに失敗しました',
+      retry: '再試行',
+      profile: {
+        title: 'プロフィール',
+        nickname: 'ニックネーム',
+        nicknamePlaceholder: 'ニックネームを設定',
+        email: 'メールアドレス',
+        emailPlaceholder: '通知用（任意）',
+        mobile: '電話番号',
+        agent: '所属エージェント',
+        joinedAt: '登録日',
+        save: '保存',
+        saving: '保存中…',
+        saved: '保存しました'
+      },
+      avatar: {
+        title: 'アバター',
+        desc: '好きなアバターを選んでください'
+      },
+      score: {
+        title: 'クレジット',
+        balance: '残高',
+        mode: 'アカウントモード',
+        modeFormal: '本番',
+        modeTrial: '体験'
+      },
+      recharge: {
+        title: 'クレジットチャージ',
+        desc: '代理から発行されたチャージコードを入力すると、クレジットが即時反映されます',
+        placeholder: 'チャージコードを入力',
+        submit: '引き換える',
+        submitting: '処理中…',
+        success: (added, remain) => `チャージ成功：+${added} クレジット、現在の残高 ${remain}`
+      },
+      plans: {
+        title: 'プラン購入',
+        empty: '購入可能なプランはありません',
+        buy: '購入',
+        buying: '注文を作成中…',
+        payDisabled: 'オンライン決済は未対応です',
+        payOpened: '支払いページを開きました。完了後クレジットが自動的に反映されます',
+        paid: '支払い完了、クレジットが反映されました',
+        unit: 'クレジット',
+        contactAgent: 'プロバイダーに連絡して開通'
+      },
+      scorelogs: {
+        title: 'クレジット履歴',
+        empty: '記録はまだありません',
+        loadMore: 'さらに読み込む',
+        noMore: 'これ以上ありません',
+        cols: { time: '日時', memo: '内容', change: '変動', balance: '残高' }
+      },
+      skillmarket: {
+        title: 'スキルマーケット',
+        desc: 'プラットフォーム提供のスキルを閲覧・インストール。再起動後に有効になります',
+        empty: 'スキルはまだありません',
+        install: 'インストール',
+        installing: 'インストール中…',
+        installed: 'インストール済み',
+        installOk: 'インストール完了。アプリ再起動後に有効になります',
+        installFail: 'インストールに失敗しました',
+        loadFail: 'スキル一覧の読み込みに失敗しました',
+        downloads: '回ダウンロード'
+      }
     },
     config: {
       minimizeToTrayTitle: 'トレイに最小化',

@@ -331,7 +331,8 @@ export const ar = defineLocale({
     exitHud: 'إنهاء وضع HUD',
     resetHudLayout: 'إعادة تعيين حجم HUD وموضعه',
     layoutEditor: 'محرر التخطيط',
-    layoutEditorTitle: modifier => `محرر التخطيط — انقر مع ${modifier} لإعادة ضبط التخطيط`
+    layoutEditorTitle: modifier => `محرر التخطيط — انقر مع ${modifier} لإعادة ضبط التخطيط`,
+    accountPill: (name, score) => `${name} · رصيد ${score} (فتح الحساب)`
   },
   keybinds: {
     title: 'اختصارات لوحة المفاتيح',
@@ -934,6 +935,74 @@ export const ar = defineLocale({
       updates: 'التحديثات'
     },
 
+    account: {
+      heading: 'الحساب الشخصي',
+      notLoggedIn: 'لم تسجّل الدخول. سجّل الدخول أولاً.',
+      loadFailed: 'تعذّر تحميل المعلومات الشخصية',
+      retry: 'إعادة المحاولة',
+      profile: {
+        title: 'المعلومات الشخصية',
+        nickname: 'الاسم المستعار',
+        nicknamePlaceholder: 'اختر اسمًا مستعارًا',
+        email: 'البريد الإلكتروني',
+        emailPlaceholder: 'للاستلام الإشعارات (اختياري)',
+        mobile: 'رقم الجوال',
+        agent: 'الوكيل',
+        joinedAt: 'تاريخ التسجيل',
+        save: 'حفظ التغييرات',
+        saving: 'جارٍ الحفظ…',
+        saved: 'تم الحفظ'
+      },
+      avatar: {
+        title: 'الصورة الرمزية',
+        desc: 'اختر صورة رمزية تعجبك'
+      },
+      score: {
+        title: 'الرصيد',
+        balance: 'الرصيد المتبقي',
+        mode: 'وضع الحساب',
+        modeFormal: 'رسمي',
+        modeTrial: 'تجريبي'
+      },
+      recharge: {
+        title: 'شحن الرصيد',
+        desc: 'أدخل رمز الشحن الذي أصدره الوكيل، ويُضاف الرصيد فورًا بعد الاستبدال',
+        placeholder: 'أدخل رمز الشحن',
+        submit: 'استبدال',
+        submitting: 'جارٍ الاستبدال…',
+        success: (added, remain) => `نجح الشحن: +${added} رصيد، الرصيد الحالي ${remain}`
+      },
+      plans: {
+        title: 'شراء الباقات',
+        empty: 'لا توجد باقات متاحة',
+        buy: 'شراء',
+        buying: 'جارٍ إنشاء الطلب…',
+        payDisabled: 'الدفع الإلكتروني غير متاح حاليًا',
+        payOpened: 'فُتحت صفحة الدفع، ويُضاف الرصيد تلقائيًا بعد الإكمال',
+        paid: 'تم الدفع وأُضيف الرصيد',
+        unit: 'رصيد',
+        contactAgent: 'تواصل مع مزود الخدمة للتفعيل'
+      },
+      scorelogs: {
+        title: 'سجل الرصيد',
+        empty: 'لا توجد سجلات بعد',
+        loadMore: 'تحميل المزيد',
+        noMore: 'لا مزيد',
+        cols: { time: 'الوقت', memo: 'الوصف', change: 'التغيير', balance: 'الرصيد' }
+      },
+      skillmarket: {
+        title: 'سوق المهارات',
+        desc: 'تصفّح مهارات المنصة وثبّتها؛ تسري بعد إعادة التشغيل',
+        empty: 'لا توجد مهارات منشورة',
+        install: 'تثبيت',
+        installing: 'جارٍ التثبيت…',
+        installed: 'مثبّت',
+        installOk: 'نجح التثبيت، أعِد تشغيل التطبيق ليسري',
+        installFail: 'فشل التثبيت',
+        loadFail: 'تعذّر تحميل قائمة المهارات',
+        downloads: 'تنزيلًا'
+      }
+    },
     config: {
       minimizeToTrayTitle: 'التصغير إلى علبة النظام',
       minimizeToTrayDesc:

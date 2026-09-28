@@ -633,7 +633,8 @@ export const deOverrides = {
     exitHud: 'HUD-Modus beenden',
     resetHudLayout: 'HUD-Größe und -Position zurücksetzen',
     layoutEditor: 'Layout-Editor',
-    layoutEditorTitle: mod => `Layout-Editor — ${mod}-Klick setzt das Layout zurück`
+    layoutEditorTitle: mod => `Layout-Editor — ${mod}-Klick setzt das Layout zurück`,
+    accountPill: (name, score) => `${name} · Credits ${score} (Konto öffnen)`
   },
   keybinds: {
     title: 'Tastaturkürzel',
@@ -1626,6 +1627,74 @@ export const deOverrides = {
     },
     about: {
       updates: 'Updates'
+    },
+    account: {
+      heading: 'Konto',
+      notLoggedIn: 'Nicht angemeldet. Bitte zuerst anmelden.',
+      loadFailed: 'Profil konnte nicht geladen werden',
+      retry: 'Erneut versuchen',
+      profile: {
+        title: 'Profil',
+        nickname: 'Anzeigename',
+        nicknamePlaceholder: 'Anzeigename festlegen',
+        email: 'E-Mail',
+        emailPlaceholder: 'Für Benachrichtigungen (optional)',
+        mobile: 'Telefonnummer',
+        agent: 'Agent',
+        joinedAt: 'Registriert am',
+        save: 'Speichern',
+        saving: 'Speichern…',
+        saved: 'Gespeichert'
+      },
+      avatar: {
+        title: 'Avatar',
+        desc: 'Wählen Sie einen Avatar'
+      },
+      score: {
+        title: 'Guthaben',
+        balance: 'Restguthaben',
+        mode: 'Kontomodus',
+        modeFormal: 'Regulär',
+        modeTrial: 'Test'
+      },
+      recharge: {
+        title: 'Guthaben aufladen',
+        desc: 'Geben Sie einen Aufladecode Ihres Anbieters ein — das Guthaben wird sofort gutgeschrieben.',
+        placeholder: 'Aufladecode eingeben',
+        submit: 'Einlösen',
+        submitting: 'Einlösen…',
+        success: (added, remain) => `Erfolgreich: +${added} Guthaben, aktuell ${remain}`
+      },
+      plans: {
+        title: 'Pakete kaufen',
+        empty: 'Keine Pakete verfügbar',
+        buy: 'Kaufen',
+        buying: 'Bestellung läuft…',
+        payDisabled: 'Online-Zahlung nicht verfügbar',
+        payOpened: 'Zahlungsseite geöffnet, Guthaben wird automatisch gutgeschrieben',
+        paid: 'Bezahlt, Guthaben gutgeschrieben',
+        unit: 'Guthaben',
+        contactAgent: 'Wenden Sie sich an Ihren Anbieter'
+      },
+      scorelogs: {
+        title: 'Verlauf',
+        empty: 'Noch keine Einträge',
+        loadMore: 'Mehr laden',
+        noMore: 'Keine weiteren',
+        cols: { time: 'Zeit', memo: 'Beschreibung', change: 'Änderung', balance: 'Guthaben' }
+      },
+      skillmarket: {
+        title: 'Skill-Markt',
+        desc: 'Platform-Skills durchsuchen und installieren; nach Neustart aktiv',
+        empty: 'Noch keine Skills',
+        install: 'Installieren',
+        installing: 'Installation…',
+        installed: 'Installiert',
+        installOk: 'Installiert. App neu starten, um zu aktivieren',
+        installFail: 'Installation fehlgeschlagen',
+        loadFail: 'Skill-Liste konnte nicht geladen werden',
+        downloads: 'Downloads'
+      }
     },
     config: {
       minimizeToTrayTitle: 'In den Infobereich minimieren',

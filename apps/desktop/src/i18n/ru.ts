@@ -347,7 +347,8 @@ export const ru = defineLocale({
     enterHud: 'Режим HUD',
     exitHud: 'Выйти из режима HUD',
     layoutEditor: 'Редактор раскладки',
-    layoutEditorTitle: mod => `Редактор раскладки — ${mod}-клик сбрасывает раскладку`
+    layoutEditorTitle: mod => `Редактор раскладки — ${mod}-клик сбрасывает раскладку`,
+    accountPill: (name, score) => `${name} · кредиты ${score} (открыть аккаунт)`
   },
   keybinds: {
     title: 'Горячие клавиши',
@@ -1099,6 +1100,74 @@ export const ru = defineLocale({
     }),
     about: {
       updates: 'Обновления'
+    },
+    account: {
+      heading: 'Личный кабинет',
+      notLoggedIn: 'Вы не вошли в систему. Сначала войдите.',
+      loadFailed: 'Не удалось загрузить профиль',
+      retry: 'Повторить',
+      profile: {
+        title: 'Профиль',
+        nickname: 'Никнейм',
+        nicknamePlaceholder: 'Задайте никнейм',
+        email: 'Эл. почта',
+        emailPlaceholder: 'Для уведомлений (необязательно)',
+        mobile: 'Телефон',
+        agent: 'Агент',
+        joinedAt: 'Дата регистрации',
+        save: 'Сохранить',
+        saving: 'Сохранение…',
+        saved: 'Сохранено'
+      },
+      avatar: {
+        title: 'Аватар',
+        desc: 'Выберите понравившийся аватар'
+      },
+      score: {
+        title: 'Кредиты',
+        balance: 'Остаток',
+        mode: 'Режим аккаунта',
+        modeFormal: 'Основной',
+        modeTrial: 'Пробный'
+      },
+      recharge: {
+        title: 'Пополнение кредитов',
+        desc: 'Введите код пополнения, выданный агентом, — кредиты зачислятся сразу',
+        placeholder: 'Введите код пополнения',
+        submit: 'Активировать',
+        submitting: 'Активация…',
+        success: (added, remain) => `Успешно: +${added} кредитов, баланс ${remain}`
+      },
+      plans: {
+        title: 'Покупка тарифов',
+        empty: 'Нет доступных тарифов',
+        buy: 'Купить',
+        buying: 'Создание заказа…',
+        payDisabled: 'Онлайн-оплата недоступна',
+        payOpened: 'Страница оплаты открыта, кредиты зачислятся автоматически',
+        paid: 'Оплачено, кредиты зачислены',
+        unit: 'кредитов',
+        contactAgent: 'Свяжитесь с провайдером'
+      },
+      scorelogs: {
+        title: 'История кредитов',
+        empty: 'Записей пока нет',
+        loadMore: 'Показать ещё',
+        noMore: 'Больше нет',
+        cols: { time: 'Время', memo: 'Описание', change: 'Изменение', balance: 'Баланс' }
+      },
+      skillmarket: {
+        title: 'Магазин навыков',
+        desc: 'Просматривайте и устанавливайте навыки платформы; вступают в силу после перезапуска',
+        empty: 'Навыков пока нет',
+        install: 'Установить',
+        installing: 'Установка…',
+        installed: 'Установлено',
+        installOk: 'Установлено. Перезапустите приложение',
+        installFail: 'Не удалось установить',
+        loadFail: 'Не удалось загрузить список навыков',
+        downloads: 'загрузок'
+      }
     },
     config: {
       minimizeToTrayTitle: 'Сворачивать в трей',

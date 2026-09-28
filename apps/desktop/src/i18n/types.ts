@@ -704,7 +704,8 @@ export interface Translations {
     exitHud: string
     resetHudLayout: string
     layoutEditor: string
-    layoutEditorTitle: (modifier: string) => string
+    layoutEditorTitle: (modifier: string) => string,
+    accountPill: (name: string, score: number) => string
   }
 
   keybinds: {
@@ -1139,6 +1140,74 @@ export interface Translations {
     }
     about: {
       updates: string
+    }
+    account: {
+      heading: string
+      notLoggedIn: string
+      loadFailed: string
+      retry: string
+      profile: {
+        title: string
+        nickname: string
+        nicknamePlaceholder: string
+        email: string
+        emailPlaceholder: string
+        mobile: string
+        agent: string
+        joinedAt: string
+        save: string
+        saving: string
+        saved: string
+      }
+      avatar: {
+        title: string
+        desc: string
+      }
+      score: {
+        title: string
+        balance: string
+        mode: string
+        modeFormal: string
+        modeTrial: string
+      }
+      recharge: {
+        title: string
+        desc: string
+        placeholder: string
+        submit: string
+        submitting: string
+        success: (added: number, remain: number) => string
+      }
+      plans: {
+        title: string
+        empty: string
+        buy: string
+        buying: string
+        payDisabled: string
+        payOpened: string
+        paid: string
+        unit: string
+        contactAgent: string
+      }
+      scorelogs: {
+        title: string
+        empty: string
+        loadMore: string
+        noMore: string
+        cols: { time: string; memo: string; change: string; balance: string }
+      }
+      skillmarket: {
+        title: string
+        desc: string
+        empty: string
+        install: string
+        installing: string
+        installed: string
+        installOk: string
+        installFail: string
+        loadFail: string
+        downloads: string
+      }
     }
     config: {
       minimizeToTrayTitle: string

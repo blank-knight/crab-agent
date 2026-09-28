@@ -632,7 +632,8 @@ export const frOverrides = {
     exitHud: 'Quitter le mode HUD',
     resetHudLayout: 'Réinitialiser la taille et la position du HUD',
     layoutEditor: 'Éditeur de disposition',
-    layoutEditorTitle: mod => `Éditeur de disposition — ${mod}-clic réinitialise la disposition`
+    layoutEditorTitle: mod => `Éditeur de disposition — ${mod}-clic réinitialise la disposition`,
+    accountPill: (name, score) => `${name} · crédits ${score} (ouvrir le compte)`
   },
   keybinds: {
     title: 'Raccourcis clavier',
@@ -1631,6 +1632,74 @@ export const frOverrides = {
     },
     about: {
       updates: 'Mises à jour'
+    },
+    account: {
+      heading: 'Compte',
+      notLoggedIn: 'Non connecté. Veuillez d’abord vous connecter.',
+      loadFailed: 'Échec du chargement du profil',
+      retry: 'Réessayer',
+      profile: {
+        title: 'Profil',
+        nickname: 'Pseudo',
+        nicknamePlaceholder: 'Définir un pseudo',
+        email: 'E-mail',
+        emailPlaceholder: 'Pour les notifications (facultatif)',
+        mobile: 'Téléphone',
+        agent: 'Agent',
+        joinedAt: 'Inscrit le',
+        save: 'Enregistrer',
+        saving: 'Enregistrement…',
+        saved: 'Enregistré'
+      },
+      avatar: {
+        title: 'Avatar',
+        desc: 'Choisissez un avatar à votre goût'
+      },
+      score: {
+        title: 'Crédits',
+        balance: 'Solde',
+        mode: 'Mode de compte',
+        modeFormal: 'Standard',
+        modeTrial: 'Essai'
+      },
+      recharge: {
+        title: 'Recharger',
+        desc: 'Saisissez un code de recharge fourni par votre agent ; les crédits arrivent instantanément.',
+        placeholder: 'Saisir le code de recharge',
+        submit: 'Échanger',
+        submitting: 'Échange en cours…',
+        success: (added, remain) => `Succès : +${added} crédits, solde ${remain}`
+      },
+      plans: {
+        title: 'Forfaits',
+        empty: 'Aucun forfait disponible',
+        buy: 'Acheter',
+        buying: 'Création de la commande…',
+        payDisabled: 'Paiement en ligne indisponible',
+        payOpened: 'Page de paiement ouverte, les crédits arrivent automatiquement',
+        paid: 'Payé, crédits crédités',
+        unit: 'crédits',
+        contactAgent: 'Contactez votre fournisseur'
+      },
+      scorelogs: {
+        title: 'Historique',
+        empty: 'Aucun enregistrement pour l’instant',
+        loadMore: 'Charger plus',
+        noMore: 'Plus rien',
+        cols: { time: 'Date', memo: 'Description', change: 'Variation', balance: 'Solde' }
+      },
+      skillmarket: {
+        title: 'Boutique de compétences',
+        desc: 'Parcourez et installez les compétences de la plateforme ; actives après redémarrage',
+        empty: 'Aucune compétence disponible',
+        install: 'Installer',
+        installing: 'Installation…',
+        installed: 'Installée',
+        installOk: 'Installée. Redémarrez l’application pour activer',
+        installFail: 'Échec de l’installation',
+        loadFail: 'Échec du chargement des compétences',
+        downloads: 'téléchargements'
+      }
     },
     config: {
       minimizeToTrayTitle: 'Réduire dans la barre d’état',
