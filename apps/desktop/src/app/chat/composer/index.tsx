@@ -91,7 +91,9 @@ import {
   deleteSelectionInEditor,
   insertComposerContentsAtCaret,
   normalizeComposerEditorDom,
-  RICH_INPUT_SLOT
+  placeCaretEnd,
+  RICH_INPUT_SLOT,
+  slashChipElement
 } from './rich-editor'
 import { useComposerScope, useComposerSurfaceId } from './scope'
 import { ComposerStatusStack } from './status-stack'
@@ -537,6 +539,41 @@ export function ChatBar({
     },
     []
   )
+
+  /** 插入技能芯片：显示中文标签，提交时还原为 /命令；多次选择同行追加 */
+  const insertSkillChip = (command: string, label: string) => {
+    const editor = editorRef.current
+
+    if (!editor) {
+      insertText(command)
+      return
+    }
+
+    // 归一化：命令自身去尾空格，分隔统一由后面的空格节点承担（避免双空格）
+    const cmd = command.replace(/\s+$/, '')
+    const current = composerPlainText(editor)
+    const needsSpace = current.trim() && !/\s$/.test(current)
+    editor.append(
+      ...(needsSpace ? [document.createTextNode(' ')] : []),
+      slashChipElement(cmd, 'skill', label),
+      document.createTextNode(' ')
+    )
+    placeCaretEnd(editor)
+    flushEditorToDraft(editor)
+    requestMainFocus()
+  }
+
+  // 外部注入技能芯片（主页快捷胶囊/技能页「使用」→ 输入框），显示中文标签
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ command: string; label?: string }>).detail
+      if (detail?.command) {
+        insertSkillChip(detail.command, detail.label || detail.command)
+      }
+    }
+    window.addEventListener('qiji:insert-skill', handler)
+    return () => window.removeEventListener('qiji:insert-skill', handler)
+  }, [])
 
   const handleEditorInput = (event: FormEvent<HTMLDivElement>) => {
     // During IME composition the DOM contains uncommitted preedit text

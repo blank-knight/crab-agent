@@ -72,6 +72,8 @@ export interface Translations {
   intro: {
     stock: Record<string, string[]>
     custom: (label: string) => string[]
+    quickSkillsLabel: string
+    examplesLabel: string
   }
   catalog: {
     add: string
@@ -704,7 +706,7 @@ export interface Translations {
     exitHud: string
     resetHudLayout: string
     layoutEditor: string
-    layoutEditorTitle: (modifier: string) => string,
+    layoutEditorTitle: (modifier: string) => string
     accountPill: (name: string, score: number) => string
   }
 

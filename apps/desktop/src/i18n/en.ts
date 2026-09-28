@@ -14,7 +14,7 @@ export const en: Translations = {
     }
   },
   // English editorial copy stays in the shipped JSONL; other locales override it.
-  intro: { stock: {}, custom: () => [] },
+  intro: { stock: {}, custom: () => [], quickSkillsLabel: 'Quick skills', examplesLabel: 'Try this' },
   catalog: {
     add: 'Add',
     added: 'Added',

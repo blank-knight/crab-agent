@@ -15,9 +15,24 @@ type IntroCopyRecord = IntroCopy & {
   personality: string
 }
 
+export type QuickSkill = {
+  name: string
+  title: string
+  desc: string
+}
+
+export type IntroExample = {
+  title: string
+  prompt: string
+}
+
 export type IntroProps = {
   personality?: string
   seed?: number
+  quickSkills?: QuickSkill[]
+  examples?: IntroExample[]
+  onPickSkill?: (name: string) => void
+  onPickExample?: (prompt: string) => void
 }
 
 const NEUTRAL_PERSONALITIES = new Set(['', 'default', 'none', 'neutral'])
@@ -158,7 +173,7 @@ function resolveCopy(personality?: string, seed?: number): IntroCopy {
   return pickCopy(copies, seed)
 }
 
-export function Intro({ personality, seed }: IntroProps) {
+export function Intro({ personality, seed, quickSkills, onPickSkill }: IntroProps) {
   const [mountSeed] = useState(() => Math.floor(Math.random() * 100000))
   const { t } = useI18n()
   const rotationSeed = mountSeed + (seed ?? 0)
@@ -179,6 +194,54 @@ export function Intro({ personality, seed }: IntroProps) {
         <Wordmark className="mb-1" text={WORDMARK} />
 
         <p className="m-0 text-center leading-normal tracking-tight">{body}</p>
+
+        {quickSkills && quickSkills.length > 0 && onPickSkill ? (
+          <div className="pointer-events-auto mt-3 w-full max-w-xl">
+            <div className="mb-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">
+              {t.intro.quickSkillsLabel}
+            </div>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {quickSkills.map(sk => (
+                <button
+                  className="group shrink-0 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-center transition-colors hover:border-primary/50 hover:bg-muted/40"
+                  key={sk.name}
+                  aria-label={sk.desc}
+                  onClick={() => onPickSkill(sk.name)}
+                  type="button"
+                >
+                  <span className="text-[0.75rem] font-medium text-foreground">{sk.title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+/** 最佳实践条：挂载在输入框下方（仅空会话主页显示） */
+export function ExamplesStrip({ examples, onPick }: { examples: IntroExample[]; onPick: (prompt: string) => void }) {
+  const { t } = useI18n()
+
+  if (examples.length === 0) return null
+  return (
+    <div className="pointer-events-auto absolute top-[calc(42%+var(--composer-measured-height,160px)+0.75rem)] left-1/2 z-20 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 px-1 pb-1">
+      <div className="mb-1.5 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">
+        {t.intro.examplesLabel}
+      </div>
+      <div className="flex flex-col gap-1">
+        {examples.map(ex => (
+          <button
+            className="w-full truncate rounded-lg border border-border/50 bg-transparent px-3 py-1.5 text-left text-[0.8rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            key={ex.title}
+            aria-label={ex.prompt}
+            onClick={() => onPick(ex.prompt)}
+            type="button"
+          >
+            {ex.title}
+          </button>
+        ))}
       </div>
     </div>
   )

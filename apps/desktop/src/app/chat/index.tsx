@@ -68,6 +68,7 @@ import {
   useComposerSurfaceId
 } from './composer/scope'
 import type { ChatBarState } from './composer/types'
+import { type QuickSkill, type IntroExample } from '@/components/chat/intro'
 import { useHistoryWindow } from './history-window'
 import { type DroppedFile, partitionDroppedFiles } from './hooks/use-composer-actions'
 import { type DragKind, useFileDropZone } from './hooks/use-file-drop-zone'
@@ -206,6 +207,22 @@ interface ChatRuntimeBoundaryProps {
 }
 
 const NO_MESSAGES: ChatMessage[] = []
+
+// 主页快捷技能（精选常用；点击填入 /技能名 到输入框，用户补内容后发送）
+// 注: powerpoint(Anthropic专有许可)已移除,由市场 pptx-maker(MIT)顶替
+const INTRO_QUICK_SKILLS: QuickSkill[] = [
+  { name: 'pptx-maker', title: '📄 PPT 制作', desc: '生成/编辑演示文稿' },
+  { name: 'xlsx-master', title: '📊 Excel 表格', desc: '建表/公式/透视汇总' },
+  { name: 'docx-writer', title: '📝 Word 文档', desc: '报告/合同生成' },
+  { name: 'whisper', title: '🎙️ 语音转文字', desc: '录音/视频转文字稿' },
+  { name: 'ocr-and-documents', title: '📑 文档提取', desc: 'PDF/扫描件取文字' },
+  { name: 'img-toolkit', title: '🖼️ 图片处理', desc: '转格式/压缩/水印' }
+]
+
+// OPC 专属技能（奇计自营；星标条，后续专属技能都进这里）
+const INTRO_OPC_SKILLS: QuickSkill[] = [
+  { name: 'qiji-geo', title: '⭐ GEO 平台自动化', desc: 'AI可见度诊断、关键词管理、爆文复刻' }
+]
 
 /**
  * The view's $messages, live only while this surface is the VISIBLE tab.
@@ -840,7 +857,23 @@ const ChatViewContent = memo(function ChatViewContent({
               clampToComposer={showChatBar}
               cwd={currentCwd}
               gateway={gateway}
-              intro={showIntro ? { personality: introPersonality, seed: introSeed } : undefined}
+              intro={
+                showIntro
+                  ? {
+                      personality: introPersonality,
+                      quickSkills: [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS],
+                      seed: introSeed,
+                      onPickSkill: name => {
+                        const skill = [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS].find(s => s.name === name)
+                        window.dispatchEvent(
+                          new CustomEvent('qiji:insert-skill', {
+                            detail: { command: `/${name} `, label: skill?.title }
+                          })
+                        )
+                      }
+                    }
+                  : undefined
+              }
               loading={threadLoading}
               onBranchInNewChat={onBranchInNewChat}
               onCancel={haltRun}
