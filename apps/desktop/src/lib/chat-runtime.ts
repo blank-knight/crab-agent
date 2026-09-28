@@ -221,6 +221,14 @@ export function optimisticAttachmentRef(attachment: ComposerAttachment): string 
     return attachment.previewUrl
   }
 
+  // 上游 #63682：OS 拖拽的 blob: 预览优先按 markdown 图渲染，
+  // 不进 data-URL 提取路径，内联画在乐观气泡里。
+  if (attachment.kind === 'image' && attachment.previewUrl?.startsWith('blob:')) {
+    const alt = attachment.label || 'image'
+
+    return `![${alt}](${attachment.previewUrl})`
+  }
+
   return attachmentDisplayText(attachment)
 }
 
