@@ -14,7 +14,9 @@ import { capabilityScoped, hermesApi, type ProfileScope, profileScoped } from '.
 export function getSkills(profile?: ProfileScope): Promise<SkillInfo[]> {
   return window.hermesDesktop.api<SkillInfo[]>({
     ...capabilityScoped(profile),
-    path: '/api/skills'
+    path: '/api/skills',
+    // Skills 扫描读取每个 SKILL.md，奇计内置大量 skill，后端冷启动 15s 不够
+    timeoutMs: 45_000
   })
 }
 

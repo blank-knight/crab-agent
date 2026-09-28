@@ -1,3 +1,4 @@
+import { accountLockedProfile } from '@/lib/account-profile'
 import { isMissingRestEndpoint } from '@/lib/gateway-rpc'
 import { maybeBackfillLegacySessionOwners } from '@/lib/legacy-session-owner-backfill'
 import { stampRowsWithOwningConnection } from '@/lib/session-owner-stamp'
@@ -141,6 +142,11 @@ export async function listAllProfileSessions(
   profile: 'all' | (string & {}) = 'all',
   filter: SessionSourceFilter = {}
 ): Promise<PaginatedSessions> {
+  // qiji 账号隔离：登录账号已锁定专属 profile 时，跨 profile 聚合一律
+  // 强制收敛到该账号。奇计的 profile = 付费客户账号，跨账号可见会话 =
+  // 数据泄漏。锁不开启（未登录/未登记映射）则保持上游行为。
+  const lockedProfile = accountLockedProfile()
+  const scopedProfile = lockedProfile ?? profile
   const sourceParam = filter.source ? `&source=${encodeURIComponent(filter.source)}` : ''
 
   const excludeParam = filter.excludeSources?.length
@@ -151,7 +157,7 @@ export async function listAllProfileSessions(
     ...profileScoped(),
     path:
       `/api/profiles/sessions?limit=${limit}&offset=0&min_messages=${Math.max(0, minMessages)}` +
-      `&archived=${archived}&order=${order}&profile=${encodeURIComponent(profile)}${sourceParam}${excludeParam}`,
+      `&archived=${archived}&order=${order}&profile=${encodeURIComponent(scopedProfile)}${sourceParam}${excludeParam}`,
     timeoutMs: SESSION_LIST_REQUEST_TIMEOUT_MS
   })
 

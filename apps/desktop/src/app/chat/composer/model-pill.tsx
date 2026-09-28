@@ -14,6 +14,7 @@ import { useI18n } from '@/i18n'
 import { ChevronDown } from '@/lib/icons'
 import { formatModelPillLabel, providerDisplayName } from '@/lib/model-status-label'
 import { cn } from '@/lib/utils'
+import { $auth } from '@/store/auth'
 import { $currentModelSource, setModelPickerOpen } from '@/store/session'
 
 import { useComposerModelPillLabel } from './contrib'
@@ -48,6 +49,10 @@ export function ModelPill({
   model: ChatBarState['model']
 }) {
   const copy = useI18n().t.shell.statusbar
+  // qiji 模型选择权限：自配 key 完全自由；平台用户看 site.allow_model_select
+  // （代理链 models 非空时后端强制 allow=1，菜单过滤在 ModelMenuPanel）。
+  const { isCustomKey, allowModelSelect } = useStore($auth)
+  const modelLocked = !isCustomKey && !allowModelSelect
   // Two return branches below, one handle: only ever one of them mounts.
   const tourMarker = useTourMarker('model-pill')
   const view = useSessionView()
@@ -175,7 +180,7 @@ export function ModelPill({
           aria-label={copy.openModelPicker}
           className={pillClass}
           data-tour={tourMarker}
-          disabled={disabled}
+          disabled={disabled || modelLocked}
           onClick={() => setModelPickerOpen(true)}
           type="button"
           variant="ghost"
@@ -205,7 +210,7 @@ export function ModelPill({
             aria-label={title}
             className={pillClass}
             data-tour={tourMarker}
-            disabled={disabled}
+            disabled={disabled || modelLocked}
             type="button"
             variant="ghost"
           >
