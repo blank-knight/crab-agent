@@ -590,6 +590,31 @@ declare global {
       /** Restart the app in place — loads the swapped bundle when bundleSwapPending. */
       relaunchApp?: () => Promise<void>
       getRemoteDisplayReason?: () => Promise<string | null>
+      /** OEM brand override pushed after login (tray tooltip / notification title). */
+      oemBrand: {
+        set: (brand: { name: string; logo: string }) => Promise<{ ok: boolean }>
+      }
+      /** Export client diagnostics bundle (logs/versions) to a user-picked file. */
+      exportDiagnostics?: () => Promise<{ ok: boolean; path?: string; error?: string }>
+      /** List a directory under userData for renderer file pickers. */
+      listDir: (relPath: string) => Promise<Array<{ name: string; isDirectory: boolean }>>
+      skillMarket: {
+        installGithub: (repo: string, subdir?: string) => Promise<{ ok: boolean; name: string; source: string }>
+        install: (url: string, name: string, token: string) => Promise<{ ok: boolean; dir: string }>
+        uninstall: (name: string) => Promise<{ ok: boolean }>
+      }
+      /** URL-based client update: download the published installer and run it. */
+      clientUpdate: {
+        downloadAndRun: (url: string, meta?: ClientUpdateMeta) => Promise<{ ok: boolean; path: string }>
+        download: (url: string, meta?: ClientUpdateMeta) => Promise<{ ok: boolean; path: string }>
+        runInstaller: (filePath: string, meta?: ClientUpdateMeta) => Promise<{ ok: boolean }>
+        onProgress: (callback: (payload: ClientUpdateProgress) => void) => () => void
+      }
+      wallpaper: {
+        pick: () => Promise<{ file: string; url: string } | null>
+        resolve: (file: string) => Promise<string | null>
+        clear: () => Promise<boolean>
+      }
       updates: {
         check: (opts?: { force?: boolean }) => Promise<DesktopUpdateStatus>
         apply: (opts?: DesktopUpdateApplyOptions) => Promise<DesktopUpdateApplyResult>
@@ -607,7 +632,7 @@ declare global {
         fetchMarketplace: (id: string) => Promise<DesktopMarketplaceThemeResult>
         // Search the Marketplace for color-theme extensions. An empty query
         // returns the most-installed themes.
-        searchMarketplace: (query: string) => Promise<DesktopMarketplaceSearchItem[]>
+        searchMarketplace: (query: string, opts?: { limit?: number; page?: number }) => Promise<DesktopMarketplaceSearchItem[]>
       }
       // Find-in-page: delegates to Electron's webContents.findInPage on the
       // IPC sender's window so Cmd+F from a secondary session window
@@ -888,6 +913,23 @@ export interface DesktopUpdateProgress {
   percent: number | null
   error: string | null
   at: number
+}
+
+/** Installer download progress from `hermes:clientUpdate:downloadAndRun`. */
+export interface ClientUpdateProgress {
+  /** Bytes received so far. */
+  received: number
+  /** Total bytes (Content-Length); 0 when the server sends chunked encoding. */
+  total: number
+  /** 0-100; 0 while indeterminate (no Content-Length), 100 on completion. */
+  percent: number
+}
+
+/** Installer integrity metadata for the URL-based client update channel. */
+export interface ClientUpdateMeta {
+  sha256?: string
+  signature?: string
+  newversion?: string
 }
 
 export interface DesktopPluginProfileRoute {
