@@ -631,6 +631,36 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
       return () => ipcRenderer.removeListener('hermes:updates:progress', listener)
     }
   },
+  // ── qiji 商业层桥（隔离区;上游同步时保留整段） ─────────────────────────
+  // OEM 贴牌品牌：渲染进程登录后推送（贴牌名/logo；空=官方默认）。主进程据此
+  // 更新托盘 tooltip、窗口标题。
+  oemBrand: {
+    set: brand => ipcRenderer.invoke('hermes:oem-brand:set', brand)
+  },
+  exportDiagnostics: () => ipcRenderer.invoke('hermes:diagnostics:export'),
+  // URL-based client update: download the published installer and run it.
+  skillMarket: {
+    installGithub: (repo, subdir) => ipcRenderer.invoke('hermes:skillMarket:installGithub', repo, subdir),
+    install: (url, name, token) => ipcRenderer.invoke('hermes:skillMarket:install', url, name, token),
+    uninstall: name => ipcRenderer.invoke('hermes:skillMarket:uninstall', name)
+  },
+  listDir: relPath => ipcRenderer.invoke('hermes:listDir', relPath),
+  clientUpdate: {
+    downloadAndRun: url => ipcRenderer.invoke('hermes:clientUpdate:downloadAndRun', url),
+    // Chrome 式：先静默下载，用户确认后再运行安装包
+    download: url => ipcRenderer.invoke('hermes:clientUpdate:download', url),
+    runInstaller: filePath => ipcRenderer.invoke('hermes:clientUpdate:runInstaller', filePath),
+    onProgress: callback => {
+      const listener = (_event, payload) => callback(payload)
+      ipcRenderer.on('hermes:clientUpdate:progress', listener)
+      return () => ipcRenderer.removeListener('hermes:clientUpdate:progress', listener)
+    }
+  },
+  wallpaper: {
+    pick: () => ipcRenderer.invoke('hermes:wallpaper:pick'),
+    resolve: file => ipcRenderer.invoke('hermes:wallpaper:resolve', file),
+    clear: () => ipcRenderer.invoke('hermes:wallpaper:clear')
+  },
   themes: {
     fetchMarketplace: id => ipcRenderer.invoke('hermes:vscode-theme:fetch', id),
     searchMarketplace: query => ipcRenderer.invoke('hermes:vscode-theme:search', query)
