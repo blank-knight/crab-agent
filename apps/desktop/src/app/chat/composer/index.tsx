@@ -563,12 +563,17 @@ export function ChatBar({
     requestMainFocus()
   }
 
-  // 外部注入技能芯片（主页快捷胶囊/技能页「使用」→ 输入框），显示中文标签
+  // 外部注入技能芯片（主页快捷胶囊/技能页「使用」→ 输入框），显示中文标签。
+  // insertSkillChip 每次渲染重建，直接进依赖会反复增删监听——经 ref 转发保持
+  // 单次挂载，同时让 lint 看到真实依赖。
+  const insertSkillChipRef = useRef(insertSkillChip)
+  insertSkillChipRef.current = insertSkillChip
+
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ command: string; label?: string }>).detail
       if (detail?.command) {
-        insertSkillChip(detail.command, detail.label || detail.command)
+        insertSkillChipRef.current(detail.command, detail.label || detail.command)
       }
     }
     window.addEventListener('qiji:insert-skill', handler)

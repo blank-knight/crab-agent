@@ -203,9 +203,9 @@ export function Intro({ personality, seed, quickSkills, onPickSkill }: IntroProp
             <div className="flex flex-wrap justify-center gap-1.5">
               {quickSkills.map(sk => (
                 <button
+                  aria-label={sk.desc}
                   className="group shrink-0 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-center transition-colors hover:border-primary/50 hover:bg-muted/40"
                   key={sk.name}
-                  aria-label={sk.desc}
                   onClick={() => onPickSkill(sk.name)}
                   type="button"
                 >
@@ -224,7 +224,8 @@ export function Intro({ personality, seed, quickSkills, onPickSkill }: IntroProp
 export function ExamplesStrip({ examples, onPick }: { examples: IntroExample[]; onPick: (prompt: string) => void }) {
   const { t } = useI18n()
 
-  if (examples.length === 0) return null
+  if (examples.length === 0) {return null}
+
   return (
     <div className="pointer-events-auto absolute top-[calc(42%+var(--composer-measured-height,160px)+0.75rem)] left-1/2 z-20 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 px-1 pb-1">
       <div className="mb-1.5 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">
@@ -233,9 +234,9 @@ export function ExamplesStrip({ examples, onPick }: { examples: IntroExample[]; 
       <div className="flex flex-col gap-1">
         {examples.map(ex => (
           <button
+            aria-label={ex.prompt}
             className="w-full truncate rounded-lg border border-border/50 bg-transparent px-3 py-1.5 text-left text-[0.8rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
             key={ex.title}
-            aria-label={ex.prompt}
             onClick={() => onPick(ex.prompt)}
             type="button"
           >
