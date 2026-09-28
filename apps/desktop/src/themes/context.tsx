@@ -302,6 +302,60 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
     root.style.setProperty(k, v)
   }
 
+  // ── A+B档: 布局token(圆角/密度/气泡/宽度/预设) ──────────────────────
+  // 全部钳制在安全区间: 主题只能"调气质",不能破坏可用性。
+  {
+    const L = theme.layout ?? {}
+    const clamp = (v: number | undefined, lo: number, hi: number, dflt: number) =>
+      typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt
+    const vibe = L.vibe ?? 'work'
+
+    root.style.setProperty('--dt-radius-scalar', String(clamp(L.radiusScalar, 0, 2, vibe === 'chat' ? 1.1 : vibe === 'zen' ? 0.9 : 0.6)))
+    root.style.setProperty('--dt-spacing-mul', String(clamp(L.spacingMul, 0.85, 1.3, vibe === 'chat' ? 1.12 : vibe === 'zen' ? 1.2 : 1)))
+    root.style.setProperty('--dt-base-size', `${clamp(L.baseSize, 0.75, 1.1, 0.875)}rem`)
+    root.style.setProperty('--conversation-turn-gap', `${clamp(L.turnGap, 0.2, 0.9, vibe === 'zen' ? 0.7 : 0.375)}rem`)
+
+    // 对话区宽度: chat风收窄, work风全宽(用现有--chat-min-width机制的补集——新变量,styles.css消费)
+    const chatW = clamp(L.chatMaxWidth, 32, 72, vibe === 'chat' ? 40 : 72)
+    root.style.setProperty('--dt-chat-max-width', `${chatW}rem`)
+
+    // 气泡风格: data-attr驱动,styles.css按档渲染
+    root.dataset.qijiBubble = L.bubbleStyle ?? (vibe === 'chat' ? 'pill' : 'soft')
+
+    // vibe预设: data-attr供CSS全局微调(隐藏装饰等)
+    root.dataset.qijiVibe = vibe
+
+    // C档: 主界面布局插槽(只影响聊天区)
+    const CL = L.chatLayout ?? {}
+    root.dataset.qijiChatList = CL.list ?? 'flow'
+    root.dataset.qijiUserAlign = CL.userAlign ?? 'left'
+    root.dataset.qijiUserStyle = CL.userStyle ?? 'card'
+    root.dataset.qijiAssistantStyle = CL.assistantStyle ?? 'plain'
+    root.dataset.qijiComposer = CL.composer ?? 'dock'
+  }
+
+  // Wallpaper layer (anime/skin themes): paint the image under the shell and
+  // raise a readability scrim so glass surfaces keep contrast over busy art.
+  const bg = theme.backgroundImage
+  const wallpaper = isDark ? bg?.dark ?? bg?.light : bg?.light
+  if (wallpaper) {
+    const scrim = bg?.scrimOpacity ?? (isDark ? 0.55 : 0.75)
+    root.style.setProperty('--dt-wallpaper', `url("${wallpaper}")`)
+    root.style.setProperty('--dt-wallpaper-size', bg?.size ?? 'cover')
+    root.style.setProperty('--dt-wallpaper-position', bg?.position ?? 'center')
+    // Scrim = flat color-mix of the theme background over the image.
+    root.style.setProperty('--dt-wallpaper-scrim', `linear-gradient(${c.background}ee, ${c.background}dd)`)
+    root.style.setProperty('--dt-wallpaper-opacity', String(1 - scrim))
+    root.dataset.hermesWallpaper = 'on'
+  } else {
+    root.style.removeProperty('--dt-wallpaper')
+    root.style.removeProperty('--dt-wallpaper-size')
+    root.style.removeProperty('--dt-wallpaper-position')
+    root.style.removeProperty('--dt-wallpaper-scrim')
+    root.style.removeProperty('--dt-wallpaper-opacity')
+    delete root.dataset.hermesWallpaper
+  }
+
   const chromeBg = chromeBackground(c.background, isDark)
 
   window.hermesDesktop?.setTitleBarTheme?.({
@@ -528,6 +582,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const chatFontFamily = useStore($chatFontFamily)
 
   useEffect(() => applyTheme(paintedTheme, paintedMode, chatFontFamily), [paintedTheme, paintedMode, chatFontFamily])
+
+  // 全局字号缩放: 启动即恢复(不依赖设置页挂载)。默认1.25,用户在设置页可调0.85-1.5。
+  // 老用户已存过值(<1.25)保持原选择不动;新用户/无存值用1.25。
+  useEffect(() => {
+    let scale = 1.25
+    try {
+      const stored = Number(window.localStorage.getItem('qiji-font-scale'))
+      if (Number.isFinite(stored) && stored > 0) scale = Math.min(1.5, Math.max(0.85, stored))
+    } catch {}
+    document.documentElement.style.setProperty('--dt-base-size', `${(0.875 * scale).toFixed(3)}rem`)
+  }, [])
 
   // Keep the native window appearance pinned to the app theme (vibrancy
   // material, titlebar, new-window pre-paint background).
