@@ -395,7 +395,303 @@ export const slateTheme: DesktopTheme = {
   }
 }
 
+export const sakuraTheme: DesktopTheme = {
+  name: 'sakura',
+  label: '樱花 Sakura',
+  description: '粉色少女系主题 — 柔和樱花色调',
+  colors: {
+    background: '#FDF3F5',
+    foreground: '#4A3238',
+    card: '#FFFFFF',
+    cardForeground: '#4A3238',
+    muted: '#F9E4E9',
+    mutedForeground: '#9A7B82',
+    popover: '#FFFFFF',
+    popoverForeground: '#4A3238',
+    primary: '#E8798F',
+    primaryForeground: '#FFF7F8',
+    secondary: '#F6CBD3',
+    secondaryForeground: '#5E3F46',
+    accent: '#F4A7B9',
+    accentForeground: '#533540',
+    border: '#F0D4DA',
+    input: '#F7E3E7',
+    ring: '#E8798F',
+    midground: '#E8798F',
+    composerRing: '#E8798F',
+    destructive: '#C4485F',
+    destructiveForeground: '#FFF5F6',
+    sidebarBackground: '#FAECEF',
+    sidebarBorder: '#F0D4DA',
+    userBubble: '#F9DCE2',
+    userBubbleBorder: '#EFC6CE'
+  },
+  darkColors: {
+    background: '#2A1E22',
+    foreground: '#F3D9DE',
+    card: '#37282D',
+    cardForeground: '#F3D9DE',
+    muted: '#423036',
+    mutedForeground: '#C7A2AB',
+    popover: '#3C2C31',
+    popoverForeground: '#F3D9DE',
+    primary: '#F096A9',
+    primaryForeground: '#2A1E22',
+    secondary: '#4A353B',
+    secondaryForeground: '#EBD3D8',
+    accent: '#D97A8E',
+    accentForeground: '#FBEFF1',
+    border: '#564047',
+    input: '#241A1E',
+    ring: '#F096A9',
+    midground: '#F096A9',
+    composerRing: '#F096A9',
+    destructive: '#C05B6E',
+    destructiveForeground: '#FBEDEF',
+    sidebarBackground: '#231A1D',
+    sidebarBorder: '#4A353B',
+    userBubble: '#3F2E33',
+    userBubbleBorder: '#5C454B'
+  },
+  typography: {
+    fontSans: SYSTEM_SANS
+  },
+  layout: {
+    vibe: 'chat',
+    bubbleStyle: 'pill',
+    radiusScalar: 1.3,
+    spacingMul: 1.15,
+    turnGap: 0.55,
+    chatMaxWidth: 42,
+    chatLayout: { list: 'feed', userAlign: 'right', userStyle: 'card', assistantStyle: 'card', composer: 'float' }
+  }
+}
+
+/**
+ * Starnight — 星空紫 anime theme. Deep night-violet with luminous accents;
+ * the "晚空少女" mood. Wallpaper-ready like sakura.
+ */
+export const starnightTheme: DesktopTheme = {
+  name: 'starnight',
+  label: '星夜 Starnight',
+  description: '深紫星空主题 — 静谧夜色氛围',
+  colors: {
+    background: '#171233',
+    foreground: '#E4DEFA',
+    card: '#221B45',
+    cardForeground: '#E4DEFA',
+    muted: '#2B2352',
+    mutedForeground: '#A79DD6',
+    popover: '#251E4B',
+    popoverForeground: '#E4DEFA',
+    primary: '#9D7BEA',
+    primaryForeground: '#171233',
+    secondary: '#332A5F',
+    secondaryForeground: '#D5CDF2',
+    accent: '#7E5FD1',
+    accentForeground: '#F0ECFB',
+    border: '#3C3168',
+    input: '#2A2151',
+    ring: '#9D7BEA',
+    midground: '#9D7BEA',
+    composerRing: '#B79BF0',
+    destructive: '#C4586E',
+    destructiveForeground: '#FBEFF2',
+    sidebarBackground: '#120E28',
+    sidebarBorder: '#332A5F',
+    userBubble: '#2E2557',
+    userBubbleBorder: '#4A3E7E'
+  },
+  darkColors: {
+    background: '#0F0B24',
+    foreground: '#DCD5F5',
+    card: '#1A1438',
+    cardForeground: '#DCD5F5',
+    muted: '#221A44',
+    mutedForeground: '#9C92C9',
+    popover: '#1D1640',
+    popoverForeground: '#DCD5F5',
+    primary: '#8F6CE0',
+    primaryForeground: '#0F0B24',
+    secondary: '#292050',
+    secondaryForeground: '#CFC7EE',
+    accent: '#6E50BE',
+    accentForeground: '#ECE7F9',
+    border: '#312858',
+    input: '#1B1339',
+    ring: '#8F6CE0',
+    midground: '#8F6CE0',
+    composerRing: '#A98CF0',
+    destructive: '#B44F65',
+    destructiveForeground: '#F9ECEF',
+    sidebarBackground: '#0B081C',
+    sidebarBorder: '#292050',
+    userBubble: '#251D48',
+    userBubbleBorder: '#403670'
+  },
+  typography: {
+    fontSans: SYSTEM_SANS
+  },
+  layout: {
+    vibe: 'chat',
+    bubbleStyle: 'soft',
+    radiusScalar: 1.0,
+    spacingMul: 1.05,
+    turnGap: 0.45
+  }
+}
+
+/**
+ * Matcha — 抹茶绿 healing theme. Fresh tea greens on cream; the "治愈系"
+ * pick. Wallpaper-ready like the other skin-shop themes.
+ */
+export const matchaTheme: DesktopTheme = {
+  name: 'matcha',
+  label: '抹茶 Matcha',
+  description: '治愈抹茶绿 — 清新自然色调',
+  colors: {
+    background: '#F4F7EE',
+    foreground: '#33402A',
+    card: '#FFFFFF',
+    cardForeground: '#33402A',
+    muted: '#E8F0DC',
+    mutedForeground: '#7A8A6C',
+    popover: '#FFFFFF',
+    popoverForeground: '#33402A',
+    primary: '#6B9B4E',
+    primaryForeground: '#F8FBF4',
+    secondary: '#D9E8C5',
+    secondaryForeground: '#41522F',
+    accent: '#A3C487',
+    accentForeground: '#3A4A2C',
+    border: '#DCE8CC',
+    input: '#EDF4E2',
+    ring: '#6B9B4E',
+    midground: '#6B9B4E',
+    composerRing: '#6B9B4E',
+    destructive: '#B8543F',
+    destructiveForeground: '#FBF3EF',
+    sidebarBackground: '#EDF3E3',
+    sidebarBorder: '#DCE8CC',
+    userBubble: '#E2EED2',
+    userBubbleBorder: '#D2E3BC'
+  },
+  darkColors: {
+    background: '#1C2318',
+    foreground: '#DEE8D2',
+    card: '#252E20',
+    cardForeground: '#DEE8D2',
+    muted: '#2E3A27',
+    mutedForeground: '#A5B896',
+    popover: '#293323',
+    popoverForeground: '#DEE8D2',
+    primary: '#87B86A',
+    primaryForeground: '#1C2318',
+    secondary: '#35422D',
+    secondaryForeground: '#D0DEBF',
+    accent: '#5F8A46',
+    accentForeground: '#EDF4E4',
+    border: '#414F37',
+    input: '#182011',
+    ring: '#87B86A',
+    midground: '#87B86A',
+    composerRing: '#9BCB80',
+    destructive: '#A84E3A',
+    destructiveForeground: '#F7EDE9',
+    sidebarBackground: '#151C11',
+    sidebarBorder: '#35422D',
+    userBubble: '#2C3726',
+    userBubbleBorder: '#465539'
+  },
+  typography: {
+    fontSans: SYSTEM_SANS
+  },
+  layout: {
+    vibe: 'zen',
+    bubbleStyle: 'soft',
+    radiusScalar: 0.8,
+    spacingMul: 1.2,
+    turnGap: 0.7
+  }
+}
+
+
+/**
+ * Paper — 纸白极简。黑白灰三色,无彩色干扰,默认主题。
+ * 亮=纸白底黑字;暗=碳黑底灰白字。黑=文字,白=留白,灰=层级。
+ */
+export const paperTheme: DesktopTheme = {
+  name: 'paper',
+  label: '纸白 Paper',
+  description: '黑白极简 · 纸墨无声',
+  colors: {
+    background: '#FAFAF8',
+    foreground: '#1A1A1A',
+    card: '#FFFFFF',
+    cardForeground: '#1A1A1A',
+    muted: '#F0F0EE',
+    mutedForeground: '#8A8A86',
+    popover: '#FFFFFF',
+    popoverForeground: '#1A1A1A',
+    primary: '#1A1A1A',
+    primaryForeground: '#FAFAF8',
+    secondary: '#EAEAE8',
+    secondaryForeground: '#2A2A2A',
+    accent: '#D4D4D0',
+    accentForeground: '#1A1A1A',
+    border: '#E4E4E0',
+    input: '#F5F5F3',
+    ring: '#1A1A1A',
+    midground: '#1A1A1A',
+    composerRing: '#1A1A1A',
+    destructive: '#B91C1C',
+    destructiveForeground: '#FFFFFF',
+    sidebarBackground: '#F4F4F2',
+    sidebarBorder: '#E4E4E0',
+    userBubble: '#1A1A1A',
+    userBubbleBorder: '#1A1A1A'
+  },
+  darkColors: {
+    background: '#111111',
+    foreground: '#E8E8E6',
+    card: '#191919',
+    cardForeground: '#E8E8E6',
+    muted: '#222222',
+    mutedForeground: '#9A9A96',
+    popover: '#1C1C1C',
+    popoverForeground: '#E8E8E6',
+    primary: '#E8E8E6',
+    primaryForeground: '#111111',
+    secondary: '#262626',
+    secondaryForeground: '#D4D4D0',
+    accent: '#3A3A3A',
+    accentForeground: '#E8E8E6',
+    border: '#2E2E2E',
+    input: '#0D0D0D',
+    ring: '#E8E8E6',
+    midground: '#E8E8E6',
+    composerRing: '#E8E8E6',
+    destructive: '#A81818',
+    destructiveForeground: '#F5E8E8',
+    sidebarBackground: '#0C0C0C',
+    sidebarBorder: '#262626',
+    userBubble: '#242424',
+    userBubbleBorder: '#383838'
+  },
+  typography: {
+    fontSans: SYSTEM_SANS
+  },
+  layout: {
+    vibe: 'zen',
+    bubbleStyle: 'soft',
+    radiusScalar: 0.5,
+    spacingMul: 1.05,
+    turnGap: 0.5
+  }
+}
+
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
+  paper: paperTheme,
   nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
@@ -406,10 +702,13 @@ export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
   ember: emberTheme,
   mono: monoTheme,
   slate: slateTheme,
-  cyberpunk: cyberpunkTheme
+  cyberpunk: cyberpunkTheme,
+  sakura: sakuraTheme,
+  starnight: starnightTheme,
+  matcha: matchaTheme
 }
 
 export const BUILTIN_THEME_LIST = Object.values(BUILTIN_THEMES)
 
 /** Skin used when nothing is persisted or the persisted name is retired. */
-export const DEFAULT_SKIN_NAME = 'nous'
+export const DEFAULT_SKIN_NAME = 'paper'
