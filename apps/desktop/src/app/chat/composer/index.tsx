@@ -114,6 +114,15 @@ import {
 } from './url-refs'
 import { VoiceActivity, VoicePlaybackActivity } from './voice-activity'
 
+// qiji 0.19.2+: composer pop-out removed — clear legacy persisted state so
+// old installs never restore a floating composer (and the storage keys die out).
+try {
+  localStorage.removeItem('hermes.desktop.composerPopout.enabled')
+  localStorage.removeItem('hermes.desktop.composerPopout.position')
+} catch {
+  // storage unavailable — nothing to clean
+}
+
 export function ChatBar({
   busy,
   cwd,
