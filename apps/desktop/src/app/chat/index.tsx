@@ -224,6 +224,26 @@ const INTRO_OPC_SKILLS: QuickSkill[] = [
   { name: 'qiji-geo', title: '⭐ GEO 平台自动化', desc: 'AI可见度诊断、关键词管理、爆文复刻' }
 ]
 
+// 最佳实践案例（点击直接发送）
+const INTRO_EXAMPLES: { title: string; prompt: string }[] = [
+  {
+    title: '✅ 帮我把这份销售数据按地区做透视汇总表，算出环比增长',
+    prompt: '帮我把这份销售数据按地区做透视汇总表，算出环比增长'
+  },
+  {
+    title: '✅ 把这个会议录音整理成会议纪要，分出结论和待办',
+    prompt: '把这个会议录音整理成会议纪要，分出结论和待办'
+  },
+  {
+    title: '✅ 给我做一个10页的产品介绍PPT，面向小白用户',
+    prompt: '给我做一个10页的产品介绍PPT，面向小白用户'
+  },
+  {
+    title: '✅ 这份PDF报告帮我提炼要点，写一份300字摘要',
+    prompt: '这份PDF报告帮我提炼要点，写一份300字摘要'
+  }
+]
+
 /**
  * The view's $messages, live only while this surface is the VISIBLE tab.
  *
@@ -862,7 +882,11 @@ const ChatViewContent = memo(function ChatViewContent({
                   ? {
                       personality: introPersonality,
                       quickSkills: [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS],
+                      examples: INTRO_EXAMPLES,
                       seed: introSeed,
+                      onPickExample: prompt => {
+                        void onSubmit(prompt)
+                      },
                       onPickSkill: name => {
                         const skill = [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS].find(s => s.name === name)
                         window.dispatchEvent(

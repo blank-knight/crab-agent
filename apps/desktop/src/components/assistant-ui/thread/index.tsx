@@ -168,6 +168,27 @@ export const Thread = memo(function Thread({
   const emptyPlaceholder = emptyBody ? (
     <div className="flex min-h-0 w-full flex-col items-center justify-center pt-[var(--composer-measured-height)]">
       {emptyBody}
+      {/* qiji: 最佳实践条——空会话主页输入框下方,点击直接发送 */}
+      {intro?.examples && intro.examples.length > 0 && intro.onPickExample ? (
+        <div className="pointer-events-auto mt-4 w-full max-w-xl px-2">
+          <div className="mb-1.5 text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">
+            试试这样用
+          </div>
+          <div className="flex flex-col gap-1">
+            {intro.examples.map(ex => (
+              <button
+                aria-label={ex.prompt}
+                className="w-full truncate rounded-lg border border-border/50 bg-transparent px-3 py-1.5 text-left text-[0.8rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                key={ex.title}
+                onClick={() => intro.onPickExample?.(ex.prompt)}
+                type="button"
+              >
+                {ex.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   ) : undefined
 

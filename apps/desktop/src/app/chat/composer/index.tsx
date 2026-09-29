@@ -584,6 +584,19 @@ export function ChatBar({
     return () => window.removeEventListener('qiji:insert-skill', handler)
   }, [])
 
+  // 外部注入文本（主页最佳实践案例 → 输入框），并聚焦
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ text: string }>).detail
+      if (detail?.text) {
+        insertText(detail.text)
+        requestMainFocus()
+      }
+    }
+    window.addEventListener('qiji:insert-text', handler)
+    return () => window.removeEventListener('qiji:insert-text', handler)
+  }, [])
+
   const handleEditorInput = (event: FormEvent<HTMLDivElement>) => {
     // During IME composition the DOM contains uncommitted preedit text
     // mixed with real content.  Skip state writes — compositionend flushes
