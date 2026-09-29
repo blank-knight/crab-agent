@@ -81,7 +81,7 @@ beforeEach(async () => {
   await act(async () => {
     render(
       <MemoryRouter>
-        <I18nProvider>
+        <I18nProvider configClient={null} initialLocale="en">
           <Harness />
         </I18nProvider>
       </MemoryRouter>

@@ -62,7 +62,7 @@ it('reads the catalog from the backend profile but hands the Desktop alias to pr
 
   render(
     <QueryClientProvider client={client}>
-      <I18nProvider>
+      <I18nProvider configClient={null} initialLocale="en">
         <ModelPickerOverlay
           onSelect={() => undefined}
           ownerConnectionId="connection-a"

@@ -175,7 +175,7 @@ function mountSettings(): RenderResult {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <I18nProvider>
+        <I18nProvider configClient={null} initialLocale="en">
           <LocalModelsSettings />
         </I18nProvider>
       </MemoryRouter>
@@ -188,7 +188,7 @@ it('uses one status polling clock across staggered Settings, picker and menu mou
   await tick(400)
   render(
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
+      <I18nProvider configClient={null} initialLocale="en">
         <ModelPickerDialog
           currentModel=""
           currentProvider=""
@@ -204,7 +204,7 @@ it('uses one status polling clock across staggered Settings, picker and menu mou
   await tick(400)
   render(
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
+      <I18nProvider configClient={null} initialLocale="en">
         <DropdownMenu open>
           <DropdownMenuContent>
             <ModelCatalogMenu controller={controller} ownerConnectionId="A" profile="work" />
@@ -367,7 +367,7 @@ it('keeps menu focus and its scalar selection stable across byte updates and out
 
   render(
     <QueryClientProvider client={queryClient}>
-      <I18nProvider>
+      <I18nProvider configClient={null} initialLocale="en">
         <DropdownMenu open>
           <DropdownMenuContent>
             <ModelCatalogMenu controller={menuController} ownerConnectionId="A" profile="work" />
