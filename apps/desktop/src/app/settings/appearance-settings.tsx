@@ -82,6 +82,7 @@ import { setNested } from './helpers'
 import { MinimizeToTraySetting } from './minimize-to-tray-setting'
 import { PetSettings } from './pet-settings'
 import { ListRow, RowFootnoteAction, SectionHeading, SettingsContent, ToggleRow } from './primitives'
+import { QijiTypographyRows } from './qiji-typography-rows'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
 import { TerminalFontSetting } from './terminal-font-setting'
 import { useSettingDeepLink } from './use-setting-deep-link'
@@ -686,6 +687,9 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
                 id={settingElementId(ids.uiScale)}
                 title={a.uiScaleTitle}
               />
+
+              {/* qiji: 界面字体预设 / 全局字号 / 背景壁纸 */}
+              <QijiTypographyRows />
 
               <div id={settingElementId(ids.chatFont)}>
                 <ChatFontSetting />
