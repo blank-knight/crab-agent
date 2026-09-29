@@ -153,34 +153,6 @@
 
   --spacing-mul: var(--dt-spacing-mul, 1);
 
-/* ── Wallpaper layer (anime/skin themes) ─────────────────────────────
-     Applied by applyTheme() when a theme ships `backgroundImage`. The image
-     is painted as an extra layer UNDER the normal chat-surface color, with a
-     theme-colored scrim on top for readability. Flat-color themes never set
-     --dt-wallpaper, so this block is inert for them — zero risk to defaults. */
-  /* 关键: 壁纸模式下,盖在body上的内容区表面色透明化——否则壁纸永远被罩住不可见 */
-  html[data-hermes-wallpaper='on'] {
-    --ui-chat-surface-background: transparent;
-    --ui-bg-chrome: transparent;
-  }
-
-  html[data-hermes-wallpaper='on'] body {
-    background-image:
-      linear-gradient(var(--theme-background-seed, transparent), var(--theme-background-seed, transparent)),
-      var(--dt-wallpaper);
-    background-size: cover, var(--dt-wallpaper-size, cover);
-    background-position: center, var(--dt-wallpaper-position, center);
-    background-repeat: no-repeat, no-repeat;
-    background-attachment: fixed, fixed;
-    background-blend-mode: normal, normal;
-  }
-
-  /* Glass surfaces get a touch more milk over busy art so text stays legible. */
-  html[data-hermes-wallpaper='on'] .glass,
-  html[data-hermes-wallpaper='on'] [class*='backdrop-blur'] {
-    background-color: color-mix(in oklab, var(--theme-card-seed) 82%, transparent);
-  }
-
   --radius-xs: calc(var(--radius-scalar) * 0.125rem);
   --radius-sm: calc(var(--radius-scalar) * 0.5rem);
   --radius-md: calc(var(--radius-scalar) * 0.625rem);
@@ -3912,4 +3884,32 @@ html[data-qiji-composer='float'] [data-slot='composer-surface'] {
 }
 html[data-qiji-composer='float'] [data-slot='composer-root'] {
   padding-bottom: 0.6rem;
+}
+
+/* ── Wallpaper layer (anime/skin themes) ─────────────────────────────
+   Applied by applyTheme() when a theme ships `backgroundImage`. The image
+   is painted as an extra layer UNDER the normal chat-surface color, with a
+   theme-colored scrim on top for readability. Flat-color themes never set
+   --dt-wallpaper, so this block is inert for them — zero risk to defaults. */
+/* 关键: 壁纸模式下,盖在body上的内容区表面色透明化——否则壁纸永远被罩住不可见 */
+html[data-hermes-wallpaper='on'] {
+  --ui-chat-surface-background: transparent;
+  --ui-bg-chrome: transparent;
+}
+
+html[data-hermes-wallpaper='on'] body {
+  background-image:
+    linear-gradient(var(--theme-background-seed, transparent), var(--theme-background-seed, transparent)),
+    var(--dt-wallpaper);
+  background-size: cover, var(--dt-wallpaper-size, cover);
+  background-position: center, var(--dt-wallpaper-position, center);
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
+  background-blend-mode: normal, normal;
+}
+
+/* Glass surfaces get a touch more milk over busy art so text stays legible. */
+html[data-hermes-wallpaper='on'] .glass,
+html[data-hermes-wallpaper='on'] [class*='backdrop-blur'] {
+  background-color: color-mix(in oklab, var(--theme-card-seed) 82%, transparent);
 }
