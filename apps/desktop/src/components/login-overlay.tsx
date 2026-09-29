@@ -13,7 +13,7 @@ import { applyAgentModelConfig, extractAgentModelConfig } from '@/lib/agent-mode
 import { BackendError, backendFetch } from '@/lib/backend'
 import { ChevronDown, Loader2, X } from '@/lib/icons'
 import { loadSavedAccounts, removeSavedAccount, saveAccount, type SavedAccount } from '@/lib/saved-accounts'
-import { $auth, devSkipLogin, login, register } from '@/store/auth'
+import { $auth, login, register } from '@/store/auth'
 import { notify } from '@/store/notifications'
 import {
   $brandPreview,
@@ -637,17 +637,6 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
             </button>
           </div>
         )}
-
-        {/* 开发模式：跳过登录（后端未就绪时用来看主界面 UI） */}
-        <div className="border-t border-border/30 pt-4">
-          <button
-            className="w-full text-center text-sm text-(--ui-text-tertiary) underline underline-offset-2 transition-colors hover:text-foreground"
-            onClick={() => devSkipLogin()}
-            type="button"
-          >
-            [开发模式] 跳过登录
-          </button>
-        </div>
       </div>
 
       {/* 忘记密码弹窗：文案由后端 forgottip 接口下发，后台可配。

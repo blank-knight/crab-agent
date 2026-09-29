@@ -235,7 +235,9 @@ export function setScore(score: number) {
   patch({ score })
 }
 
-/** 从后端刷新 is_custom_key（GET /apikey 可能返回更细的权限） */
+/**
+ * 从后端刷新 is_custom_key（GET /apikey 可能返回更细的权限）
+ */
 export function setIsCustomKey(isCustomKey: boolean) {
   patch({ isCustomKey })
   // 同步 localStorage
@@ -244,26 +246,4 @@ export function setIsCustomKey(isCustomKey: boolean) {
   } catch {
     // best-effort
   }
-}
-
-/**
- * 开发模式跳过登录：直接往内存 atom + localStorage 写模拟登录态。
- * 后端未就绪时用来看主界面 UI，不依赖 reload。
- */
-export function devSkipLogin() {
-  const devState: AuthState = {
-    token: 'dev-skip-token',
-    username: 'dev',
-    isCustomKey: false,
-    allowModelSelect: true,
-    platformModels: [],
-    mode: 'trial',
-    score: 100,
-    loginAt: Date.now(),
-    apiKey: null,
-    avatar: null
-  }
-
-  persist(devState)
-  $auth.set(devState)
 }
