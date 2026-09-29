@@ -14,6 +14,7 @@ import { ACTIVE_ICON_BTN, GHOST_ICON_BTN, PRIMARY_ICON_BTN } from './control-cla
 import type { ConversationStatus } from './hooks/use-voice-conversation'
 import { ModelPill } from './model-pill'
 import { ReasoningPill } from './reasoning-pill'
+import { SkillPicker } from './skill-picker'
 import { StartVoiceButton } from './start-voice-button'
 import type { ChatBarState, VoiceStatus } from './types'
 import { VoiceFan } from './voice-fan'
@@ -49,6 +50,7 @@ export function ComposerControls({
   state,
   voiceStatus,
   onDictate,
+  onSelectSkill,
   onQueue,
   onToggleAutoSpeak
 }: {
@@ -66,6 +68,8 @@ export function ComposerControls({
   state: ChatBarState
   voiceStatus: VoiceStatus
   onDictate: () => void
+  /** qiji: 技能选择器回调——选中后向输入框插入技能芯片 */
+  onSelectSkill?: (payload: { command: string; label: string }) => void
   onQueue: () => void
   onToggleAutoSpeak: () => void
 }) {
@@ -119,6 +123,9 @@ export function ComposerControls({
           {hideModelPill ? null : (
             <>
               <ModelPill compact={compactModelPill} disabled={disabled} model={state.model} />
+              {onSelectSkill && !compactModelPill ? (
+                <SkillPicker disabled={disabled} onSelect={onSelectSkill} />
+              ) : null}
               {compactModelPill ? null : <ReasoningPill disabled={disabled} model={state.model} />}
             </>
           )}

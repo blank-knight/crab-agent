@@ -546,6 +546,7 @@ export function ChatBar({
 
     if (!editor) {
       insertText(command)
+
       return
     }
 
@@ -572,11 +573,14 @@ export function ChatBar({
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ command: string; label?: string }>).detail
+
       if (detail?.command) {
         insertSkillChipRef.current(detail.command, detail.label || detail.command)
       }
     }
+
     window.addEventListener('qiji:insert-skill', handler)
+
     return () => window.removeEventListener('qiji:insert-skill', handler)
   }, [])
 
@@ -1199,6 +1203,7 @@ export function ChatBar({
       minimal={minimal}
       onDictate={dictate}
       onQueue={queueDraft}
+      onSelectSkill={payload => insertSkillChip(payload.command, payload.label)}
       onToggleAutoSpeak={handleToggleAutoSpeak}
       state={state}
       voiceStatus={voiceStatus}
