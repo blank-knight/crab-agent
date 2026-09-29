@@ -19,6 +19,7 @@ import {
   setSessionArchived
 } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { accountLockedProfile } from '@/lib/account-profile'
 import {
   type ChatMessage,
   preserveLocalAssistantErrors,
@@ -344,7 +345,14 @@ async function desktopSessionCreateParams(
     provider: isManualSelection ? $currentProvider.get().trim() : ''
   }
 
+  // qiji 账号隔离兜底：boot 深处 $activeGatewayProfile 才被校正，此前
+  // atom 初值是 'default'——这个窗口里创建的会话会被错盖 default 戳，
+  // 恢复时被账号锁误拦。登录账号锁定的 profile 就是创建路径真正落库
+  // 的 profile，锁值优先。
+  const lockedProfile = accountLockedProfile()
+
   const profile =
+    lockedProfile ||
     capturedRoute?.profile ||
     requestedProfile ||
     $newChatProfile.get() ||
@@ -1227,6 +1235,34 @@ export function useSessionActions({
       const sessionProfile = storedForProfile?.profile
 
       if (!isCurrentResume()) {
+        return
+      }
+
+      // qiji 账号隔离：登录账号锁定专属 profile 时，其他 profile 的会话
+      // 一律拒绝恢复——否则点击会把 gateway 热切换到那个账号的 backend，
+      // 等于带着全套配置登进别人的账号。判定采用“确认是他人的才拒”：
+      // 只有 resolveStoredSession 明确带回一行、且其归属 ≠ 锁定 profile
+      // 时才拦；查不到行（冷启动 404/超时）一律放行，防误拦本人会话。
+      const lockedProfile = accountLockedProfile()
+
+      const sessionProfileKey = storedForProfile
+        ? normalizeProfileKey(storedForProfile.profile || 'default')
+        : null
+
+      if (lockedProfile && sessionProfileKey !== null && sessionProfileKey !== normalizeProfileKey(lockedProfile)) {
+        if (!isCurrentResume()) {
+          return
+        }
+
+        setActiveSessionId(null)
+        activeSessionIdRef.current = null
+        setMessages([])
+        notify({
+          kind: 'error',
+          title: copy.resumeFailed,
+          message: '该会话不属于当前登录账号'
+        })
+
         return
       }
 
