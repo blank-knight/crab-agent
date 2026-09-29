@@ -8,7 +8,6 @@ import {
   DEFAULT_LOCALE,
   QIJI_DEFAULT_LOCALE,
   isSupportedLocaleValue,
-  osPreferredLocale,
   localeConfigValue,
   normalizeLocale
 } from './languages'
@@ -162,14 +161,11 @@ export function I18nProvider({
             return
           }
 
-          // Keep inference unsaved so OS language changes apply on the next boot
-          // until the user explicitly picks a language.
-          const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
-
+          // qiji(qiji-fork 生产线同款): 无保存语言 → 直接默认中文,不做 OS 探测。
+          // 上游语义是"探测 OS 语言,未命中回 en";qiji-fork 无探测链(DEFAULT_LOCALE='zh'
+          // 直接生效),英文系统(en-US)不得拦截产品默认中文。
           if (!cancelled && !userLocaleRef.current) {
-            // qiji: OS 探测命中→用 OS 语言;未命中→中文(而非上游 en)
-            const probed = osPreferredLocale(machineProfile?.locale)
-            setLocaleState(probed ?? QIJI_DEFAULT_LOCALE)
+            setLocaleState(QIJI_DEFAULT_LOCALE)
           }
         })
         .catch(error => {

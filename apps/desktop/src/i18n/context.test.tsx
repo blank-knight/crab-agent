@@ -29,6 +29,31 @@ describe('I18nProvider', () => {
   afterEach(() => {
     cleanup()
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('defaults to Chinese without OS probing when no language is saved (qiji)', async () => {
+    // qiji(qiji-fork 生产线对齐): 挂载链无 OS 探测环节——机器是 en-US 也不得拦截默认中文。
+    // getMachineProfile 钉成 tripwire:探测逻辑若回流(上游 resolveInitialLocale 语义)即挂。
+    const machineProfile = vi.fn().mockResolvedValue({ locale: 'en-US' })
+    vi.stubGlobal('hermesDesktop', { getMachineProfile: machineProfile })
+
+    const configClient: I18nConfigClient = {
+      getConfig: vi.fn().mockResolvedValue({}),
+      saveConfig: vi.fn()
+    }
+
+    render(
+      <I18nProvider configClient={configClient}>
+        <LanguageProbe />
+      </I18nProvider>
+    )
+
+    await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
+
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(screen.getByTestId('label').textContent).toBe('语言')
+    expect(machineProfile).not.toHaveBeenCalled()
   })
 
   it('defaults to English without a config client', () => {
