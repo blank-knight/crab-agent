@@ -2,30 +2,30 @@ import { useStore } from '@nanostores/react'
 import { type ComponentProps, useState } from 'react'
 
 import { $oemBrand, hasOemLogo } from '@/store/oem-brand'
-import { useTheme } from '@/themes'
 
 import { cn } from '../lib/utils'
 
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 
 /**
- * Brand badge: 默认主题标（nous-girl，浅深色各自款）；配置 OEM 贴牌 logo
- * （store 里）或登录页预览 logo（overrideLogo，未登录时 store 还没品牌）
- * 时显示贴牌图，加载失败回退默认。
+ * Brand badge: 默认硅基Claw 标（qiji-brand.png，浅深色一致）。
+ * 登录贴牌账号后显示贴牌 logo（远程 URL）；贴牌 logo 加载失败回退默认图。
+ * `overrideLogo` 供登录页传预查预览 logo（未登录时 store 里还没有品牌）。
  */
 export function BrandMark({
   className,
   overrideLogo,
   ...props
 }: ComponentProps<'span'> & { overrideLogo?: string | null }) {
-  const { renderedMode } = useTheme()
   const brand = useStore($oemBrand)
   const [broken, setBroken] = useState(false)
-  const dark = renderedMode === 'dark'
   const logoUrl = overrideLogo?.trim() || (hasOemLogo(brand) ? brand.logo.trim() : '')
 
   return (
-    <span className={cn('inline-flex size-14 shrink-0 items-center justify-center', className)} {...props}>
+    <span
+      className={cn('inline-flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white', className)}
+      {...props}
+    >
       {logoUrl && !broken ? (
         <img
           alt=""
@@ -34,7 +34,7 @@ export function BrandMark({
           src={logoUrl}
         />
       ) : (
-        <img alt="" className="size-full object-contain" src={assetPath(dark ? 'nous-girl-dark.png' : 'nous-girl.png')} />
+        <img alt="" className="size-full object-contain" src={assetPath('qiji-brand.png')} />
       )}
     </span>
   )

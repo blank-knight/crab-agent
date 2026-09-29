@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router'
 import { I18nProvider } from '@/i18n'
 
 import { $auth } from '@/store/auth'
+import { brandText } from '@/store/oem-brand'
 
 // —— fetch mock：断言组件打到真实后端路径 ——
 
@@ -144,7 +145,8 @@ describe('AccountSettings（个人中心）', () => {
       </I18nProvider>
     )
     await waitFor(() => {
-      expect(screen.getByText('未登录，请先登录奇计账号')).toBeTruthy()
+      // qiji: 品牌层把「奇计」替换为生效品牌名,断言同源
+      expect(screen.getByText(brandText('未登录，请先登录奇计账号'))).toBeTruthy()
     })
     expect(calls.length).toBe(0)
   })

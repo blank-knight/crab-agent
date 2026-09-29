@@ -321,13 +321,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
                 label: t.settings.nav.providerApiKeys,
                 onSelect: () => openProviderView('keys')
               },
-              {
-                active: activeView === 'providers' && providerView === 'custom-endpoints',
-                icon: Globe,
-                id: 'pview:custom-endpoints',
-                label: t.settings.nav.providerCustomEndpoints,
-                onSelect: () => openProviderView('custom-endpoints')
-              },
+              // qiji: 自定义端点导航项不暴露——产品走平台后端,该上游功能打本地
+              // runtime 会 404 报"无法加载自定义端点",对用户是纯噪音。
               // Local models ships behind the --local launch flag: no flag, no
               // nav entry (the pane itself also refuses to render, so a stale
               // ?pview=local deep link falls back to accounts-shaped emptiness
