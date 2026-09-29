@@ -43,7 +43,7 @@ import { type ChatMessage, chatMessageText } from '@/lib/chat-messages'
 import { isMessagingSource } from '@/lib/session-source'
 import { activateWakeIndicator } from '@/lib/wake-indicator'
 import { playWakeSound } from '@/lib/wake-sound'
-import { $auth, isTokenExpired } from '@/store/auth'
+import { $auth, devSkipLogin, isAuthenticated, isTokenExpired } from '@/store/auth'
 import { $billingSettingsRequest } from '@/store/billing-block'
 import { $desktopBoot } from '@/store/boot'
 import { checkClientUpdate } from '@/store/client-update'
@@ -218,9 +218,11 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const actionsRef = useRef<WiringActions | null>(null)
 
   const gatewayState = useStore($gatewayState)
-  // qiji: 登录门控派生——useStore($auth) 订阅重渲染,登出/token 过期即弹登录层
+  // qiji: 登录门控派生——useStore($auth) 订阅重渲染,登出/token 过期即弹登录层。
+  // dev 豁免：开发实例连生产后端会被 enforce 强更/登录层挡住,自动跳过登录
+  // (devSkipLogin 写模拟态,不依赖后端就绪)。
   const authState = useStore($auth)
-  const needLogin = !authState.token || isTokenExpired()
+  const needLogin = import.meta.env.DEV ? false : !authState.token || isTokenExpired()
   const activeSessionId = useStore($activeSessionId)
   const billingSettingsRequest = useStore($billingSettingsRequest)
   const poolLimitsSettingsRequest = useStore($poolLimitsSettingsRequest)
@@ -228,6 +230,13 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const backendRestartRequest = useStore($backendRestartRequest)
   const cronReviewRequest = useStore($cronReviewRequest)
   const currentCwd = useStore($currentCwd)
+
+  // qiji dev: 开发模式自动跳过登录(模拟态,看主界面 UI 用)
+  useEffect(() => {
+    if (import.meta.env.DEV && !isAuthenticated()) {
+      devSkipLogin()
+    }
+  }, [])
 
   // qiji: 客户端更新检查（URL 通道：PHP 后端 /update/check → downloadurl）。
   // git 更新轮询不适用（离线包无 git 仓库）；DEV 豁免在 store 内（连生产后端

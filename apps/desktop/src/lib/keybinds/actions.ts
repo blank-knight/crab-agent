@@ -8,7 +8,10 @@
 import { registry } from '@/contrib/registry'
 import type { Contribution } from '@/contrib/types'
 
-import { IS_MAC } from './combo'
+// qiji dev-fix: 内联平台常量斩断 actions↔combo 循环 import——Vite dev 的 ESM
+// 并行求值下 TDZ 崩(白屏);upstream 固有,生产 rollup 串联可容忍。语义与 combo.ts 同源。
+const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent || '')
+
 
 export type KeybindCategory = 'composer' | 'profiles' | 'session' | 'navigation' | 'view'
 
