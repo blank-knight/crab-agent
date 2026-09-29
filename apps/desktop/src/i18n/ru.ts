@@ -1101,7 +1101,21 @@ export const ru = defineLocale({
       }
     }),
     about: {
-      updates: 'Обновления'
+      heading: '奇计 Desktop',
+      version: value => `Версия ${value}`,
+      versionUnavailable: 'Версия недоступна',
+      updates: 'Обновления',
+      checkNow: 'Проверить сейчас',
+      checking: 'Проверка…',
+      updateNow: 'Обновить сейчас',
+      lastChecked: age => `Последняя проверка ${age}`,
+      automaticUpdates: 'Автообновление',
+      automaticUpdatesDesc: '奇计 автоматически проверяет обновления в фоне и уведомляет, когда обновление готово.',
+      never: 'никогда',
+      justNow: 'только что',
+      minAgo: count => `${count} мин назад`,
+      hoursAgo: count => `${count} ч назад`,
+      daysAgo: count => `${count} дн назад`
     },
     account: {
       heading: 'Личный кабинет',

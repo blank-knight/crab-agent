@@ -1627,7 +1627,21 @@ export const esOverrides = {
       driverHealth: 'Estado del controlador'
     },
     about: {
-      updates: 'Actualizaciones'
+      heading: '奇计 Desktop',
+      version: value => `Versión ${value}`,
+      versionUnavailable: 'Versión no disponible',
+      updates: 'Actualizaciones',
+      checkNow: 'Comprobar ahora',
+      checking: 'Comprobando…',
+      updateNow: 'Actualizar ahora',
+      lastChecked: age => `Última comprobación ${age}`,
+      automaticUpdates: 'Actualizaciones automáticas',
+      automaticUpdatesDesc: '奇计 comprueba actualizaciones automáticamente en segundo plano y te avisa cuando hay una lista.',
+      never: 'nunca',
+      justNow: 'ahora mismo',
+      minAgo: count => `hace ${count} min`,
+      hoursAgo: count => `hace ${count} h`,
+      daysAgo: count => `hace ${count} días`
     },
     account: {
       heading: 'Cuenta',

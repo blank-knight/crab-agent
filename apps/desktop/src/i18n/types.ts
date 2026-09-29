@@ -1143,7 +1143,21 @@ export interface Translations {
       driverHealth: string
     }
     about: {
+      heading: string
+      version: (value: string) => string
+      versionUnavailable: string
       updates: string
+      checkNow: string
+      checking: string
+      updateNow: string
+      lastChecked: (age: string) => string
+      automaticUpdates: string
+      automaticUpdatesDesc: string
+      never: string
+      justNow: string
+      minAgo: (count: number) => string
+      hoursAgo: (count: number) => string
+      daysAgo: (count: number) => string
     }
     account: {
       heading: string

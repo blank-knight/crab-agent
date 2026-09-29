@@ -1050,7 +1050,21 @@ export const ja = defineLocale({
       }
     }),
     about: {
-      updates: '更新'
+      heading: '奇计 Desktop',
+      version: value => `バージョン ${value}`,
+      versionUnavailable: 'バージョン不明',
+      updates: '更新',
+      checkNow: '今すぐ確認',
+      checking: '確認中…',
+      updateNow: '今すぐ更新',
+      lastChecked: age => `最終確認 ${age}`,
+      automaticUpdates: '自動更新',
+      automaticUpdatesDesc: '奇計 はバックグラウンドで自動的に更新を確認し、利用可能な更新があれば通知します。',
+      never: '未確認',
+      justNow: 'たった今',
+      minAgo: count => `${count} 分前`,
+      hoursAgo: count => `${count} 時間前`,
+      daysAgo: count => `${count} 日前`
     },
     account: {
       heading: 'アカウント',

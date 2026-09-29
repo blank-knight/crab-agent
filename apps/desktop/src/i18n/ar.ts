@@ -934,7 +934,21 @@ export const ar = defineLocale({
         'عندما يحدّث Hermes نفسه من التطبيق دون موجه طرفية، احتفظ بتعديلات المصدر المحلية أو تجاهلها.'
     },
     about: {
-      updates: 'التحديثات'
+      heading: '奇计 Desktop',
+      version: value => `الإصدار ${value}`,
+      versionUnavailable: 'الإصدار غير متوفر',
+      updates: 'التحديثات',
+      checkNow: 'تحقق الآن',
+      checking: 'جارٍ التحقق…',
+      updateNow: 'حدّث الآن',
+      lastChecked: age => `آخر فحص ${age}`,
+      automaticUpdates: 'التحديث التلقائي',
+      automaticUpdatesDesc: 'يتحقق 奇计 من التحديثات تلقائيًا في الخلفية ويخبرك عند توفر تحديث.',
+      never: 'أبدًا',
+      justNow: 'الآن',
+      minAgo: count => `قبل ${count} دقيقة`,
+      hoursAgo: count => `قبل ${count} ساعة`,
+      daysAgo: count => `قبل ${count} يوم`
     },
 
     account: {

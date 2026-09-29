@@ -1322,7 +1322,21 @@ export const zh = defineLocale({
       driverHealth: '驱动健康状态'
     },
     about: {
-      updates: '更新'
+      heading: '奇计 Desktop',
+      version: value => `版本 ${value}`,
+      versionUnavailable: '版本不可用',
+      updates: '更新',
+      checkNow: '立即检查',
+      checking: '检查中…',
+      updateNow: '立即更新',
+      lastChecked: age => `上次检查 ${age}`,
+      automaticUpdates: '自动更新',
+      automaticUpdatesDesc: '奇计 会在后台自动检查更新，并在有可用更新时通知你。',
+      never: '从未',
+      justNow: '刚刚',
+      minAgo: count => `${count} 分钟前`,
+      hoursAgo: count => `${count} 小时前`,
+      daysAgo: count => `${count} 天前`
     },
     account: {
       heading: '个人中心',

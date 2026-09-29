@@ -1106,7 +1106,21 @@ export const zhHant = defineLocale({
       driverHealth: '驅動程式健康狀態'
     },
     about: {
-      updates: '更新'
+      heading: '奇计 Desktop',
+      version: value => `版本 ${value}`,
+      versionUnavailable: '版本無法取得',
+      updates: '更新',
+      checkNow: '立即檢查',
+      checking: '檢查中…',
+      updateNow: '立即更新',
+      lastChecked: age => `上次檢查 ${age}`,
+      automaticUpdates: '自動更新',
+      automaticUpdatesDesc: '奇计 會在背景自動檢查更新，並在有可用更新時通知你。',
+      never: '從未',
+      justNow: '剛剛',
+      minAgo: count => `${count} 分鐘前`,
+      hoursAgo: count => `${count} 小時前`,
+      daysAgo: count => `${count} 天前`
     },
     account: {
       heading: '個人中心',

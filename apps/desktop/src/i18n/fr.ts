@@ -1633,7 +1633,21 @@ export const frOverrides = {
       driverHealth: 'État du pilote'
     },
     about: {
-      updates: 'Mises à jour'
+      heading: '奇计 Desktop',
+      version: value => `Version ${value}`,
+      versionUnavailable: 'Version indisponible',
+      updates: 'Mises à jour',
+      checkNow: 'Vérifier maintenant',
+      checking: 'Vérification…',
+      updateNow: 'Mettre à jour',
+      lastChecked: age => `Dernière vérification ${age}`,
+      automaticUpdates: 'Mises à jour automatiques',
+      automaticUpdatesDesc: '奇计 vérifie automatiquement les mises à jour en arrière-plan et vous avertit quand une est prête.',
+      never: 'jamais',
+      justNow: 'à l’instant',
+      minAgo: count => `il y a ${count} min`,
+      hoursAgo: count => `il y a ${count} h`,
+      daysAgo: count => `il y a ${count} jours`
     },
     account: {
       heading: 'Compte',

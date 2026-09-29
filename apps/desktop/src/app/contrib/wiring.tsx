@@ -219,10 +219,10 @@ export function ContribWiring({ children }: { children: ReactNode }) {
 
   const gatewayState = useStore($gatewayState)
   // qiji: 登录门控派生——useStore($auth) 订阅重渲染,登出/token 过期即弹登录层。
-  // dev 豁免：开发实例连生产后端会被 enforce 强更/登录层挡住,自动跳过登录
-  // (devSkipLogin 写模拟态,不依赖后端就绪)。
+  // （qiji-fork 生产线同款：无 dev 豁免——401 清态后必须回登录页,否则主界面
+  // 空转没登录机制;本地无后端调试用 devSkipLogin 手动触发。）
   const authState = useStore($auth)
-  const needLogin = import.meta.env.DEV ? false : !authState.token || isTokenExpired()
+  const needLogin = !authState.token || isTokenExpired()
   const activeSessionId = useStore($activeSessionId)
   const billingSettingsRequest = useStore($billingSettingsRequest)
   const poolLimitsSettingsRequest = useStore($poolLimitsSettingsRequest)
@@ -230,13 +230,6 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   const backendRestartRequest = useStore($backendRestartRequest)
   const cronReviewRequest = useStore($cronReviewRequest)
   const currentCwd = useStore($currentCwd)
-
-  // qiji dev: 开发模式自动跳过登录(模拟态,看主界面 UI 用)
-  useEffect(() => {
-    if (import.meta.env.DEV && !isAuthenticated()) {
-      devSkipLogin()
-    }
-  }, [])
 
   // qiji: 客户端更新检查（URL 通道：PHP 后端 /update/check → downloadurl）。
   // git 更新轮询不适用（离线包无 git 仓库）；DEV 豁免在 store 内（连生产后端

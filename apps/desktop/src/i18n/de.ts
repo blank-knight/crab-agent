@@ -1628,7 +1628,21 @@ export const deOverrides = {
       driverHealth: 'Treiberstatus'
     },
     about: {
-      updates: 'Updates'
+      heading: '奇计 Desktop',
+      version: value => `Version ${value}`,
+      versionUnavailable: 'Version nicht verfügbar',
+      updates: 'Updates',
+      checkNow: 'Jetzt prüfen',
+      checking: 'Prüfen…',
+      updateNow: 'Jetzt aktualisieren',
+      lastChecked: age => `Zuletzt geprüft ${age}`,
+      automaticUpdates: 'Automatische Updates',
+      automaticUpdatesDesc: '奇计 prüft automatisch im Hintergrund auf Updates und benachrichtigt dich, wenn eines bereit ist.',
+      never: 'nie',
+      justNow: 'gerade eben',
+      minAgo: count => `vor ${count} Min.`,
+      hoursAgo: count => `vor ${count} Std.`,
+      daysAgo: count => `vor ${count} Tagen`
     },
     account: {
       heading: 'Konto',

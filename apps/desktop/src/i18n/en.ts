@@ -1375,7 +1375,22 @@ export const en: Translations = {
       driverHealth: 'Driver health'
     },
     about: {
-      updates: 'Updates'
+      heading: '奇计 Desktop',
+      version: value => `Version ${value}`,
+      versionUnavailable: 'Version unavailable',
+      updates: 'Updates',
+      checkNow: 'Check now',
+      checking: 'Checking…',
+      updateNow: 'Update now',
+      lastChecked: age => `Last checked ${age}`,
+      automaticUpdates: 'Automatic updates',
+      automaticUpdatesDesc:
+        '奇计 checks for updates automatically in the background and lets you know when one is ready.',
+      never: 'never',
+      justNow: 'just now',
+      minAgo: count => `${count} min ago`,
+      hoursAgo: count => `${count} hours ago`,
+      daysAgo: count => `${count} days ago`
     },
     account: {
       heading: 'Account',

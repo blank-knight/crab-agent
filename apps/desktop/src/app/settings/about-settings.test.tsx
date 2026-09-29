@@ -1,153 +1,161 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { DesktopUpdateStatus, DesktopVersionInfo, HermesConnection } from '@/global'
-import { en } from '@/i18n/en'
-import type * as SessionStore from '@/store/session'
-import { $connection } from '@/store/session'
+import type { DesktopVersionInfo } from '@/global'
+import { I18nProvider } from '@/i18n'
+import { $auth } from '@/store/auth'
 import {
-  $backendUpdateStatus,
-  $desktopVersion,
-  $updateStatus,
-  checkBackendUpdates,
-  checkUpdates,
-  refreshDesktopVersion,
-  startActiveUpdate,
-  type UpdateApplyState
-} from '@/store/updates'
+  $clientUpdate,
+  checkClientUpdate,
+  type ClientUpdateState
+} from '@/store/client-update'
+import { $desktopVersion, refreshDesktopVersion } from '@/store/updates'
+import { submitReport } from '@/lib/client-report'
 
 import { AboutSettings } from './about-settings'
 
-vi.mock('@/store/session', async (importOriginal): Promise<Record<string, unknown>> => {
-  const actual = await importOriginal<typeof SessionStore>()
-  const { atom } = await import('nanostores')
-
-  return { ...actual, $connection: atom<HermesConnection | null>(null) }
-})
+// qiji 关于页测试：品牌 hero + 账户信息 + URL 通道更新卡片。
+// 上游 source-updater 的 UpdateStatusCard 测试随整页替换废弃。
 
 vi.mock('@/store/updates', async (): Promise<Record<string, unknown>> => {
   const { atom } = await import('nanostores')
 
-  const idle: UpdateApplyState = {
-    applying: false,
-    stage: 'idle',
-    message: '',
-    percent: null,
-    error: null,
-    command: null,
-    log: []
-  }
-
   return {
     $desktopVersion: atom<DesktopVersionInfo | null>(null),
-    $backendUpdateApply: atom<UpdateApplyState>(idle),
-    $backendUpdateChecking: atom<boolean>(false),
-    $backendUpdateStatus: atom<DesktopUpdateStatus | null>(null),
-    $updateApply: atom<UpdateApplyState>(idle),
-    $updateChecking: atom<boolean>(false),
-    $updateStatus: atom<DesktopUpdateStatus | null>(null),
-    checkBackendUpdates: vi.fn<() => Promise<DesktopUpdateStatus | null>>().mockResolvedValue(null),
-    checkUpdates: vi.fn<() => Promise<DesktopUpdateStatus | null>>().mockResolvedValue(null),
-    refreshDesktopVersion: vi.fn<() => Promise<DesktopVersionInfo | null>>().mockResolvedValue(null),
-    openUpdateOverlayFor: vi.fn(),
-    openUpdatesWindow: vi.fn(),
-    startActiveUpdate: vi.fn()
+    refreshDesktopVersion: vi.fn<() => Promise<DesktopVersionInfo | null>>().mockResolvedValue(null)
   }
 })
 
-function connection(mode: 'local' | 'remote'): HermesConnection {
-  return {
-    baseUrl: 'http://gateway:9119',
-    isFullscreen: false,
-    mode,
-    nativeOverlayWidth: 0,
-    token: 'test-token',
-    wsUrl: 'ws://gateway:9119',
-    logs: [],
-    windowButtonPosition: null
+vi.mock('@/store/client-update', async (): Promise<Record<string, unknown>> => {
+  const { atom } = await import('nanostores')
+  const idle: ClientUpdateState = {
+    status: 'idle',
+    error: undefined,
+    info: null,
+    lastCheckedAt: undefined,
+    progressPercent: 0,
+    progressIndeterminate: false
   }
+
+  return {
+    $clientUpdate: atom<ClientUpdateState>(idle),
+    checkClientUpdate: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    startClientUpdate: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    installClientUpdate: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    discardDownloadedInstaller: vi.fn<() => Promise<void>>().mockResolvedValue(undefined),
+    openClientUpdateDownloadPage: vi.fn(),
+    runEnforcedClientUpdate: vi.fn(),
+    isEnforcedUpdate: vi.fn(() => false),
+    downloadedInstallerPath: vi.fn(() => null)
+  }
+})
+
+vi.mock('@/lib/client-report', (): Record<string, unknown> => ({
+  submitReport: vi.fn().mockResolvedValue({ ok: true, message: '上报成功' })
+}))
+
+vi.mock('@/lib/backend', (): Record<string, unknown> => ({
+  backendPost: vi.fn().mockResolvedValue({}),
+  backendFetch: vi.fn().mockResolvedValue({})
+}))
+
+function renderAbout(): ReturnType<typeof render> {
+  return render(
+    <I18nProvider configClient={null} initialLocale="zh">
+      <AboutSettings />
+    </I18nProvider>
+  )
 }
 
-describe('AboutSettings', (): void => {
-  beforeEach((): void => {
-    vi.clearAllMocks()
-    $connection.set(connection('local'))
-    $desktopVersion.set({
-      appVersion: '1.2.3',
-      electronVersion: '40',
-      nodeVersion: '26',
-      platform: 'linux',
-      hermesRoot: '/test/hermes',
-      installId: 'test-install'
-    })
-    $updateStatus.set({ supported: true, behind: 0 })
-    $backendUpdateStatus.set({ supported: true, behind: 0 })
-  })
-
-  afterEach((): void => {
+describe('AboutSettings（qiji 关于页）', () => {
+  afterEach(() => {
     cleanup()
+    vi.restoreAllMocks()
+    vi.clearAllMocks()
   })
 
-  it('shows shared version details and refreshes each remote gateway independently', (): void => {
-    const { rerender } = render(<AboutSettings />)
-
-    expect(screen.getByRole('heading', { name: en.updates.appName })).toBeTruthy()
-    expect(screen.getByText(en.updates.versionDetailsInstallId)).toBeTruthy()
-    expect(screen.getByText(en.updates.latestBody)).toBeTruthy()
-    expect(screen.queryByText(en.updates.latestBodyBackend)).toBeNull()
-    expect(refreshDesktopVersion).toHaveBeenCalledTimes(1)
-    expect(checkBackendUpdates).not.toHaveBeenCalled()
-
-    $connection.set(connection('remote'))
-    rerender(<AboutSettings />)
-
-    expect(screen.getByText(en.updates.latestBodyBackend)).toBeTruthy()
-    expect(checkBackendUpdates).toHaveBeenCalledTimes(1)
-    expect(screen.getAllByRole('link', { name: en.updates.releaseNotes })).toHaveLength(1)
-
-    $connection.set({ ...connection('remote'), baseUrl: 'http://other-gateway:9119' })
-    rerender(<AboutSettings />)
-
-    expect(refreshDesktopVersion).toHaveBeenCalledTimes(3)
-    expect(checkBackendUpdates).toHaveBeenCalledTimes(2)
+  beforeEach(async () => {
+    const { $desktopVersion: versionAtom } = await import('@/store/updates')
+    versionAtom.set(null)
+    const { $clientUpdate: updateAtom } = await import('@/store/client-update')
+    updateAtom.set({ status: 'idle', error: undefined, info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
+    $auth.set({ token: 't', username: 'u', isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'formal', score: 5, loginAt: Date.now(), apiKey: null, avatar: null })
   })
 
-  it('shows the fixed package channel with no selector', (): void => {
-    $desktopVersion.set({ ...$desktopVersion.get()!, channel: 'canary' })
-    render(<AboutSettings />)
-    expect(screen.getByText(`${en.updates.version('1.2.3')} · ${en.updates.channels.canary}`)).toBeTruthy()
-    expect(screen.queryByRole('combobox')).toBeNull()
+  it('渲染品牌标题/版本号/额度与更新卡片（硅基Claw 品牌）', async () => {
+    const { $desktopVersion: versionAtom } = await import('@/store/updates')
+    versionAtom.set({ appVersion: '0.20.0', channel: 'stable' } as DesktopVersionInfo)
+
+    renderAbout()
+
+    // 品牌 hero：标题经品牌层替换为硅基Claw
+    expect(screen.getByText('硅基Claw Desktop')).toBeTruthy()
+    expect(screen.getByText('版本 0.20.0')).toBeTruthy()
+    // 账户信息
+    expect(screen.getByText('剩余额度')).toBeTruthy()
+    expect(screen.getByText('5')).toBeTruthy()
+    expect(screen.getByText('正式')).toBeTruthy()
+    // 更新卡片初始态
+    expect(screen.getByText('点击检查更新')).toBeTruthy()
+    // 手动更新检查在挂载时刷新版本号
+    await waitFor(() => expect(refreshDesktopVersion).toHaveBeenCalled())
   })
 
-  it('a commit client refuses updates without hiding an unrelated backend update', (): void => {
-    const message: string = "This build doesn't get updates. Ask the developer who gave it to you for a new build."
-    $connection.set(connection('remote'))
-    $desktopVersion.set({ ...$desktopVersion.get()!, source: 'commit-build' })
-    $updateStatus.set({ supported: false, mechanism: 'external', reason: 'commit-build', message })
-    $backendUpdateStatus.set({ supported: true, behind: 3 })
-    render(<AboutSettings />)
-    expect(screen.getByText(message)).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: en.updates.checkNow })).toHaveLength(1)
-    fireEvent.click(screen.getByRole('button', { name: en.updates.updateNow }))
-    expect(startActiveUpdate).toHaveBeenCalledWith('backend')
+  it('版本不可用时显示占位文案', () => {
+    renderAbout()
+    expect(screen.getByText('版本不可用')).toBeTruthy()
   })
 
-  it('forces a fresh check only for the card the user checks', async (): Promise<void> => {
-    $connection.set(connection('remote'))
-    render(<AboutSettings />)
-    vi.mocked(checkBackendUpdates).mockClear()
+  it('检查中状态渲染 spinner 文案', async () => {
+    const { $clientUpdate: updateAtom } = await import('@/store/client-update')
+    renderAbout()
+    updateAtom.set({ status: 'checking', error: undefined, info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
+    await waitFor(() => expect(screen.getByText('检查中…')).toBeTruthy())
+  })
 
-    const buttons = screen.getAllByRole('button', { name: en.updates.checkNow })
-    fireEvent.click(buttons[0])
-    await waitFor((): void => {
-      expect(checkUpdates).toHaveBeenCalledWith({ force: true })
+  it('有新版本时显示版本号与升级文案', async () => {
+    const { $clientUpdate: updateAtom } = await import('@/store/client-update')
+    renderAbout()
+    updateAtom.set({
+      status: 'available',
+      error: undefined,
+      info: { newversion: '0.21.0', upgradetext: '修复若干问题' },
+      lastCheckedAt: Date.now(),
+      progressPercent: 0,
+      progressIndeterminate: false
+    } as unknown as ClientUpdateState)
+    await waitFor(() => {
+      expect(screen.getByText('有新版本 v0.21.0')).toBeTruthy()
+      expect(screen.getByText('修复若干问题')).toBeTruthy()
     })
-    expect(checkBackendUpdates).not.toHaveBeenCalled()
+  })
 
-    fireEvent.click(buttons[1])
-    await waitFor((): void => {
-      expect(checkBackendUpdates).toHaveBeenCalledWith({ force: true })
-    })
-    expect(checkUpdates).toHaveBeenCalledTimes(1)
+  it('检查失败显示错误文案', async () => {
+    const { $clientUpdate: updateAtom } = await import('@/store/client-update')
+    renderAbout()
+    updateAtom.set({ status: 'error', error: '无法连接更新服务器', info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
+    await waitFor(() => expect(screen.getByText('无法连接更新服务器')).toBeTruthy())
+  })
+
+  it('未登录（无 token）时账户区仍渲染（score=0）', () => {
+    $auth.set({ token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null })
+    renderAbout()
+    expect(screen.getByText('体验')).toBeTruthy()
+    expect(screen.getByText('0')).toBeTruthy()
+  })
+
+  it('一键上报走 submitReport 通道', async () => {
+    const { fireEvent } = await import('@testing-library/react')
+    renderAbout()
+    fireEvent.click(screen.getByRole('button', { name: /一键上报日志/ }))
+    const { submitReport: report } = await import('@/lib/client-report')
+    await waitFor(() => expect(report).toHaveBeenCalledWith('manual', expect.any(String)))
+  })
+
+  it('检查更新按钮触发 checkClientUpdate', async () => {
+    const { fireEvent } = await import('@testing-library/react')
+    renderAbout()
+    fireEvent.click(screen.getByRole('button', { name: /立即检查/ }))
+    await waitFor(() => expect(checkClientUpdate).toHaveBeenCalledWith({ manual: true }))
   })
 })
