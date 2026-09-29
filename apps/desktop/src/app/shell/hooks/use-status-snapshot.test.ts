@@ -8,6 +8,7 @@ import { getStatus } from '@/hermes'
 import { I18nProvider, type Locale, TRANSLATIONS, type Translations } from '@/i18n'
 import { $setupReadyTick, notifySetupReady } from '@/store/live-sync'
 import { clearNotifications } from '@/store/notifications'
+import { brandText } from '@/store/oem-brand'
 
 import { deferred } from '../../../test/deferred'
 
@@ -50,7 +51,8 @@ describe('useStatusSnapshot', () => {
   it.each(Object.entries(TRANSLATIONS) as [Locale, Translations][])(
     'localizes and deduplicates shared-profile warnings in %s',
     async (locale: Locale, copy: Translations): Promise<void> => {
-      const warning: string = copy.notifications.sharedProfileWarning
+      // qiji: 品牌层把渲染文本的「奇计」换成生效品牌名(默认硅基Claw),断言同源
+      const warning: string = brandText(copy.notifications.sharedProfileWarning)
 
       expect(warning).toBeTypeOf('string')
 
