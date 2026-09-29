@@ -19,6 +19,7 @@ import { $hoveredTreeGroup, $sessionTileDragging, $sessionTileEdgeHover } from '
 import { PromptOverlays } from '@/components/prompt-overlays'
 import { TitleMenuTrigger } from '@/components/ui/title-menu-trigger'
 import { type HermesGateway } from '@/hermes'
+import { brandText } from '@/store/oem-brand'
 import { useI18n } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, quickModelOptions, sessionTitle } from '@/lib/chat-runtime'
@@ -39,8 +40,6 @@ import {
   $contextSuggestions,
   $freshDraftReady,
   $gatewayState,
-  $introPersonality,
-  $introSeed,
   $resumeExhaustedSessionId,
   $sessions,
   getSessionOwnerHint,
@@ -591,8 +590,6 @@ const ChatViewContent = memo(function ChatViewContent({
   const gatewaySwapTarget = useStore($gatewaySwapTarget)
   const hydrationSyncProfile = useStore($hydrationSyncProfile)
   const gatewayOpen = gatewayState === 'open'
-  const introPersonality = useStore($introPersonality)
-  const introSeed = useStore($introSeed)
   const introSplash = useStore($introSplash)
   // PERF: ChatView must not subscribe to the view's $messages — the atom is
   // replaced on every streaming delta flush (~30×/s) and a subscription here
@@ -756,6 +753,23 @@ const ChatViewContent = memo(function ChatViewContent({
 
   const chatBarState = useMemo<ChatBarState>(
     () => ({
+      // qiji: 空会话主页——composer 浮 42% + 品牌大字/技能/示例(生产线同款)
+      introCenter: showIntro,
+      introExamples: showIntro ? INTRO_EXAMPLES : undefined,
+      onIntroPick: (prompt: string) => {
+        void onSubmit(prompt)
+      },
+      introTop: showIntro
+        ? {
+            headline: brandText('奇计'),
+            body: '今天要做点什么？',
+            skills: INTRO_QUICK_SKILLS
+          }
+        : undefined,
+      introOpc: showIntro ? INTRO_OPC_SKILLS : undefined,
+      onSkillPick: (name: string, title?: string) => {
+        window.dispatchEvent(new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: title } }))
+      },
       model: {
         model: currentModel,
         provider: currentProvider,
@@ -877,27 +891,8 @@ const ChatViewContent = memo(function ChatViewContent({
               clampToComposer={showChatBar}
               cwd={currentCwd}
               gateway={gateway}
-              intro={
-                showIntro
-                  ? {
-                      personality: introPersonality,
-                      quickSkills: [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS],
-                      examples: INTRO_EXAMPLES,
-                      seed: introSeed,
-                      onPickExample: prompt => {
-                        void onSubmit(prompt)
-                      },
-                      onPickSkill: name => {
-                        const skill = [...INTRO_OPC_SKILLS, ...INTRO_QUICK_SKILLS].find(s => s.name === name)
-                        window.dispatchEvent(
-                          new CustomEvent('qiji:insert-skill', {
-                            detail: { command: `/${name} `, label: skill?.title }
-                          })
-                        )
-                      }
-                    }
-                  : undefined
-              }
+              // qiji: 空态由 composer 独占(introCenter 体系:品牌大字/技能/示例挂在
+              // 浮起的输入框上下)——Thread 不再渲染旧 Intro,否则双份叠加
               loading={threadLoading}
               onBranchInNewChat={onBranchInNewChat}
               onCancel={haltRun}

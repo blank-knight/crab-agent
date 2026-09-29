@@ -8,7 +8,8 @@ import {
   useEffect,
   useId,
   useMemo,
-  useRef
+  useRef,
+  useState
 } from 'react'
 
 import { useTourMarker } from '@/app/chat/tour-marker'
@@ -17,6 +18,8 @@ import { composerFloatingStrip, composerInputBacking } from '@/components/chat/c
 import { $chatOnboardingSolo, $chatOnboardingThreadIds } from '@/components/onboarding-chat/assembly'
 import { OnboardingSkip } from '@/components/onboarding-chat/skip'
 import { Button } from '@/components/ui/button'
+import { Codicon } from '@/components/ui/codicon'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Slot as ContribSlot } from '@/contrib/react/slot'
 import { useI18n } from '@/i18n'
 import { chatMessageText } from '@/lib/chat-messages'
@@ -576,6 +579,8 @@ export function ChatBar({
   // 外部注入技能芯片（主页快捷胶囊/技能页「使用」→ 输入框），显示中文标签。
   // insertSkillChip 每次渲染重建，直接进依赖会反复增删监听——经 ref 转发保持
   // 单次挂载，同时让 lint 看到真实依赖。
+  // qiji: OPC 技能弹层开合(空态顶部区星标条)
+  const [opcOpen, setOpcOpen] = useState(false)
   const insertSkillChipRef = useRef(insertSkillChip)
   insertSkillChipRef.current = insertSkillChip
 
@@ -1372,7 +1377,12 @@ export function ChatBar({
         <div
           className={cn(
             'z-30 flex flex-col',
-            poppedOut ? 'fixed max-w-[calc(100vw-1.5rem)]' : 'absolute bottom-0 left-1/2 max-w-full -translate-x-1/2'
+            // qiji: 空会话主页 dock 浮到 42% 高度(生产线同款);非空/弹出回贴底
+            state.introCenter && !poppedOut
+              ? 'absolute top-[42%] left-1/2 max-w-full -translate-x-1/2'
+              : poppedOut
+                ? 'fixed max-w-[calc(100vw-1.5rem)]'
+                : 'absolute bottom-0 left-1/2 max-w-full -translate-x-1/2'
           )}
           data-popped-out={poppedOut ? '' : undefined}
           data-slot="composer-dock"
@@ -1437,6 +1447,60 @@ export function ChatBar({
               sessionId={statusSessionId}
             />
           </StatusDrawerContent>
+          {/* qiji: 空态顶部区——品牌大字+快捷技能+OPC弹层,挂输入框上方(生产线同款) */}
+          {state.introCenter && state.introTop ? (
+            <div className="absolute inset-x-0 bottom-full mb-1.5 flex w-full flex-col items-center px-2">
+              <div className="text-6xl font-bold tracking-[0.08em] text-midground dark:text-foreground/85">{state.introTop.headline}</div>
+              <div className="pointer-events-auto mt-2 flex w-full max-w-4xl flex-col items-center">
+                <div className="flex flex-nowrap justify-center gap-1.5 overflow-x-auto">
+                  {state.introTop.skills.map(sk => (
+                    <button
+                      className="group shrink-0 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-center transition-colors hover:border-primary/50 hover:bg-muted/40"
+                      key={sk.name}
+                      onClick={() => state.onSkillPick?.(sk.name, sk.title)}
+                      aria-label={sk.desc}
+                      type="button"
+                    >
+                      <span className="text-[0.75rem] font-medium text-foreground">{sk.title}</span>
+                    </button>
+                  ))}
+                  {state.introOpc && state.introOpc.length > 0 ? (
+                    <Popover open={opcOpen} onOpenChange={setOpcOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          className="shrink-0 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-center transition-colors hover:border-primary/70 hover:bg-primary/20"
+                          type="button"
+                        >
+                          <span className="text-[0.75rem] font-semibold text-foreground">
+                            ⭐ OPC 技能 <Codicon className="inline-block align-[-0.125em]" name="chevron-down" size="0.625rem" />
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="center" className="w-64 max-h-72 overflow-y-auto p-1" side="bottom" sideOffset={6}>
+                        {state.introOpc.map(sk => (
+                          <button
+                            className="flex w-full items-start gap-2 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-muted/50"
+                            key={sk.name}
+                            onClick={() => {
+                              state.onSkillPick?.(sk.name, sk.title)
+                              setOpcOpen(false)
+                            }}
+                            aria-label={sk.desc}
+                            type="button"
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[0.8rem] font-medium text-foreground">{sk.title}</span>
+                              <span className="block truncate text-[0.7rem] text-muted-foreground">{sk.desc}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
           <ComposerPrimitive.Root
             className={cn(
               'group/composer relative w-full overflow-visible rounded-2xl',
@@ -1474,6 +1538,23 @@ export function ChatBar({
             ref={composerRef}
           >
             {isHelpHint && <HelpHint />}
+            {/* qiji: 空态最佳实践条——挂输入框下方(生产线同款) */}
+            {state.introCenter && state.introExamples && state.introExamples.length > 0 ? (
+              <div className="absolute inset-x-0 top-full mt-1.5 flex w-full flex-col gap-1 px-2">
+                <div className="text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">试试这样用</div>
+                {state.introExamples.map(ex => (
+                  <button
+                    className="w-full truncate rounded-lg border border-border/50 bg-transparent px-3 py-1.5 text-left text-[0.8rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    key={ex.title}
+                    onClick={() => state.onIntroPick?.(ex.prompt)}
+                    aria-label={ex.prompt}
+                    type="button"
+                  >
+                    {ex.title}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {trigger && !argStageEmpty && (
               <ComposerTriggerPopover
                 activeIndex={triggerActive}

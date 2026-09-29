@@ -18,6 +18,20 @@ export interface QuickModelOption {
 }
 
 export interface ChatBarState {
+  /** 空会话主页：输入框上移居中（快捷技能与最佳实践之间）。qiji-fork 生产线同款 */
+  introCenter?: boolean
+  /** 主页最佳实践案例（introCenter 时渲染在输入框正下方） */
+  introExamples?: { title: string; prompt: string }[]
+  onIntroPick?: (prompt: string) => void
+  /** 主页顶部区（品牌标题+欢迎语+快捷技能，introCenter 时渲染在输入框正上方） */
+  introTop?: {
+    headline: string
+    body: string
+    skills: { name: string; title: string; desc: string }[]
+  }
+  /** OPC 专属技能条（星标，渲染在快捷技能下方独立一排） */
+  introOpc?: { name: string; title: string; desc: string }[]
+  onSkillPick?: (name: string, title?: string) => void
   model: {
     model: string
     provider: string

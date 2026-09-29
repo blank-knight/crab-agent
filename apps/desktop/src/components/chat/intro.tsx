@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useI18n } from '@/i18n'
 import { capitalize, normalize } from '@/lib/text'
+import { brandText } from '@/store/oem-brand'
 
 import introCopyJsonl from './intro-copy.jsonl?raw'
 import { Wordmark } from './wordmark'
@@ -161,7 +162,8 @@ function pickCopy(copies: IntroCopy[], seed = 0): IntroCopy {
   return copies[Math.abs(seed) % copies.length] || FALLBACK_COPY[0]
 }
 
-const WORDMARK = 'HERMES AGENT'
+// qiji: 空态大字走品牌链——brandText('奇计') 运行时替换为生效品牌(默认硅基Claw/贴牌名)
+const WORDMARK = brandText('奇计')
 
 function resolveCopy(personality?: string, seed?: number): IntroCopy {
   const personalityKey = normalizeKey(personality)
