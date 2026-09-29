@@ -14,6 +14,7 @@ import {
   Sun,
   Wrench
 } from '@/lib/icons'
+import { brandText } from '@/store/oem-brand'
 import type { ThemeMode } from '@/themes/context'
 
 // Single source of truth for built-in personality names lives in
@@ -47,9 +48,9 @@ export const CONTROL_TEXT = 'text-xs'
 export const PROVIDER_GROUPS: ProviderPrefix[] = [
   {
     prefix: 'NOUS_',
-    name: 'Nous Portal',
-    description: 'Hosted Hermes & Nous-trained models',
-    docsUrl: 'https://portal.nousresearch.com',
+    name: brandText('奇计云'),
+    description: brandText('奇计托管的 AI 模型服务'),
+    docsUrl: 'https://www.aicps.vip/',
     priority: 0
   },
   {

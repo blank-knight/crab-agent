@@ -270,10 +270,13 @@ export function useGatewayBoot({
     // 避免登录切档双 spawn+双 reload 闪烁）。登录成功由 $auth 订阅补启动。
     // ⚠ nanostores subscribe 会同步先触发一次回调——那时下方 async function
     // boot 还未声明（TDZ），回调必须 defer 到微任务后执行。
-    let wantBoot = isAuthenticated()
+    // 门控仅在 qiji 打包形态（有 backend 桥 + 生产构建）生效：测试/上游
+    // OSS 形态无登录概念，未登录≠不该启动，直接放行。
+    const qijiAuthGate = import.meta.env.PROD
+    let wantBoot = !qijiAuthGate || isAuthenticated()
     let authUnsub: (() => void) | null = null
 
-    if (!wantBoot) {
+    if (qijiAuthGate && !wantBoot) {
       authUnsub = $auth.subscribe(() => {
         queueMicrotask(() => {
           if (!wantBoot && isAuthenticated()) {

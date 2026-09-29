@@ -1,4 +1,5 @@
 import { isGatewayReauthRequired } from '@hermes/shared'
+import { brandText } from '@/store/oem-brand'
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useRef } from 'react'
 
@@ -135,7 +136,7 @@ export function useGatewayRequest() {
       const gateway = gatewayRef.current ?? activeGateway()
 
       if (!gateway) {
-        throw new Error('Hermes gateway unavailable')
+        throw new Error(brandText('奇计 gateway unavailable'))
       }
 
       try {

@@ -96,11 +96,10 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
     <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          aria-label="选择技能"
+          aria-label={isZh ? '技能' : 'Skills'}
           className="size-(--composer-control-size) shrink-0 rounded-md text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground"
           disabled={disabled}
           size="icon"
-          title={isZh ? '技能' : 'Skills'}
           type="button"
           variant="ghost"
         >
