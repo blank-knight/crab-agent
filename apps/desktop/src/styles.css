@@ -3913,3 +3913,20 @@ html[data-hermes-wallpaper='on'] .glass,
 html[data-hermes-wallpaper='on'] [class*='backdrop-blur'] {
   background-color: color-mix(in oklab, var(--theme-card-seed) 82%, transparent);
 }
+
+/* ── qiji: 空会话主页同比例缩放（用户需求:窗口放大→输入框/skill tag/品牌字等比变大）──
+   落点说明: composer 是 portal 挂载,dock 不在 composer-bounds 里(实测 dockInBounds:false),
+   cqi 找不到容器会回退视口。dock 的真实容器链 = data-chat-surface(聊天列,含 header)。
+   scale = 聊天列宽/基准宽(54rem):小窗钳 1 不缩,大窗等比长,封顶 1.35x。 */
+[data-chat-surface] {
+  container-type: inline-size;
+}
+
+[data-slot='composer-dock'][data-intro] {
+  /* tan(atan2(a,b))=a/b 是纯 CSS 除法。只加 scale——居中的 -translate-x-1/2 是
+     TW v4 独立 translate 属性,再写 translateX 会双移 */
+  --intro-scale: clamp(1, tan(atan2(100cqi, 54rem)), 1.35);
+  transform: scale(var(--intro-scale));
+  transform-origin: top center;
+}
+

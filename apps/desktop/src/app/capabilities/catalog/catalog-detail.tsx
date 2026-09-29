@@ -7,13 +7,14 @@ import { Codicon } from '@/components/ui/codicon'
 import { DialogTitle } from '@/components/ui/dialog'
 import { Reel } from '@/components/ui/reel'
 import { RowButton } from '@/components/ui/row-button'
-import { useI18n } from '@/i18n'
+import { isZhLocale, useI18n } from '@/i18n'
 import { ExternalLink } from '@/lib/external-link'
 import { cn } from '@/lib/utils'
 
 import { catalogIcon, CatalogImage } from './catalog-card'
 import { type CatalogEntry, type CatalogKind, catalogLabel } from './catalog-data'
 import { CatalogDates, CatalogHeaderMeta, CatalogMetadata } from './catalog-metadata'
+import { translateSkillField } from '../../skills/translations'
 
 interface CatalogDetailProps {
   entry: CatalogEntry
@@ -77,7 +78,7 @@ export function CatalogDetail({
         <div className="flex min-w-0 items-start gap-3">
           <div className="min-w-0 flex-1">
             <div className={cn('flex min-w-0 items-center gap-2', dialog && !entry.imageUrl && 'pr-7')}>
-              <Title className="min-w-0 flex-1 break-words text-lg font-semibold tracking-tight">{entry.name}</Title>
+              <Title className="min-w-0 flex-1 break-words text-lg font-semibold tracking-tight">{isZhLocale() ? translateSkillField(entry.name, 'name', entry.name) : entry.name}</Title>
               {action && <span className="shrink-0">{action}</span>}
             </div>
             <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-(--ui-text-tertiary)">
@@ -95,7 +96,7 @@ export function CatalogDetail({
       </header>
 
       <p className="whitespace-pre-wrap break-words text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-secondary)">
-        {entry.description}
+        {isZhLocale() ? translateSkillField(entry.name, 'description', entry.description) : entry.description}
       </p>
       {entry.overview && entry.overview !== entry.description && (
         <p className="whitespace-pre-wrap break-words text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-tertiary)">

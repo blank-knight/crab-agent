@@ -1384,6 +1384,7 @@ export function ChatBar({
                 ? 'fixed max-w-[calc(100vw-1.5rem)]'
                 : 'absolute bottom-0 left-1/2 max-w-full -translate-x-1/2'
           )}
+          data-intro={state.introCenter && !poppedOut ? '' : undefined}
           data-popped-out={poppedOut ? '' : undefined}
           data-slot="composer-dock"
           data-thread-scrolled-up={scrolledUp ? '' : undefined}

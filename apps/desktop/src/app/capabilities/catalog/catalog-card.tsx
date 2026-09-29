@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils'
 
 import { type CatalogEntry, catalogLabel } from './catalog-data'
 import { CatalogDates, CatalogHeaderMeta, CatalogMetadata } from './catalog-metadata'
+import { resolveSkillIconName, SkillIcon, skillIconTone } from '../../skills/skill-icon'
+import { isZhLocale } from '@/i18n'
+import { translateSkillField } from '../../skills/translations'
 
 export function catalogIcon(category: string) {
   const icons: Record<string, string> = {
@@ -85,13 +88,17 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
         <div className="flex min-w-0 items-center gap-2.5">
           {/* Its ::after stretches over the whole card, so any empty spot opens the
               detail; real controls sit above it (`relative`). One focus stop per card. */}
+          {/* qiji 0.19.4: 技能图标（名→类别→兜底三级 + 语义彩色底），中文环境名称走翻译层 */}
+          <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg border', skillIconTone(resolveSkillIconName(entry.name, entry.category)))}>
+            <SkillIcon category={entry.category} name={entry.name} />
+          </span>
           <RowButton
             aria-haspopup="dialog"
             aria-label={entry.name}
             className="min-w-0 flex-1 cursor-pointer text-left font-semibold leading-snug after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary focus-visible:after:-outline-offset-2"
             onClick={() => onOpen(entry)}
           >
-            <span className="line-clamp-2 min-w-0 break-words text-lg">{entry.name}</span>
+            <span className="line-clamp-2 min-w-0 break-words text-lg">{isZhLocale() ? translateSkillField(entry.name, 'name', entry.name) : entry.name}</span>
           </RowButton>
           {action && (
             <span className="relative shrink-0 opacity-[.66] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -106,7 +113,7 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
             <CatalogHeaderMeta entry={entry} />
           </span>
           <span className="line-clamp-4 min-h-0 text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-secondary)">
-            {entry.description}
+            {isZhLocale() ? translateSkillField(entry.name, 'description', entry.description) : entry.description}
           </span>
         </div>
       </div>

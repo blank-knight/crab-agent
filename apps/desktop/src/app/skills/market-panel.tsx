@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { BACKEND_BASE_URL, backendGet } from '@/lib/backend'
 import { $auth } from '@/store/auth'
 import { isZhLocale } from '@/i18n'
+import { resolveSkillIconName, SkillIcon, skillIconTone } from './skill-icon'
 import { translateSkillField } from './translations'
 import { useStore } from '@nanostores/react'
 
@@ -132,7 +133,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
       ) : skills.length === 0 ? (
         <p className="text-xs text-muted-foreground">暂无可用技能</p>
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
           {skills.map(sk => {
             const isInstalled = installed.has(sk.name)
             // qiji 0.19.3-fix: 中文环境下标题/描述走翻译层（后端 SKILL.md 是英文）
@@ -142,16 +143,24 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
               : (sk.description ?? '')
             return (
               <div
-                className="flex flex-col justify-between rounded-xl border border-border/70 bg-muted/20 px-3.5 py-3"
+                className="flex flex-col justify-between rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5"
                 key={sk.id}
               >
-                <div>
-                  <p className="text-sm font-medium">{titleZh}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">v{sk.version} · {sk.download_count} 次下载</p>
-                  {sk.description ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground/80">{descZh}</p>
-                  ) : null}
+                <div className="flex items-start gap-2">
+                  {/* qiji 0.19.4: 市场技能图标（名→类别→兜底 + 语义彩色底） */}
+                  <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-lg border', skillIconTone(resolveSkillIconName(sk.name)))}>
+                    <SkillIcon name={sk.name} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{titleZh}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">v{sk.version} · {sk.download_count} 次下载</p>
+                  </div>
                 </div>
+                {sk.description ? (
+                  <p className="mt-1.5 line-clamp-2 min-h-8 text-xs text-muted-foreground/80">{descZh}</p>
+                ) : (
+                  <p className="mt-1.5 min-h-8" />
+                )}
                 <Button
                   className="mt-2.5"
                   disabled={isInstalled || installing !== null}
