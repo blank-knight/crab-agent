@@ -12340,7 +12340,12 @@ async function runPoolBackendStart(
   entry.port = port
 
   const baseUrl = `http://127.0.0.1:${port}`
-  await Promise.race([waitForHermes(baseUrl, token), startFailed])
+  // Probe with the spawn token (like the pool/attach sites below): a loopback
+  // runtime that predates /api/health (0.18.x) gates every /api/* path except
+  // /api/status, so an anonymous /api/health probe 401s forever and the
+  // missing-endpoint fallback never fires. Credentialed, the same old backend
+  // answers 404 → waitForHermesReady falls back to /api/status and boots.
+  await Promise.race([waitForHermes(baseUrl, token, undefined, 'token'), startFailed])
   assertPoolEntryStillOwned(poolKey, entry, backendPool, localBackendLifecycle.signal)
   ready = true
 
@@ -13311,7 +13316,8 @@ async function runHermesStart({ supervisorRecovery = false }: { supervisorRecove
     const baseUrl = `http://127.0.0.1:${port}`
     await advanceBootProgress('backend.wait', 'Waiting for Hermes backend to become ready', 90)
     backendConnectionState.assertCurrentAttempt(connectionAttempt)
-    await Promise.race([waitForHermes(baseUrl, token), backendStartFailed])
+    // 'token' — same old-runtime rationale as the pool spawn site above.
+    await Promise.race([waitForHermes(baseUrl, token, undefined, 'token'), backendStartFailed])
     backendConnectionState.assertCurrentAttempt(connectionAttempt)
     backendReady = true
     // The host now has a bound, registered backend: the next launcher will
