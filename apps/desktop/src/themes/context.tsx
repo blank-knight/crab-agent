@@ -585,6 +585,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // 全局字号缩放: 启动即恢复(不依赖设置页挂载)。默认1.25,用户在设置页可调0.85-1.5。
   // 老用户已存过值(<1.25)保持原选择不动;新用户/无存值用1.25。
+  // 依赖 paintedTheme: applyTheme 会写 --dt-base-size(主题 baseSize, 默认0.875),在
+  // chatFontFamily 异步到达时重跑——不跟随重跑就会把 1.25 缩放踩回 0.875(字号回归)。
   useEffect(() => {
     let scale = 1.25
     try {
@@ -592,7 +594,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (Number.isFinite(stored) && stored > 0) scale = Math.min(1.5, Math.max(0.85, stored))
     } catch {}
     document.documentElement.style.setProperty('--dt-base-size', `${(0.875 * scale).toFixed(3)}rem`)
-  }, [])
+  }, [paintedTheme, paintedMode, chatFontFamily])
 
   // Keep the native window appearance pinned to the app theme (vibrancy
   // material, titlebar, new-window pre-paint background).

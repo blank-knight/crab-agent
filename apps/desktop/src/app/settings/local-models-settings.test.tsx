@@ -138,11 +138,13 @@ function setInstallStarting(starting: boolean): void {
   }
 }
 
+// qiji: 挂载链默认 zh(无保存语言+探测未命中),英文断言测试须显式钉 en——
+// repo 惯例=configClient={null} initialLocale="en"(见 controls.test 等 8+ 处)
 function renderPane() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <I18nProvider>
+        <I18nProvider configClient={null} initialLocale="en">
           <LocalModelsSettings />
         </I18nProvider>
       </MemoryRouter>
@@ -578,7 +580,7 @@ describe('BrowseSection', () => {
       render(
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>
-            <I18nProvider>
+            <I18nProvider configClient={null} initialLocale="en">
               <LocalModelsSettings />
             </I18nProvider>
           </MemoryRouter>
@@ -689,7 +691,7 @@ describe('quickstart completion navigation', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter initialEntries={['/settings']}>
-          <I18nProvider>
+          <I18nProvider configClient={null} initialLocale="en">
             <LocalModelsSettings />
           </I18nProvider>
           <Probe />

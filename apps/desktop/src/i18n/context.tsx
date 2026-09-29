@@ -6,10 +6,11 @@ import { getHermesConfigRecord, type HermesConfigRecord, retainConfigReadOrigin,
 import { TRANSLATIONS } from './catalog'
 import {
   DEFAULT_LOCALE,
+  QIJI_DEFAULT_LOCALE,
   isSupportedLocaleValue,
+  osPreferredLocale,
   localeConfigValue,
-  normalizeLocale,
-  resolveInitialLocale
+  normalizeLocale
 } from './languages'
 import { setRuntimeI18nLocale } from './runtime'
 import type { Locale, Translations } from './types'
@@ -166,7 +167,9 @@ export function I18nProvider({
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            setLocaleState(resolveInitialLocale(undefined, machineProfile?.locale))
+            // qiji: OS 探测命中→用 OS 语言;未命中→中文(而非上游 en)
+            const probed = osPreferredLocale(machineProfile?.locale)
+            setLocaleState(probed ?? QIJI_DEFAULT_LOCALE)
           }
         })
         .catch(error => {

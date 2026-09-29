@@ -135,8 +135,9 @@ describe('I18nProvider', () => {
 
     await waitFor(() => expect(screen.getByTestId('loading').textContent).toBe('false'))
 
-    expect(screen.getByTestId('locale').textContent).toBe('en')
-    expect(screen.getByTestId('label').textContent).toBe('Language')
+    // qiji: 不支持的配置值回落中文(挂载链默认),不再回上游 en
+    expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(screen.getByTestId('label').textContent).toBe('语言')
     expect(configClient.saveConfig).not.toHaveBeenCalled()
   })
 
@@ -239,7 +240,9 @@ describe('I18nProvider', () => {
     await act(async () => {
       vi.advanceTimersByTime(3_000)
     })
+    // qiji: zh-Hans 是受支持别名,normalize 成 zh;上游断言 en 已按新挂载链语义修正
     expect(screen.getByTestId('locale').textContent).toBe('zh')
+    expect(screen.getByTestId('label').textContent).toBe('语言')
     expect(getConfig).toHaveBeenCalledTimes(2)
 
     vi.useRealTimers()

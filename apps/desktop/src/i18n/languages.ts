@@ -4,7 +4,18 @@ import { normalize } from '@/lib/text'
 
 import type { Locale } from './types'
 
+// DEFAULT_LOCALE 保持上游 'en': 它同时是无 Provider 测试渲染与缺 key 回退的
+// 语义源(en.ts 是 Translations 唯一全量实现),动它会崩掉全批英文断言。
 export const DEFAULT_LOCALE: Locale = 'en'
+
+// qiji 产品默认: 面向中文市场,首次启动(无保存语言)默认中文。仅用于 App 挂载链
+// (context.tsx 探测回落),不参与回退,也不影响测试默认。
+export const QIJI_DEFAULT_LOCALE: Locale = 'zh'
+
+// 运行时回退目录(缺 key 时查哪个语言)。与 DEFAULT_LOCALE 同值但语义独立:
+// DEFAULT_LOCALE 是"测试/无 Provider 渲染默认",FALLBACK_LOCALE 是"翻译回退源"。
+// qiji 两者都保持 en(en.ts 是 Translations 唯一全量实现)。
+export const FALLBACK_LOCALE: Locale = 'en'
 
 export const LOCALE_OPTIONS = [
   {
