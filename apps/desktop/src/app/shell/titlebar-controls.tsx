@@ -30,6 +30,7 @@ import { $titlebarAppActionsSide, TITLEBAR_FIXED_TOOLS } from '@/store/titlebar-
 
 import { appViewForPath, hidesFixedTitlebarClusters, isOverlayView } from '../routes'
 
+import { AccountAvatarButton } from './account-pill'
 import {
   TITLEBAR_CHROME_CHANGED_EVENT,
   TITLEBAR_ICON_BADGE_SCALE,
@@ -290,6 +291,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
     return (
       <>
         <div className={leftClusterClass} data-titlebar-cluster="left">
+          <AccountAvatarButton />
           {pageTools.map(tool => (
             <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />
           ))}
@@ -316,6 +318,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
   return (
     <>
       <div aria-label={t.shell.windowControls} className={leftClusterClass} data-titlebar-cluster="left">
+        <AccountAvatarButton />
         {visibleLeftTools.map(tool => (
           <TitlebarToolButton key={tool.id} navigate={navigate} tool={tool} />
         ))}
