@@ -4488,6 +4488,12 @@ export const en: Translations = {
     localModelsPitch: 'No account needed — download a model and run it on this machine',
     openRouterPitch: 'One key, hundreds of models — a solid default',
     apiKeyOptions: {
+      'qiji-relay': { short: 'Qiji relay', description: 'Official Qiji relay — works out of the box, no proxy needed.' },
+      'cn-deepseek': { short: 'China direct', description: 'Paste your DeepSeek API key; the endpoint is pre-filled.' },
+      'cn-doubao': { short: 'China direct', description: 'Paste your Volcengine Ark API key; the endpoint is pre-filled.' },
+      'cn-hunyuan': { short: 'China direct', description: 'Paste your Hunyuan API key; the endpoint is pre-filled.' },
+      'cn-qianwen': { short: 'China direct', description: 'Paste your DashScope API key; the endpoint is pre-filled.' },
+      'cn-qianfan': { short: 'China direct', description: 'Paste your Qianfan API key; the endpoint is pre-filled.' },
       fireworks: {
         short: 'direct model API',
         description: 'Direct access to models hosted by Fireworks AI.'

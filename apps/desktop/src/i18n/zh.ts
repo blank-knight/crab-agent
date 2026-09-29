@@ -4221,6 +4221,12 @@ export const zh = defineLocale({
     localModelsPitch: '无需账号——下载模型，在本机运行',
     openRouterPitch: '一个密钥，数百个模型 — 稳妥的默认选择',
     apiKeyOptions: {
+      'qiji-relay': { short: '奇计中转站', description: '使用奇计官方中转站，开箱即用，无需翻墙' },
+      'cn-deepseek': { short: '国内直连', description: '粘贴 DeepSeek API Key 即可，地址已自动填好' },
+      'cn-doubao': { short: '国内直连', description: '粘贴火山方舟 API Key 即可，地址已自动填好' },
+      'cn-hunyuan': { short: '国内直连', description: '粘贴混元 API Key 即可，地址已自动填好' },
+      'cn-qianwen': { short: '国内直连', description: '粘贴百炼 DashScope API Key 即可，地址已自动填好' },
+      'cn-qianfan': { short: '国内直连', description: '粘贴千帆 API Key 即可，地址已自动填好' },
       fireworks: { short: '直接模型 API', description: '直接访问 Fireworks AI 托管的模型。' },
       openrouter: { short: '一个密钥，多个模型', description: '用一个密钥访问数百个模型。适合新安装的默认选择。' },
       openai: { short: 'GPT 级模型', description: '直接访问 OpenAI 模型。' },

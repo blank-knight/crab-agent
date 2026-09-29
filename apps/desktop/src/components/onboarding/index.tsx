@@ -80,11 +80,70 @@ export interface ApiKeyOption {
   name: string
   placeholder?: string
   short?: string
+  /** qiji: Preset base URL for domestic direct-connect providers (DeepSeek,
+   * Doubao, Hunyuan, Qianwen, Qianfan). Selecting the option pre-fills the
+   * endpoint URL field; the user only pastes an API key. Still editable. */
+  baseUrl?: string
 }
 
 // Curated order mirrors CANONICAL_PROVIDERS: Fireworks sits #2 overall (after
 // Nous Portal OAuth), ahead of OpenRouter and the rest of the key catalog.
 const API_KEY_OPTIONS: ApiKeyOption[] = [
+  // qiji: 中转站置顶(推荐),国内直连五家预填地址,粘贴 Key 即用
+  {
+    id: 'qiji-relay',
+    name: '奇计中转站（推荐）',
+    description: '使用奇计官方中转站，开箱即用，无需翻墙',
+    envKey: 'OPENAI_API_KEY',
+    docsUrl: 'https://www.aicps.vip',
+    placeholder: 'sk-...',
+    short: '奇计中转站'
+  },
+  {
+    id: 'cn-deepseek',
+    name: 'DeepSeek',
+    description: '粘贴 DeepSeek API Key 即可，地址已自动填好',
+    envKey: 'OPENAI_BASE_URL',
+    docsUrl: 'https://platform.deepseek.com/api_keys',
+    baseUrl: 'https://api.deepseek.com',
+    short: '国内直连'
+  },
+  {
+    id: 'cn-doubao',
+    name: '豆包（火山方舟）',
+    description: '粘贴火山方舟 API Key 即可，地址已自动填好',
+    envKey: 'OPENAI_BASE_URL',
+    docsUrl: 'https://console.volcengine.com/ark',
+    baseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    short: '国内直连'
+  },
+  {
+    id: 'cn-hunyuan',
+    name: '腾讯元宝（混元）',
+    description: '粘贴混元 API Key 即可，地址已自动填好',
+    envKey: 'OPENAI_BASE_URL',
+    docsUrl: 'https://console.cloud.tencent.com/hunyuan',
+    baseUrl: 'https://api.hunyuan.cloud.tencent.com/v1',
+    short: '国内直连'
+  },
+  {
+    id: 'cn-qianwen',
+    name: '阿里千问',
+    description: '粘贴百炼 DashScope API Key 即可，地址已自动填好',
+    envKey: 'OPENAI_BASE_URL',
+    docsUrl: 'https://bailian.console.aliyun.com',
+    baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    short: '国内直连'
+  },
+  {
+    id: 'cn-qianfan',
+    name: '百度千帆',
+    description: '粘贴千帆 API Key 即可，地址已自动填好',
+    envKey: 'OPENAI_BASE_URL',
+    docsUrl: 'https://console.bce.baidu.com/iam',
+    baseUrl: 'https://qianfan.baidubce.com/v2',
+    short: '国内直连'
+  },
   {
     id: 'fireworks',
     name: 'Fireworks AI',
@@ -758,7 +817,15 @@ export function ApiKeyForm({
 }) {
   const { t } = useI18n()
 
-  const [option, setOption] = useState<ApiKeyOption>(() => options.find(o => o.envKey === initialEnvKey) ?? options[0])
+  // qiji: 国内直连组也用 OPENAI_BASE_URL——按 envKey 找默认项时要避开
+  // 预填 baseUrl 的国内直连项（local/custom 端点才是该 envKey 的“原主”），
+  // 否则深链进来的 local 表单会被 DeepSeek 预填劫持。
+  const [option, setOption] = useState<ApiKeyOption>(
+    () =>
+      options.find(o => o.envKey === initialEnvKey && !o.baseUrl) ??
+      options.find(o => o.envKey === initialEnvKey) ??
+      options[0]
+  )
 
   const [value, setValue] = useState('')
   // Optional endpoint API key, only used by the local / custom endpoint option
@@ -792,7 +859,9 @@ export function ApiKeyForm({
 
   const pick = (o: ApiKeyOption) => {
     setOption(o)
-    setValue('')
+    // qiji 国内直连: 选项带预填 baseUrl 时直接落入 URL 字段(仍可改),
+    // 用户只需粘贴 Key——与上游 desktop-onboarding 的 RelayInlineForm 同体验。
+    setValue(o.baseUrl ?? '')
     setLocalKey('')
     setModelName('')
     setShowModelInput(false)
