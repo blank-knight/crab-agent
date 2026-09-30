@@ -15250,8 +15250,41 @@ ipcMain.handle('hermes:connection', async (event, profile, extra) => {
     primaryProfileKey()
   )
 
+  ensureNamedProfileDir(route.profile)
+
   return connectDesktopProfileRoute(route, spawnPriorityFrom(extra?.priority), event.sender)
 })
+
+// qiji 0.19.3-fix 移植：账号 profile 目录骨架。登录映射的账号 profile
+// (acc_xxx) 在共享主后端路由(case 6)下永远不会有专属 spawn 路径来建目录，
+// 而后端 profile_exists() 按磁盘目录判定——缺目录即 404 "Profile does not
+// exist"，侧栏报 Could not load sessions。在 connection IPC 入口幂等补建。
+function ensureNamedProfileDir(name: unknown): void {
+  try {
+    const canon = String(name || '').trim()
+    if (!canon || canon === 'default' || !PROFILE_NAME_RE.test(canon)) {
+      return
+    }
+    // Profiles root mirrors _get_profiles_root(): anchored to the hermes
+    // root, not a profile-scoped HERMES_HOME.
+    const dir = path.join(HERMES_HOME, 'profiles', canon)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+      for (const sub of ['memories', 'sessions', 'skills', 'skins', 'logs', 'plans', 'workspace', 'cron', 'home']) {
+        fs.mkdirSync(path.join(dir, sub), { recursive: true })
+      }
+      const envPath = path.join(dir, '.env')
+      if (!fs.existsSync(envPath)) {
+        fs.writeFileSync(envPath, '# Per-profile secrets for this Hermes profile.\n')
+      }
+      rememberLog(`Created profile directory skeleton for "${canon}" at ${dir}`)
+    }
+  } catch (error) {
+    // Best-effort: a failure here must not block the dial — the backend's own
+    // error will surface if the directory truly can't be used.
+    rememberLog(`ensureNamedProfileDir("${name}") failed: ${(error as Error).message}`)
+  }
+}
 
 async function connectDesktopProfileRoute(
   route: DesktopProfileRoute,
@@ -15313,6 +15346,11 @@ ipcMain.handle('hermes:connection:for', async (event, payload) => {
   const registry = readDesktopConnectionsRegistry()
   const id = registryDialConnectionId(connectionId, registry.primary)
   const spawnPriority = spawnPriorityFrom(priority)
+
+  // qiji: registry 路由同样可能指向本机账号 profile（'local' kind）——补建目录
+  if (!id || id === 'local') {
+    ensureNamedProfileDir(String(profile ?? '').trim())
+  }
 
   return connectDesktopProfileRoute(
     { connectionId: id, profile: String(profile ?? '').trim() || 'default' },
