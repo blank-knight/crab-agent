@@ -5,8 +5,10 @@ import { Download, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { BACKEND_BASE_URL, backendGet } from '@/lib/backend'
+import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { $auth } from '@/store/auth'
 import { isZhLocale } from '@/i18n'
+import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { resolveSkillIconName, SkillIcon, skillIconTone } from './skill-icon'
 import { translateSkillField } from './translations'
 import { useStore } from '@nanostores/react'
@@ -36,6 +38,26 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
   const [ghRepo, setGhRepo] = useState('')
   const [ghBusy, setGhBusy] = useState(false)
   const auth = useStore($auth)
+  const { requestGateway } = useGatewayRequest()
+
+  /**
+   * qiji 0.20: 装/卸技能后让运行中后端立刻重扫技能目录——否则新装的
+   * /docx-writer 等命令撞后端 get_skill_commands() 的进程级缓存，直接
+   * 输入（不开斜杠面板）时报 Unknown，直到后端重启。
+   *
+   * 链路：JSON-RPC skills.reload（重扫并刷新缓存，0.18.2+ 已有）→
+   * invalidateSlashCompletions()（丢弃渲染层 catalog 缓存，下次按 / 重拉）。
+   * best-effort：gateway 未连/方法不存在不报错——技能文件已落盘，下次
+   * commands.catalog 拉取内部全量重扫，兜底收敛。
+   */
+  const notifyBackendOfSkillsChange = useCallback(async () => {
+    invalidateSlashCompletions()
+    try {
+      await requestGateway('skills.reload')
+    } catch {
+      // 老后端无此方法或网关未连接——装完即生效的窗口期由下次 catalog 拉取兜底。
+    }
+  }, [requestGateway])
 
   const installGithub = useCallback(async (repo: string, subdir?: string) => {
     setGhBusy(true)
@@ -44,6 +66,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
       const r = await window.hermesDesktop.skillMarket.installGithub(repo, subdir)
       const names = 'allNames' in r && Array.isArray((r as { allNames?: string[] }).allNames) ? (r as { allNames: string[] }).allNames : [r.name]
       setInstalled(prev => { const s = new Set(prev); for (const n of names) s.add(n); return s })
+      await notifyBackendOfSkillsChange()
       setMsg(`已安装 ${names.length > 1 ? names.length + ' 个技能(' + names.slice(0, 3).join('、') + (names.length > 3 ? '…' : '') + ')' : '「' + r.name + '」'}(来自 GitHub ${repo})`)
       setMsgOk(true)
       setGhRepo('')
@@ -53,7 +76,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
     } finally {
       setGhBusy(false)
     }
-  }, [])
+  }, [notifyBackendOfSkillsChange])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -85,6 +108,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
     try {
       await window.hermesDesktop.skillMarket.uninstall(sk.name)
       setInstalled(prev => { const s = new Set(prev); s.delete(sk.name); return s })
+      await notifyBackendOfSkillsChange()
       setMsgOk(true)
       setMsg(`「${sk.title}」已卸载`)
     } catch (err) {
@@ -105,6 +129,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
       const url = `${BACKEND_BASE_URL}/api/client/v1/skill/download?id=${sk.id}`
       await window.hermesDesktop.skillMarket.install(url, sk.name, auth.token || '')
       setInstalled(prev => new Set(prev).add(sk.name))
+      await notifyBackendOfSkillsChange()
       setMsgOk(true)
       setMsg(`「${sk.title}」安装成功`)
     } catch (err) {
