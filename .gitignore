@@ -9,11 +9,7 @@ __pycache__/
 .vscode/
 .env
 .env.local
-.env.development.local
-.env.test.local
 .env.production.local
-.env.development
-.env.test
 
 # Skill 加密密钥片段（编译时自动生成，勿提交）
 gateway/_skill_key.py

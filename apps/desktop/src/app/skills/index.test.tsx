@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { I18nProvider } from '@/i18n'
+
 const getSkills = vi.fn()
 const getToolsets = vi.fn()
 const toggleSkill = vi.fn()
@@ -40,12 +42,16 @@ function toolset(overrides: Record<string, unknown> = {}) {
   }
 }
 
+// qiji: 默认 locale 是 zh，裸渲染时翻译层会把 label 译成中文导致英文断言失效
+// （09-25 c4510f7f68 接入 translateToolsetField 后破坏）。按仓库惯例钉 en，断言保持英文。
 function renderSkills() {
   return import('./index').then(({ SkillsView }) =>
     render(
-      <MemoryRouter initialEntries={['/skills?tab=toolsets']}>
-        <SkillsView />
-      </MemoryRouter>
+      <I18nProvider configClient={null} initialLocale="en">
+        <MemoryRouter initialEntries={['/skills?tab=toolsets']}>
+          <SkillsView />
+        </MemoryRouter>
+      </I18nProvider>
     )
   )
 }

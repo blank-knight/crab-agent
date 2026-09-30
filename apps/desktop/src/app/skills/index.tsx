@@ -21,6 +21,7 @@ import { ComputerUsePanel } from '../settings/computer-use-panel'
 import { asText, includesQuery, prettyName, toolNames, toolsetDisplayLabel } from '../settings/helpers'
 import { ToolsetConfigPanel } from '../settings/toolset-config-panel'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
+import { resolveSkillIconName, SkillIcon, skillIconTone } from './skill-icon'
 import { translateSkillField, translateToolsetField, translateCategory } from './translations'
 import { MarketPanel } from './market-panel'
 
@@ -321,15 +322,21 @@ export function SkillsView({ setStatusbarItemGroup: _setStatusbarItemGroup, ...p
                         className="grid gap-3 px-0 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
                         key={skill.name}
                       >
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">
-                            {isZh ? translateSkillField(skill.name, 'name', skill.name) : skill.name}
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          {/* qiji 0.19.4: 技能图标（名→类别→兜底三级匹配 + 语义彩色底） */}
+                          <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg border', skillIconTone(resolveSkillIconName(skill.name, skill.category)))}>
+                            <SkillIcon category={skill.category} name={skill.name} />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium">
+                              {isZh ? translateSkillField(skill.name, 'name', skill.name) : skill.name}
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {isZh
+                                ? translateSkillField(skill.name, 'description', asText(skill.description) || t.skills.noDescription)
+                                : (asText(skill.description) || t.skills.noDescription)}
+                            </p>
                           </div>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {isZh
-                              ? translateSkillField(skill.name, 'description', asText(skill.description) || t.skills.noDescription)
-                              : (asText(skill.description) || t.skills.noDescription)}
-                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           {marketSkills.has(skill.name) && (

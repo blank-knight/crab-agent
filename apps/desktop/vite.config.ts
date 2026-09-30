@@ -47,7 +47,19 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5174,
-    strictPort: true
+    strictPort: true,
+    // qiji 0.19.4: dev 下把生产 API 代理到本地——服务端 CORS 只在预检(OPTIONS)
+    // 回头，正常 GET/POST 响应缺 Access-Control-Allow-Origin，dev 渲染层跨域
+    // 全被浏览器拦（技能广场空列表的根源）。同源代理后无 CORS 概念；
+    // 安装版直连 https 不受影响（BACKEND_BASE_URL 见 lib/backend.ts 的 env 覆盖）。
+    proxy: {
+      '/qiji-api': {
+        target: 'https://agent.aijiqiren.vip',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/qiji-api/, ''),
+        secure: true
+      }
+    }
   },
   preview: {
     host: '127.0.0.1',
