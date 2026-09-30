@@ -90,7 +90,7 @@ function waitForDashboardPort(child, timeoutMs = resolvePortAnnounceTimeoutMs())
 
     function onExit(code, signal) {
       cleanup()
-      reject(new Error(`奇计后端：异常退出 before port announcement (${signal || code})`))
+      reject(new Error(`螃蟹AI后端：异常退出 before port announcement (${signal || code})`))
     }
 
     function onError(err) {
@@ -100,7 +100,7 @@ function waitForDashboardPort(child, timeoutMs = resolvePortAnnounceTimeoutMs())
 
     const timer = setTimeout(() => {
       cleanup()
-      reject(new Error(`等待奇计后端超时 port announcement (${timeoutMs}ms)`))
+      reject(new Error(`等待螃蟹AI后端超时 port announcement (${timeoutMs}ms)`))
     }, timeoutMs)
 
     child.stdout.on('data', onData)

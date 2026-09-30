@@ -1,5 +1,5 @@
 /**
- * 奇计离线安装器构建脚本
+ * 螃蟹AI离线安装器构建脚本
  * 
  * 用法（在 Windows PowerShell 中运行）：
  *   cd apps/desktop/installer
@@ -31,7 +31,7 @@ const INSTALLER = __dirname
 // Config
 const APP_NAME = 'Qiji'
 const VERSION = '0.17.0'
-const PRODUCT_NAME_ZH = '奇计'
+const PRODUCT_NAME_ZH = '螃蟹AI'
 
 // Paths
 const winUnpacked = path.join(RELEASE, 'win-unpacked')

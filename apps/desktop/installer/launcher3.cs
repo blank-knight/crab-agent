@@ -26,7 +26,7 @@ class Launcher
     }
 
     // ── Constants ───────────────────────────────────────────────────
-    const string APP_NAME = "奇计";
+    const string APP_NAME = "螃蟹AI";
     const string APP_VERSION = "0.17.0";
     // 品牌数据目录名 —— 由打包期生成 BrandInfo.cs 注入（源 apps/desktop/electron/brand.cjs）。
     // #if 兜底保证缺 BrandInfo.cs 时仍可独立编译（回落 'qiji'）。

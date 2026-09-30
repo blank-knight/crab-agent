@@ -3,7 +3,7 @@
   "productName": "Qiji",
   "private": true,
   "version": "0.19.3",
-  "description": "奇计 — AI智能助手桌面版",
+  "description": "螃蟹AI — AI智能助手桌面版",
   "author": "Qiji",
   "type": "module",
   "main": "electron/main.cjs",
@@ -248,7 +248,7 @@
     "linux": {
       "category": "Development",
       "maintainer": "Qiji",
-      "synopsis": "奇计 — AI智能助手桌面版",
+      "synopsis": "螃蟹AI — AI智能助手桌面版",
       "target": [
         "AppImage",
         "deb",

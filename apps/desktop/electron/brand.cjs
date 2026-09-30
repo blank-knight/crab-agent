@@ -3,6 +3,8 @@
 // （编译期生成 BrandInfo.cs 注入 launcher3/uninstall，并给 install.ps1 注入默认值）。
 // 新增字段时同步更新 build-installer.cjs 的 BrandInfo.cs 生成段。
 module.exports = {
+  // 客户端展示名（通用默认品牌）——launcher3 APP_NAME/快捷方式/卸载面板/安装器 UI 用
+  displayName: '螃蟹AI',
   // Windows 数据目录：%LOCALAPPDATA%\<dataDirName>；类 Unix：~/.<dataDirName>
   // （vendor、venv、会话、日志全在这里；Defender 排除目标也是它）
   dataDirName: 'qiji',

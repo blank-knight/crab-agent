@@ -46,7 +46,7 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
     set: name => ipcRenderer.invoke('hermes:profile:set', name)
   },
   oemBrand: {
-    // 渲染进程推送当前 OEM 品牌（贴牌名/logo；空=官方默认「硅基Claw」）。
+    // 渲染进程推送当前 OEM 品牌（贴牌名/logo；空=官方默认「螃蟹AI」）。
     // 主进程据此更新托盘 tooltip、通知标题、窗口标题。
     set: brand => ipcRenderer.invoke('hermes:oem-brand:set', brand)
   },

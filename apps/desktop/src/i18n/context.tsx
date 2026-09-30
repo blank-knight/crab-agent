@@ -85,7 +85,7 @@ function getBrandedTranslations(locale: Locale, brandName: string): Translations
 
   const base = TRANSLATIONS[locale]
   // 目录文案里的「奇计」是品牌占位符：一律替换为生效品牌名
-  // （官方默认=硅基Claw，贴牌=贴牌名）
+  // （官方默认=螃蟹AI，贴牌=贴牌名）
   const replace = (s: string) => s.split('奇计').join(brandName).replace(/\bQiji\b/g, brandName)
   const branded = mapTranslationValue(base, replace) as Translations
   brandedCatalogCache.set(cacheKey, branded)

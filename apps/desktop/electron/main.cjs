@@ -480,7 +480,7 @@ const BOOT_FAKE_STEP_MS = (() => {
   if (!Number.isFinite(raw) || raw <= 0) return 650
   return Math.max(120, raw)
 })()
-const APP_NAME = '硅基Claw'
+const APP_NAME = '螃蟹AI'
 // OEM 贴牌品牌：渲染进程登录后推送（hermes:oem-brand:set）。空=官方默认。
 // 托盘 tooltip / 通知标题 / 菜单名等主进程可见文案从这里取。
 const oemBrandState = { name: '', logo: '' }
@@ -917,7 +917,7 @@ let nativeThemeListenerInstalled = false
 let bootProgressState = {
   error: null,
   fakeMode: BOOT_FAKE_MODE,
-  message: '正在启动硅基Claw后端',
+  message: '正在启动螃蟹AI后端',
   phase: 'idle',
   progress: 0,
   running: false,
@@ -1379,7 +1379,7 @@ async function waitForUpdateToFinish() {
   while (marker && Date.now() < deadline) {
     await advanceBootProgress(
       'backend.update-wait',
-      '更新正在进行中 — 硅基Claw将自动启动 when it completes…',
+      '更新正在进行中 — 螃蟹AI将自动启动 when it completes…',
       12
     )
     await new Promise(r => setTimeout(r, UPDATE_WAIT_POLL_MS))
@@ -2195,7 +2195,7 @@ async function applyUpdates(opts = {}) {
 
     emitUpdateProgress({
       stage: 'restart',
-      message: '正在更新硅基Claw — 此窗口将关闭，安装程序将自动打开。请不要手动重新打开硅基Claw；更新完成后会自动重启。',
+      message: '正在更新螃蟹AI — 此窗口将关闭，安装程序将自动打开。请不要手动重新打开螃蟹AI；更新完成后会自动重启。',
       percent: 100
     })
     repairMacUpdaterHelper(updater)
@@ -2427,7 +2427,7 @@ async function applyUpdatesPosixInApp() {
     if (shaResult.code === 0) preUpdateSha = (shaResult.stdout || '').trim()
   } catch { /* best effort */ }
 
-  emitUpdateProgress({ stage: 'update', message: '正在更新硅基Claw（代码 + 依赖）…', percent: 10 })
+  emitUpdateProgress({ stage: 'update', message: '正在更新螃蟹AI（代码 + 依赖）…', percent: 10 })
   const updated = await runStreamedUpdate(hermes, hermesCliArgs(hermes, ['update', '--yes', ...branchArgs]), {
     cwd: updateRoot,
     env,
@@ -2504,7 +2504,7 @@ async function applyUpdatesPosixInApp() {
       dialog.showMessageBoxSync({
         type: 'info',
         title: appBrandName(),
-        message: brandText('更新成功！硅基Claw即将自动重启。'),
+        message: brandText('更新成功！螃蟹AI即将自动重启。'),
         detail: brandText('本次更新仅涉及后端代码，已跳过界面重建。'),
         buttons: ['确定']
       })
@@ -2600,15 +2600,15 @@ async function applyUpdatesPosixInApp() {
     if (asarResult.code === 0) {
       emitUpdateProgress({
         stage: 'done',
-        message: '界面更新完成！正在重启硅基Claw…',
+        message: '界面更新完成！正在重启螃蟹AI…',
         percent: 100
       })
       try {
         dialog.showMessageBoxSync({
           type: 'info',
           title: appBrandName(),
-          message: brandText('更新成功！硅基Claw即将自动重启。'),
-          detail: brandText('如果没有自动重启，请手动关闭并重新打开硅基Claw。'),
+          message: brandText('更新成功！螃蟹AI即将自动重启。'),
+          detail: brandText('如果没有自动重启，请手动关闭并重新打开螃蟹AI。'),
           buttons: ['确定']
         })
       } catch { /* best effort */ }
@@ -2641,7 +2641,7 @@ async function applyUpdatesPosixInApp() {
     rememberLog(`[updates] rebuild failed: ${rebuilt.error || 'unknown'}`)
     emitUpdateProgress({
       stage: 'error',
-      message: '后端已更新，但桌面重建失败。请重启硅基Claw以重试。',
+      message: '后端已更新，但桌面重建失败。请重启螃蟹AI以重试。',
       error: rebuilt.error || 'rebuild-failed'
     })
     // Show a native dialog so the user knows to restart — the WebSocket-based
@@ -2652,7 +2652,7 @@ async function applyUpdatesPosixInApp() {
         type: 'warning',
         title: appBrandName(),
         message: brandText('后端代码已更新成功，但桌面界面重建未完成。'),
-        detail: brandText('请关闭硅基Claw并重新打开即可使用新版本。'),
+        detail: brandText('请关闭螃蟹AI并重新打开即可使用新版本。'),
         buttons: ['知道了']
       })
     } catch { /* best effort */ }
@@ -2697,7 +2697,7 @@ async function applyUpdatesPosixInApp() {
     const outcome = decideRelaunchOutcome({ underUnpacked, sandboxOk })
 
     if (outcome === 'relaunch') {
-      emitUpdateProgress({ stage: 'restart', message: 'Restarting 硅基Claw…', percent: 100 })
+      emitUpdateProgress({ stage: 'restart', message: 'Restarting 螃蟹AI…', percent: 100 })
       // Preserve launch context across the re-exec: replay the original args
       // (filtered of Electron internals) and the env/cwd that define which
       // backend/profile/root this instance talks to. Without this the
@@ -2729,14 +2729,14 @@ async function applyUpdatesPosixInApp() {
           backendUpdated: true,
           guiUpdated: false,
           manualRestart: true,
-          message: '后端已更新。请退出并重新打开硅基Claw以加载新版本。'
+          message: '后端已更新。请退出并重新打开螃蟹AI以加载新版本。'
         }
       }
     }
 
     if (outcome === 'guiSkew') {
       // On Windows white-label installs, the exe is NOT under
-      // release/win-unpacked (it's in the install dir like D:\硅基ClawClaw\Qiji\).
+      // release/win-unpacked (it's in the install dir like D:\螃蟹AI\Qiji\).
       // But `hermes desktop --build-only` DID rebuild the frontend, and the
       // backend code IS updated via git. So this is NOT actually a GUI/backend
       // skew — the user just needs to restart. Show a clean "done" instead of
@@ -2744,7 +2744,7 @@ async function applyUpdatesPosixInApp() {
       if (IS_WINDOWS) {
         emitUpdateProgress({
           stage: 'done',
-          message: '更新成功！正在重启硅基Claw…',
+          message: '更新成功！正在重启螃蟹AI…',
           percent: 100
         })
         // Show a native dialog as backup — if app.relaunch() fails silently
@@ -2754,8 +2754,8 @@ async function applyUpdatesPosixInApp() {
           dialog.showMessageBoxSync({
             type: 'info',
             title: appBrandName(),
-            message: brandText('更新成功！硅基Claw即将自动重启。'),
-            detail: brandText('如果没有自动重启，请手动关闭并重新打开硅基Claw。'),
+            message: brandText('更新成功！螃蟹AI即将自动重启。'),
+            detail: brandText('如果没有自动重启，请手动关闭并重新打开螃蟹AI。'),
             buttons: ['确定']
           })
         } catch { /* best effort */ }
@@ -2775,7 +2775,7 @@ async function applyUpdatesPosixInApp() {
         stage: 'guiSkew',
         message:
           'Backend updated, but the desktop app package was not changed. ' +
-          '请更新或重新安装硅基Claw桌面版以保持一致。',
+          '请更新或重新安装螃蟹AI桌面版以保持一致。',
         percent: 100
       })
       rememberLog(
@@ -2799,7 +2799,7 @@ async function applyUpdatesPosixInApp() {
       sandboxBlocked: true,
       message:
         'Backend updated. The rebuilt app can’t relaunch automatically ' +
-        '(沙箱助手需要 root 权限)。请退出并重新打开硅基Claw以完成。'
+        '(沙箱助手需要 root 权限)。请退出并重新打开螃蟹AI以完成。'
     }
   }
 
@@ -2814,7 +2814,7 @@ async function applyUpdatesPosixInApp() {
   if (!rebuiltApp || !targetApp) {
     emitUpdateProgress({
       stage: 'done',
-      message: '后端已更新。请重启硅基Claw以加载新版本。',
+      message: '后端已更新。请重启螃蟹AI以加载新版本。',
       percent: 100
     })
     return { ok: true, backendUpdated: true, rebuiltApp: rebuiltApp || null }
@@ -2850,7 +2850,7 @@ fi
   } catch (err) {
     emitUpdateProgress({
       stage: 'done',
-      message: '后端和应用程序已更新。请重启硅基Claw以加载新版本。',
+      message: '后端和应用程序已更新。请重启螃蟹AI以加载新版本。',
       percent: 100
     })
     rememberLog(`[updates] could not write swap script: ${err.message}; rebuilt app at ${rebuiltApp}`)
@@ -3165,7 +3165,7 @@ function createActiveBackend(dashboardArgs) {
 
   return {
     kind: 'python',
-    label: `硅基Claw at ${ACTIVE_HERMES_ROOT}`,
+    label: `螃蟹AI at ${ACTIVE_HERMES_ROOT}`,
     command: fileExists(venvPython) ? venvPython : findSystemPython(),
     args: ['-m', 'hermes_cli.main', ...dashboardArgs],
     env: buildDesktopBackendEnv({
@@ -3231,7 +3231,7 @@ function resolveHermesBackend(dashboardArgs) {
   //    checkout. Honour it as-is (no bootstrap; the user is driving).
   const overrideRoot = process.env.HERMES_DESKTOP_HERMES_ROOT && path.resolve(process.env.HERMES_DESKTOP_HERMES_ROOT)
   if (overrideRoot && isHermesSourceRoot(overrideRoot)) {
-    const backend = createPythonBackend(overrideRoot, `硅基Claw源码位于 ${overrideRoot}`, dashboardArgs)
+    const backend = createPythonBackend(overrideRoot, `螃蟹AI源码位于 ${overrideRoot}`, dashboardArgs)
     if (backend) return backend
   }
 
@@ -3240,7 +3240,7 @@ function resolveHermesBackend(dashboardArgs) {
   //    installed `hermes` on PATH so local Python edits are actually exercised.
   //    (In dev with no checkout, SOURCE_REPO_ROOT won't pass isHermesSourceRoot.)
   if (!IS_PACKAGED && isHermesSourceRoot(SOURCE_REPO_ROOT)) {
-    const backend = createPythonBackend(SOURCE_REPO_ROOT, `硅基Claw源码位于 ${SOURCE_REPO_ROOT}`, dashboardArgs)
+    const backend = createPythonBackend(SOURCE_REPO_ROOT, `螃蟹AI源码位于 ${SOURCE_REPO_ROOT}`, dashboardArgs)
     if (backend) return backend
   }
 
@@ -3277,7 +3277,7 @@ function resolveHermesBackend(dashboardArgs) {
       } else if (!isWindowsBinaryPathInWsl(hermesOverride, { isWsl: IS_WSL })) {
         hermesCommand = hermesOverride
       } else {
-        rememberLog(`Ignoring Windows 硅基Claw override under WSL: ${hermesOverride}`)
+        rememberLog(`Ignoring Windows 螃蟹AI override under WSL: ${hermesOverride}`)
       }
     } else {
       hermesCommand = findOnPath('hermes')
@@ -3285,7 +3285,7 @@ function resolveHermesBackend(dashboardArgs) {
 
     if (hermesCommand) {
       if (looksLikeDesktopAppBinary(hermesCommand)) {
-        rememberLog(`Ignoring desktop app executable on PATH while resolving 硅基Claw CLI: ${hermesCommand}`)
+        rememberLog(`Ignoring desktop app executable on PATH while resolving 螃蟹AI CLI: ${hermesCommand}`)
         hermesCommand = null
       }
     }
@@ -3301,7 +3301,7 @@ function resolveHermesBackend(dashboardArgs) {
       const shellForProbe = isCommandScript(hermesCommand)
       if (verifyHermesCli(hermesCommand, { shell: shellForProbe })) {
         return {
-          label: `existing 硅基Claw CLI at ${hermesCommand}`,
+          label: `existing 螃蟹AI CLI at ${hermesCommand}`,
           command: hermesCommand,
           args: dashboardArgs,
           bootstrap: false,
@@ -3311,7 +3311,7 @@ function resolveHermesBackend(dashboardArgs) {
         }
       }
       rememberLog(
-        `Ignoring existing 硅基Claw CLI at ${hermesCommand}: --version probe failed; falling through to bootstrap.`
+        `Ignoring existing 螃蟹AI CLI at ${hermesCommand}: --version probe failed; falling through to bootstrap.`
       )
     }
   }
@@ -3355,7 +3355,7 @@ function resolveHermesBackend(dashboardArgs) {
   //    is a recoverable state the GUI can drive through.
   return {
     kind: 'bootstrap-needed',
-    label: '硅基Claw尚未安装；需要初始化',
+    label: '螃蟹AI尚未安装；需要初始化',
     command: null,
     args: dashboardArgs,
     bootstrap: true,
@@ -3385,7 +3385,7 @@ async function ensureRuntime(backend) {
   // will rewire startup to spawn the window first and route bootstrap events
   // to a renderer-side install overlay.
   if (backend.kind === 'bootstrap-needed') {
-    rememberLog('[bootstrap] no 硅基Claw install found; starting first-launch bootstrap')
+    rememberLog('[bootstrap] no 螃蟹AI install found; starting first-launch bootstrap')
 
     // 老目录保险丝：数据目录品牌化（hermes→qiji）后，老用户首次启动新包会走到
     // 这里静默重装。检测到老版数据目录还躺在原地时，留下醒目警告，让排障的人
@@ -3402,7 +3402,7 @@ async function ensureRuntime(backend) {
     }
 
     if (await handOffWindowsBootstrapRecovery('bootstrap-needed')) {
-      const handoffError = new Error('硅基Claw恢复已交给安装程序。桌面将在恢复完成后自动重启。')
+      const handoffError = new Error('螃蟹AI恢复已交给安装程序。桌面将在恢复完成后自动重启。')
       handoffError.isBootstrapFailure = true
       handoffError.bootstrapHandedOff = true
       bootstrapFailure = handoffError
@@ -3465,7 +3465,7 @@ async function ensureRuntime(backend) {
     bootstrapAbortController = null
 
     if (bootstrapResult.cancelled) {
-      const cancelledError = new Error('硅基Claw安装已取消。')
+      const cancelledError = new Error('螃蟹AI安装已取消。')
       cancelledError.isBootstrapFailure = true
       cancelledError.bootstrapCancelled = true
       bootstrapFailure = cancelledError
@@ -3474,7 +3474,7 @@ async function ensureRuntime(backend) {
 
     if (!bootstrapResult.ok) {
       const bootstrapError = new Error(
-        `硅基Claw初始化失败${bootstrapResult.failedStage ? ` at stage '${bootstrapResult.failedStage}'` : ''}: ` +
+        `螃蟹AI初始化失败${bootstrapResult.failedStage ? ` at stage '${bootstrapResult.failedStage}'` : ''}: ` +
           `${bootstrapResult.error || 'unknown error'}. ` +
           `Check ${path.join(HERMES_HOME, 'logs', 'desktop.log')} for the full transcript.`
       )
@@ -3501,7 +3501,7 @@ async function ensureRuntime(backend) {
   // attests they ran successfully).
   if (!isHermesSourceRoot(ACTIVE_HERMES_ROOT)) {
     throw new Error(
-      `硅基Claw install at ${ACTIVE_HERMES_ROOT} is missing or incomplete. ` +
+      `螃蟹AI install at ${ACTIVE_HERMES_ROOT} is missing or incomplete. ` +
         'Reinstall via the desktop installer or scripts/install.ps1.'
     )
   }
@@ -3514,10 +3514,10 @@ async function ensureRuntime(backend) {
   // here via an external `hermes` on PATH, this check still helps.
   if (IS_WINDOWS && !findGitBash()) {
     throw new Error(
-      '硅基Claw在 Windows 上需要 Git for Windows (provides Git Bash, ' +
+      '螃蟹AI在 Windows 上需要 Git for Windows (provides Git Bash, ' +
         "which the agent's terminal tool uses). Install it from " +
         'https://git-scm.com/download/win or run `winget install -e --id Git.Git`, ' +
-        'then relaunch 硅基Claw.'
+        'then relaunch 螃蟹AI.'
     )
   }
 
@@ -3531,15 +3531,15 @@ async function ensureRuntime(backend) {
     // install.ps1 succeeds. If we hit this, the user (or a deleted venv)
     // broke the invariant; tell them to re-run the install.
     throw new Error(
-      `硅基Claw虚拟环境缺失： ${VENV_ROOT}. Re-run the desktop installer or ` + '`scripts/install.ps1` to rebuild it.'
+      `螃蟹AI虚拟环境缺失： ${VENV_ROOT}. Re-run the desktop installer or ` + '`scripts/install.ps1` to rebuild it.'
     )
   }
 
   backend.command = venvPython
-  backend.label = `硅基Claw at ${ACTIVE_HERMES_ROOT} (venv: ${VENV_ROOT})`
+  backend.label = `螃蟹AI at ${ACTIVE_HERMES_ROOT} (venv: ${VENV_ROOT})`
   updateBootProgress({
     phase: 'runtime.ready',
-    message: '硅基Claw运行时已就绪',
+    message: '螃蟹AI运行时已就绪',
     progress: 82,
     running: true,
     error: null
@@ -3594,7 +3594,7 @@ function fetchJson(url, token, options = {}) {
             reject(
               new Error(
                 `Expected JSON from ${url} but got HTML (status ${res.statusCode}). ` +
-                  'The endpoint is likely missing on the 硅基Claw backend.'
+                  'The endpoint is likely missing on the 螃蟹AI backend.'
               )
             )
             return
@@ -3610,7 +3610,7 @@ function fetchJson(url, token, options = {}) {
 
     req.on('error', reject)
     req.setTimeout(timeoutMs, () => {
-      req.destroy(new Error(`Timed out connecting to 硅基Claw backend after ${timeoutMs}ms`))
+      req.destroy(new Error(`Timed out connecting to 螃蟹AI backend after ${timeoutMs}ms`))
     })
     if (body) req.write(body)
     req.end()
@@ -3668,7 +3668,7 @@ function fetchPublicJson(url, options = {}) {
             reject(
               new Error(
                 `Expected JSON from ${url} but got HTML (status ${res.statusCode}). ` +
-                  'The endpoint is likely missing on the 硅基Claw backend.'
+                  'The endpoint is likely missing on the 螃蟹AI backend.'
               )
             )
             return
@@ -3684,7 +3684,7 @@ function fetchPublicJson(url, options = {}) {
 
     req.on('error', reject)
     req.setTimeout(timeoutMs, () => {
-      req.destroy(new Error(`Timed out connecting to 硅基Claw backend after ${timeoutMs}ms`))
+      req.destroy(new Error(`Timed out connecting to 螃蟹AI backend after ${timeoutMs}ms`))
     })
     if (body) req.write(body)
     req.end()
@@ -4197,7 +4197,7 @@ async function waitForHermes(baseUrl, token) {
     }
   }
 
-  throw new Error(`硅基Claw backend did not become ready: ${lastError?.message || 'timeout'}`)
+  throw new Error(`螃蟹AI backend did not become ready: ${lastError?.message || 'timeout'}`)
 }
 
 function getWindowButtonPosition() {
@@ -4237,7 +4237,7 @@ function sendClosePreviewRequested() {
 
 // Tell the renderer the machine just woke. Sleep silently drops the
 // renderer's WebSocket to the local backend; the renderer reconnects on this
-// signal so the chat composer doesn't stay stuck on "正在启动硅基Claw...".
+// signal so the chat composer doesn't stay stuck on "正在启动螃蟹AI...".
 function sendPowerResume() {
   if (!mainWindow || mainWindow.isDestroyed()) return
   const { webContents } = mainWindow
@@ -4784,7 +4784,7 @@ function openOauthLoginWindow(baseUrl) {
       win = new BrowserWindow({
         width: 520,
         height: 720,
-        title: 'Sign in to 硅基Claw gateway',
+        title: 'Sign in to 螃蟹AI gateway',
         autoHideMenuBar: true,
         webPreferences: {
           contextIsolation: true,
@@ -4862,7 +4862,7 @@ function fetchJsonViaOauthSession(url, options = {}) {
       } catch {
         // already finished
       }
-      reject(new Error(`Timed out connecting to 硅基Claw backend after ${timeoutMs}ms`))
+      reject(new Error(`Timed out connecting to 螃蟹AI backend after ${timeoutMs}ms`))
     }, timeoutMs)
 
     request.on('response', res => {
@@ -5197,7 +5197,7 @@ async function buildRemoteConnection(rawUrl, authMode, token, source) {
     // the authoritative liveness check.
     if (!(await hasLiveOauthSession(baseUrl))) {
       const err = new Error(
-        'Remote 硅基Claw gateway uses OAuth, but you are not signed in. ' +
+        'Remote 螃蟹AI gateway uses OAuth, but you are not signed in. ' +
           'Open Settings → Gateway and click "Sign in", or switch back to Local.'
       )
       err.needsOauthLogin = true
@@ -5229,7 +5229,7 @@ async function buildRemoteConnection(rawUrl, authMode, token, source) {
 
   if (!token) {
     throw new Error(
-      'Remote 硅基Claw gateway is selected, but no session token is saved. ' +
+      'Remote 螃蟹AI gateway is selected, but no session token is saved. ' +
         'Open Settings → Gateway and save a token, or switch back to Local.'
     )
   }
@@ -5270,7 +5270,7 @@ async function resolveRemoteBackend(profile) {
     if (!rawEnvToken) {
       throw new Error(
         'HERMES_DESKTOP_REMOTE_URL is set but HERMES_DESKTOP_REMOTE_TOKEN is not. ' +
-          'Both must be provided to connect to a remote 硅基Claw backend.'
+          'Both must be provided to connect to a remote 螃蟹AI backend.'
       )
     }
     return buildRemoteConnection(rawEnvUrl, 'token', rawEnvToken, 'env')
@@ -5688,7 +5688,7 @@ async function spawnPoolBackend(profile, entry) {
   const hermesCwd = resolveHermesCwd()
   const webDist = resolveWebDist()
 
-  rememberLog(`Starting 硅基Claw backend for profile "${profile}" via ${backend.label}`)
+  rememberLog(`Starting 螃蟹AI backend for profile "${profile}" via ${backend.label}`)
 
   const child = spawn(
     backend.command,
@@ -5728,16 +5728,16 @@ async function spawnPoolBackend(profile, entry) {
     rejectStart = reject
   })
   child.once('error', error => {
-    rememberLog(`硅基Claw backend for profile "${profile}" failed to start: ${error.message}`)
+    rememberLog(`螃蟹AI backend for profile "${profile}" failed to start: ${error.message}`)
     backendPool.delete(profile)
     rejectStart?.(error)
   })
   child.once('exit', (code, signal) => {
-    rememberLog(`硅基Claw backend for profile "${profile}" exited (${signal || code})`)
+    rememberLog(`螃蟹AI backend for profile "${profile}" exited (${signal || code})`)
     backendPool.delete(profile)
     if (!ready) {
       rejectStart?.(
-        new Error(`硅基Claw backend for profile "${profile}" exited before it became ready (${signal || code}).`)
+        new Error(`螃蟹AI backend for profile "${profile}" exited before it became ready (${signal || code}).`)
       )
     }
   })
@@ -5751,7 +5751,7 @@ async function spawnPoolBackend(profile, entry) {
   ready = true
   const authToken = await adoptServedDashboardToken(baseUrl, token, {
     childAlive: () => child.exitCode === null && !child.killed,
-    label: `硅基Claw backend for profile "${profile}"`,
+    label: `螃蟹AI backend for profile "${profile}"`,
     rememberLog
   })
   entry.token = authToken
@@ -5859,16 +5859,16 @@ async function startHermes() {
   if (connectionPromise) return connectionPromise
 
   connectionPromise = (async () => {
-    await advanceBootProgress('backend.resolve', 'Resolving 硅基Claw backend', 8)
+    await advanceBootProgress('backend.resolve', 'Resolving 螃蟹AI backend', 8)
     // Resolve for the desktop's primary profile so a per-profile remote
     // override on the active profile is honored (falls back to env / global).
     const remote = await resolveRemoteBackend(primaryProfileKey())
     if (remote) {
-      await advanceBootProgress('backend.remote', `Connecting to remote 硅基Claw backend at ${remote.baseUrl}`, 24)
+      await advanceBootProgress('backend.remote', `Connecting to remote 螃蟹AI backend at ${remote.baseUrl}`, 24)
       await waitForHermes(remote.baseUrl, remote.token)
       updateBootProgress({
         phase: 'backend.ready',
-        message: 'Remote 硅基Claw backend is ready',
+        message: 'Remote 螃蟹AI backend is ready',
         progress: 94,
         running: true,
         error: null
@@ -5906,13 +5906,13 @@ async function startHermes() {
       dashboardArgs.unshift('--profile', activeProfile)
       ensureNamedProfileDir(activeProfile)
     }
-    await advanceBootProgress('backend.runtime', 'Resolving 硅基Claw runtime', 28)
+    await advanceBootProgress('backend.runtime', 'Resolving 螃蟹AI runtime', 28)
     const backend = await ensureRuntime(resolveHermesBackend(dashboardArgs))
     const hermesCwd = resolveHermesCwd()
     const webDist = resolveWebDist()
 
-    await advanceBootProgress('backend.spawn', `Starting 硅基Claw backend via ${backend.label}`, 84)
-    rememberLog(`Starting 硅基Claw backend via ${backend.label}`)
+    await advanceBootProgress('backend.spawn', `Starting 螃蟹AI backend via ${backend.label}`, 84)
+    rememberLog(`Starting 螃蟹AI backend via ${backend.label}`)
 
     hermesProcess = spawn(
       backend.command,
@@ -5959,11 +5959,11 @@ async function startHermes() {
       rejectBackendStart = reject
     })
     hermesProcess.once('error', error => {
-      rememberLog(`硅基Claw backend failed to start: ${error.message}`)
+      rememberLog(`螃蟹AI backend failed to start: ${error.message}`)
       updateBootProgress(
         {
           error: error.message,
-          message: `硅基Claw backend failed to start: ${error.message}`,
+          message: `螃蟹AI backend failed to start: ${error.message}`,
           phase: 'backend.error',
           running: false
         },
@@ -5975,7 +5975,7 @@ async function startHermes() {
       rejectBackendStart?.(error)
     })
     hermesProcess.once('exit', (code, signal) => {
-      rememberLog(`硅基Claw backend exited (${signal || code})`)
+      rememberLog(`螃蟹AI backend exited (${signal || code})`)
       // Only clear the global slots when they still point at THIS child.
       // A stale teardown may SIGTERM the successor spawn while the global
       // hermesProcess already references it — clearing unconditionally also
@@ -6025,7 +6025,7 @@ async function startHermes() {
       }
       sendBackendExit({ code, signal })
       if (!backendReady) {
-        const message = `硅基Claw backend exited before it became ready (${signal || code}).`
+        const message = `螃蟹AI backend exited before it became ready (${signal || code}).`
         updateBootProgress(
           {
             error: message,
@@ -6037,13 +6037,13 @@ async function startHermes() {
         )
         rejectBackendStart?.(
           new Error(
-            `硅基Claw backend exited before it became ready (${signal || code}). Log: ${DESKTOP_LOG_PATH}\n${recentHermesLog()}`
+            `螃蟹AI backend exited before it became ready (${signal || code}). Log: ${DESKTOP_LOG_PATH}\n${recentHermesLog()}`
           )
         )
       }
     })
 
-    await advanceBootProgress('backend.port', 'Waiting for 硅基Claw backend to launch', 86)
+    await advanceBootProgress('backend.port', 'Waiting for 螃蟹AI backend to launch', 86)
     // qiji 0.17.7: 冷启动(重铺后首启)放宽端口等待到300s,避免健康后端被90s超时误杀
     const qijiColdStart = detectColdStartWindow(readBootstrapMarker())
     if (qijiColdStart) {
@@ -6058,7 +6058,7 @@ async function startHermes() {
 
     const baseUrl = `http://127.0.0.1:${port}`
     readyPort = port
-    await advanceBootProgress('backend.wait', 'Waiting for 硅基Claw backend to become ready', 90)
+    await advanceBootProgress('backend.wait', 'Waiting for 螃蟹AI backend to become ready', 90)
     await Promise.race([waitForHermes(baseUrl, token), backendStartFailed])
     backendReady = true
     const authToken = await adoptServedDashboardToken(baseUrl, token, {
@@ -6068,7 +6068,7 @@ async function startHermes() {
     })
     updateBootProgress({
       phase: 'backend.ready',
-      message: '硅基Claw backend is ready. Finalizing desktop startup',
+      message: '螃蟹AI backend is ready. Finalizing desktop startup',
       progress: 94,
       running: true,
       error: null
@@ -6566,7 +6566,7 @@ ipcMain.handle('hermes:connection', async (_event, profile) => ensureBackend(pro
 // so the 'exit'/'error' handlers that would clear a dead connectionPromise never
 // fire — once the remote becomes unreachable across a sleep/wake the renderer
 // re-dials the same dead descriptor forever and the composer stays stuck on
-// "正在启动硅基Claw…". Before the renderer's backoff loop reconnects, it asks us
+// "正在启动螃蟹AI…". Before the renderer's backoff loop reconnects, it asks us
 // to confirm the cached PRIMARY backend is still reachable; if a remote one is
 // not, we drop the cache so the next getConnection() rebuilds it. Local backends
 // self-heal via their child 'exit' handler, so we never touch them here.
@@ -6596,7 +6596,7 @@ ipcMain.handle('hermes:connection:revalidate', async () => {
     // Unreachable remote: drop the stale cache so the renderer's next reconnect
     // tick rebuilds a fresh, reachable descriptor. resetHermesConnection only
     // nulls connectionPromise for a remote (no child to SIGTERM).
-    rememberLog('Cached remote 硅基Claw backend failed liveness probe; dropping stale connection.')
+    rememberLog('Cached remote 螃蟹AI backend failed liveness probe; dropping stale connection.')
     resetHermesConnection()
     return { ok: true, rebuilt: true }
   }
@@ -7062,7 +7062,7 @@ ipcMain.handle('hermes:notify', (_event, payload) => {
   // and the body click still works.
   const actions = Array.isArray(payload?.actions) ? payload.actions : []
   const notification = new Notification({
-    title: payload?.title || '硅基Claw',
+    title: payload?.title || '螃蟹AI',
     body: payload?.body || '',
     silent: Boolean(payload?.silent),
     actions: actions.map(action => ({ type: 'button', text: String(action?.text || '') }))
@@ -7985,7 +7985,7 @@ ipcMain.handle('hermes:fs:worktrees', async (_event, cwds) => worktreesForIpc(cw
 
 ipcMain.handle('hermes:terminal:start', async (event, payload = {}) => {
   if (!nodePty) {
-    throw new Error('PTY support is unavailable. Reinstall desktop dependencies and restart 硅基Claw.')
+    throw new Error('PTY support is unavailable. Reinstall desktop dependencies and restart 螃蟹AI.')
   }
 
   ensureSpawnHelperExecutable()
@@ -8188,7 +8188,7 @@ ipcMain.handle('hermes:diagnostics:export', async () => {
 
   const logDir = path.join(HERMES_HOME, 'logs')
   const sections = []
-  sections.push('==== 硅基Claw诊断快照 ====')
+  sections.push('==== 螃蟹AI诊断快照 ====')
   sections.push(`导出时间: ${new Date().toISOString()}`)
   sections.push(`版本: ${resolveHermesVersion()}  Electron: ${process.versions.electron}  Node: ${process.versions.node}`)
   sections.push(`系统: ${process.platform} ${os.release()} ${process.arch}  主机: ${os.hostname()}`)
@@ -8314,7 +8314,7 @@ async function runDesktopUninstall(mode) {
     return {
       ok: false,
       error: 'agent-missing',
-      message: `Can't run the uninstaller: no 硅基Claw agent venv at ${VENV_ROOT}.`
+      message: `Can't run the uninstaller: no 螃蟹AI agent venv at ${VENV_ROOT}.`
     }
   }
 
@@ -8552,7 +8552,7 @@ app.whenReady().then(() => {
       appTray.setToolTip(APP_NAME)
       const contextMenu = Menu.buildFromTemplate([
         {
-          label: '显示硅基Claw',
+          label: '显示螃蟹AI',
           click: () => {
             if (mainWindow && !mainWindow.isDestroyed()) {
               mainWindow.show()

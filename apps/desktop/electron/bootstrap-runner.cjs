@@ -102,7 +102,7 @@ function installedAgentInstallScript(hermesHome) {
 
 // Bundled installer: packaged apps ship install.ps1/install.sh in
 // process.resourcesPath (via electron-builder extraResources). This lets
-// white-label builds (e.g. 奇计) skip the GitHub download entirely — the
+// white-label builds (e.g. 螃蟹AI) skip the GitHub download entirely — the
 // bootstrap runner finds the script locally and runs it with -Branch main.
 function resolveBundledInstallScript() {
   if (!process.resourcesPath) return null

@@ -89,10 +89,10 @@ class Uninstaller
 
         Console.WriteLine();
         Console.WriteLine("  ============================================");
-        Console.WriteLine("            奇计 - 卸载程序");
+        Console.WriteLine("            螃蟹AI - 卸载程序");
         Console.WriteLine("  ============================================");
         Console.WriteLine();
-        Console.WriteLine("  正在卸载奇计...");
+        Console.WriteLine("  正在卸载螃蟹AI...");
 
         // 1. Kill running Qiji processes (by exe path, full family, retry)
         Console.Write("  停止运行中的进程...");
@@ -161,7 +161,7 @@ class Uninstaller
         try
         {
             string startMenu = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Programs), "奇计");
+                Environment.GetFolderPath(Environment.SpecialFolder.Programs), "螃蟹AI");
             if (Directory.Exists(startMenu))
                 Directory.Delete(startMenu, true);
             Console.WriteLine(" 完成");
@@ -173,7 +173,7 @@ class Uninstaller
         try
         {
             string desktopLnk = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "奇计.lnk");
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "螃蟹AI.lnk");
             if (File.Exists(desktopLnk))
                 File.Delete(desktopLnk);
             Console.WriteLine(" 完成");
