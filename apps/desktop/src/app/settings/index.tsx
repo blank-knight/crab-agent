@@ -43,6 +43,7 @@ import { $settingsScopeProfile } from '@/store/settings-scope'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { OverlayIconButton } from '../overlays/overlay-chrome'
 import { OverlayMain, type OverlayNavGroup } from '../overlays/overlay-split-layout'
+import { SettingsCategoryBar, categoryOfGroup } from '../overlays/settings-category-nav'
 import { SettingsNarrowNav, SettingsSideRail } from '../overlays/settings-side-rail'
 import { OverlayView } from '../overlays/overlay-view'
 
@@ -452,6 +453,26 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     ]
   )
 
+  // qiji 螃蟹AI: 两级导航——当前分组所属大类 + 该大类下的可见分组 + 大类切换
+  const activeCategory = useMemo(
+    () => navGroups.find(group => group.active)
+      ? categoryOfGroup(navGroups.find(group => group.active)!.id)
+      : 'general',
+    [navGroups]
+  )
+  const visibleGroups = useMemo(
+    () => navGroups.filter(group => categoryOfGroup(group.id) === activeCategory),
+    [navGroups, activeCategory]
+  )
+  const onSelectCategory = useCallback(
+    (categoryId: string) => {
+      // 切大类 = 跳到该大类第一个分组
+      const first = navGroups.find(group => categoryOfGroup(group.id) === categoryId)
+      first?.onSelect()
+    },
+    [navGroups]
+  )
+
   const activeGroup = navGroups.find(group => group.active)
   const activeChild = activeGroup?.children?.find(child => child.active)
 
@@ -584,23 +605,28 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
   return (
     <OverlayView closeLabel={t.settings.closeSettings} edgeBadge={searchPill} onClose={onClose}>
-      {/* qiji 螃蟹AI: 设置页=左侧竖排 rail（全大写+宽字距+直角）+ 右内容。
-          风格对标 dashboard 侧栏，与 Hermes 原版常规导航形成视觉区隔。 */}
-      <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden bg-transparent">
-        <div className="hidden px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)] max-[47.5rem]:block max-[47.5rem]:w-full">
+      {/* qiji 螃蟹AI: 设置页两级导航——顶部 6 大类标签栏（一行放下，永不溢出）+
+          左侧 rail 只显示当前大类下的分组。信息架构对标 dashboard。 */}
+      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
+        <div className="hidden px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)] max-[47.5rem]:block">
           <SettingsNarrowNav footer={navFooter} groups={navGroups} />
         </div>
-        <SettingsSideRail footer={navFooter} groups={navGroups} />
-        <OverlayMain className="px-0 pb-0">
-          <SettingsBreadcrumbContext.Provider value>
-            {activeGroup && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
-            {needsSubpageRedirect ? (
-              <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
-            ) : (
-              activeSettingsContent
-            )}
-          </SettingsBreadcrumbContext.Provider>
-        </OverlayMain>
+        <div className="shrink-0 px-1 pt-[calc(var(--titlebar-height)/2+0.375rem)]">
+          <SettingsCategoryBar activeCategory={activeCategory} onSelect={onSelectCategory} />
+        </div>
+        <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
+          <SettingsSideRail footer={navFooter} groups={visibleGroups} />
+          <OverlayMain className="px-0 pb-0">
+            <SettingsBreadcrumbContext.Provider value>
+              {activeGroup && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
+              {needsSubpageRedirect ? (
+                <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
+              ) : (
+                activeSettingsContent
+              )}
+            </SettingsBreadcrumbContext.Provider>
+          </OverlayMain>
+        </div>
       </div>
     </OverlayView>
   )
