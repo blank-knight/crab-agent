@@ -683,8 +683,17 @@ export const celadonTheme: DesktopTheme = {
     userBubbleBorder: '#c2d8c9'
   },
   typography: {
+    fontSans: `"Collapse", ${SYSTEM_SANS}`,
     fontMono: `"Courier Prime", ${SYSTEM_MONO}`,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
+    fontUrl: '/fonts/rules-display.css'
+  },
+  layout: {
+    vibe: 'chat',
+    bubbleStyle: 'sharp',
+    radiusScalar: 0.15,
+    spacingMul: 1.05,
+    baseSize: 0.9,
+    chatMaxWidth: 46
   }
 }
 

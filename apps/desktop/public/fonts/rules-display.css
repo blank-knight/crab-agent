@@ -1,0 +1,20 @@
+/* 青瓷主题显示字 — 上游 dashboard 同源字体（web/public/fonts，同仓同 license）。
+   标题/品牌大字用 Rules Expanded（方正像素感），正文备用 Collapse。 */
+@font-face {
+  font-family: 'Rules Expanded';
+  src: url('/fonts/RulesExpanded-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rules Expanded';
+  src: url('/fonts/RulesExpanded-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Collapse';
+  src: url('/fonts/Collapse-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
