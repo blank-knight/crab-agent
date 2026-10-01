@@ -78,7 +78,9 @@ const brandedCatalogCache = new Map<string, Translations>()
 function mapTranslationValue(value: unknown, replace: (s: string) => string): unknown {
   if (typeof value === 'string') return replace(value)
   if (typeof value === 'function') {
-    return (...args: unknown[]) => replace(String((value as (...a: unknown[]) => string)(...args)))
+    // qiji: 返回值可能为数组/对象（如 intro.custom(label) 返回 string[]）——逐元素替换，
+    // 禁止 String() 整体强转（数组会被压成逗号串，调用方按下标取到单个字符）。
+    return (...args: unknown[]) => mapTranslationValue((value as (...a: unknown[]) => unknown)(...args), replace)
   }
   if (Array.isArray(value)) return value.map(v => mapTranslationValue(v, replace))
   if (typeof value === 'object' && value !== null) {
