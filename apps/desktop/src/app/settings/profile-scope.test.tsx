@@ -36,6 +36,15 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('SettingsProfileScope', () => {
+
+// qiji: scope 选择器默认收起为内联下拉——先展开再点 chip
+function expandChips() {
+  // 折叠态按钮的 accessible name = "<当前选中项>"(aria-hidden 的 › 不计入 name)。
+  // 通过排除法点它：它带有 hover:bg-(--chrome-action-hover) 类（chip 没有）。
+  const toggle = screen.getAllByRole('button').find(b => b.className.includes('chrome-action-hover'))
+  expect(toggle).toBeTruthy()
+  fireEvent.click(toggle!)
+}
   it('renders nothing with fewer than two profiles', () => {
     $profiles.set([profile('default', true)])
 
@@ -48,10 +57,12 @@ describe('SettingsProfileScope', () => {
 
     render(<SettingsProfileScope />)
 
+    expandChips()
     fireEvent.click(screen.getByRole('button', { name: 'coder' }))
     expect($settingsScopeOverride.get()).toBe('coder')
 
-    fireEvent.click(screen.getByRole('button', { name: 'default' }))
+    // 选中 coder 后：折叠按钮名=coder，default 名只剩 chip（chips 仍展开）
+    fireEvent.click(screen.getAllByRole('button', { name: 'default' }).at(-1)!)
     expect($settingsScopeOverride.get()).toBeNull()
   })
 
@@ -88,6 +99,7 @@ describe('SettingsProfileScope', () => {
 
     render(<SettingsProfileScope />)
 
+    expandChips()
     fireEvent.click(screen.getByRole('button', { name: 'default' }))
     expect($settingsScopeOverride.get()).toBe('default')
 
@@ -107,7 +119,9 @@ describe('SettingsProfileScope', () => {
 
     // Bot Mode title wins over display_name and the slug — same identity the
     // Bots roster shows.
-    expect(screen.getByRole('button', { name: 'JordyV' })).toBeTruthy()
+    expandChips()
+    // 折叠按钮与 chip 同名 JordyV —— getAllBy（两者都在 = 折叠态显示当前项 + chip）
+    expect(screen.getAllByRole('button', { name: 'JordyV' }).length).toBeGreaterThanOrEqual(2)
     // display_name (profile.yaml) when no Bot Mode title exists.
     expect(screen.getByRole('button', { name: 'Copy' })).toBeTruthy()
     // Canonical slug when neither is set.
@@ -119,6 +133,7 @@ describe('SettingsProfileScope', () => {
 
     render(<SettingsProfileScope />)
 
+    expandChips()
     fireEvent.click(screen.getByRole('button', { name: 'JordyV' }))
     // The label changed, the identity did not: the override stores the slug.
     expect($settingsScopeOverride.get()).toBe('coder')

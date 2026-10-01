@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
@@ -70,21 +70,41 @@ export function SettingsProfileScope({ className }: { className?: string }) {
     return null
   }
 
+  // qiji 螃蟹AI: 默认收起为单行紧凑选择器（下拉展开），只有显式点开才见全量 chips
+  // ——上游的常驻全量 chip 行在多身份场景下过于喧宾夺主。
+  const [open, setOpen] = useState(false)
+  const selectedChip = profiles.find(profile => normalizeProfileKey(profile.name) === selected)
+
   return (
     <div className={cn('grid gap-2', className)}>
-      <div className="text-[length:var(--conversation-caption-font-size)] font-medium text-(--ui-text-secondary)">
-        {scope.appliesTo}
+      <div className="flex items-center gap-2">
+        <span className="text-[length:var(--conversation-caption-font-size)] font-medium text-(--ui-text-tertiary)">
+          {scope.appliesTo}
+        </span>
+        <button
+          className={cn(
+            'flex items-center gap-1 border border-transparent px-2 py-0.5 text-[length:var(--conversation-caption-font-size)] font-medium transition-colors',
+            'text-foreground/85 hover:bg-(--chrome-action-hover)'
+          )}
+          onClick={() => setOpen(v => !v)}
+          type="button"
+        >
+          {selectedChip ? settingsScopeLabel(selectedChip) : selected}
+          <span aria-hidden className={cn('text-(--ui-text-tertiary) transition-transform', open && 'rotate-90')}>›</span>
+        </button>
       </div>
-      <div className="flex flex-wrap gap-1.5">
-        {profiles.map(profile => (
-          <ScopeChip
-            active={normalizeProfileKey(profile.name) === selected}
-            key={profile.name}
-            label={settingsScopeLabel(profile)}
-            onSelect={() => setSettingsScope(profile.name)}
-          />
-        ))}
-      </div>
+      {open ? (
+        <div className="flex flex-wrap gap-1.5">
+          {profiles.map(profile => (
+            <ScopeChip
+              active={normalizeProfileKey(profile.name) === selected}
+              key={profile.name}
+              label={settingsScopeLabel(profile)}
+              onSelect={() => setSettingsScope(profile.name)}
+            />
+          ))}
+        </div>
+      ) : null}
       {/* Note truth table (override × non-default target, per the store's
           $settingsScopeEditsNonDefault): non-default target → loud accented
           note whether or not an override is set (the bot-active misdirect);

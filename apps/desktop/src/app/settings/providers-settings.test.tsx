@@ -140,6 +140,9 @@ describe('ProvidersSettings', () => {
       fireEvent.change(input, { target: { value: 'fixture-key' } })
       fireEvent.click(screen.getByRole('button', { name: 'Save' }))
       await waitFor(() => expect(setEnvVar).toHaveBeenCalledWith('WIDGET_API_KEY', 'fixture-key', 'profile-b'))
+      // qiji: scope 选择器默认收起——先展开再点 profile-a chip
+      const scopeToggle = screen.getAllByRole('button').find(b => b.className.includes('chrome-action-hover'))
+      fireEvent.click(scopeToggle!)
       fireEvent.click(screen.getByRole('button', { name: 'profile-a' }))
       // Back onto the app's active profile: no override is stored, but the
       // request must still name it (#118432).

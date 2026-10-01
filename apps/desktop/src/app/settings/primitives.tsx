@@ -72,8 +72,9 @@ export function SectionHeading({
     return null
   }
 
+  // qiji 螃蟹AI: 分区标题条带化——左侧竖色条 + 上下留白，与 Hermes 原版的小灰标题拉开差异
   return (
-    <div className="mb-2.5 flex items-center gap-2 pt-2 text-[length:var(--conversation-text-font-size)] font-medium">
+    <div className="mb-2 mt-1 flex items-center gap-2.5 border-l-2 border-l-(--ui-text-primary)/70 pl-2.5 text-[0.87rem] font-semibold tracking-wide">
       {showTitle && (
         <>
           <Icon className="size-4 shrink-0 text-muted-foreground" />
@@ -102,10 +103,14 @@ export function SettingsSection({
   meta?: string
   title: string
 }) {
+  // qiji 螃蟹AI: section 卡片化——带边框的直角卡片 + 卡片头（标题行与内容以分隔线隔开），
+  // 对标 dashboard 的表单卡片风，与 Hermes 原版的平铺列表拉开差异。
   return (
-    <section className="mb-6">
-      <SectionHeading aside={aside} icon={icon} meta={meta} title={title} />
-      {children}
+    <section className="mb-5 overflow-hidden rounded-[calc(var(--radius-scalar)*0.25rem)] border border-(--ui-stroke-tertiary) bg-(--ui-bg-secondary)">
+      <div className="border-b border-(--ui-stroke-tertiary)/60 px-4 pt-2.5 pb-1">
+        <SectionHeading aside={aside} icon={icon} meta={meta} title={title} />
+      </div>
+      <div className="px-4 pb-1">{children}</div>
     </section>
   )
 }
@@ -176,8 +181,8 @@ export function ListRow({
     // Container-queried, not viewport-queried: the label/control split keys on
     // the row's own pane width, so a narrow detail column (messaging, split
     // views) stacks instead of squishing the label against minmax(15rem,…).
-    <div className={cn('@container', className)} data-tour={dataTour} id={id}>
-      <div className={cn('grid gap-3 py-3', !wide && [LIST_ROW_COLUMNS, '@2xl:items-center'])}>
+    <div className={cn('@container border-b border-(--ui-stroke-tertiary)/40 last:border-b-0', className)} data-tour={dataTour} id={id}>
+      <div className={cn('grid gap-3 py-2.5', !wide && [LIST_ROW_COLUMNS, '@2xl:items-center'])}>
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-3 text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
             <span className="min-w-0">{title}</span>
