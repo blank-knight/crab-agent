@@ -42,8 +42,8 @@ function RailItem({
       className={cn(
         'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left transition-colors',
         nested
-          ? 'ml-2 h-6 pl-2 text-[0.7rem] font-normal'
-          : 'h-8 text-[0.83rem] font-semibold',
+          ? 'ml-2 h-7 pl-2 text-[0.83rem] font-medium'
+          : 'h-8 text-[0.9rem] font-semibold',
         nested
           ? active
             ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
@@ -58,7 +58,7 @@ function RailItem({
     >
       {Icon && (
         <Icon
-          className={cn('shrink-0', nested ? 'size-3' : 'size-3.5', active ? 'text-foreground/80' : 'text-muted-foreground/80')}
+          className={cn('shrink-0', nested ? 'size-3.5' : 'size-4', active ? 'text-foreground/80' : 'text-muted-foreground/80')}
         />
       )}
       <span className="min-w-0 flex-1 truncate">{label}</span>
