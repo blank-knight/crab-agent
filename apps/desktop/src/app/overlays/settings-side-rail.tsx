@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils'
 import type { OverlayNavLink, OverlayNavGroup } from './overlay-split-layout'
 
 /**
- * qiji 螃蟹AI 设置页专用：右侧竖排导航 rail（全大写+宽字距+直角）。
+ * qiji 螃蟹AI 设置页专用：左侧竖排导航 rail（全大写+宽字距+直角）。
  *
- * 与 Hermes 原版设置页（左侧 13rem 常规导航）镜像分置——导航在右，
- * 视觉风格对标 dashboard 侧栏：UPPERCASE 标签、1.2px 字距、直角行框、
- * 激活行左侧粗描边。只被 SettingsView 使用；其他 Overlay 系页面不受影响。
+ * 风格对标 dashboard 侧栏：UPPERCASE 标签、宽字距、直角行框、
+ * 激活行左侧粗描边——与 Hermes 原版的常规小写导航形成视觉区隔。
+ * 只被 SettingsView 使用；其他 Overlay 系页面不受影响。
  *
  * 激活分组带子项时，子页以缩进行展开（默认跟随激活分组展开）。
  */
@@ -63,7 +63,7 @@ function RailItem({
 export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups }: SettingsSideRailProps) {
   return (
     <aside
-      className={cn('flex w-[11rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-[calc(var(--titlebar-height)/2+0.5rem)]', 'max-[47.5rem]:hidden')}
+      className={cn('flex w-[11.5rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-[calc(var(--titlebar-height)/2+0.5rem)]', 'max-[47.5rem]:hidden')}
       data-tour="overlay-nav"
     >
       {groups.map(group => (

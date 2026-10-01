@@ -584,9 +584,9 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
   return (
     <OverlayView closeLabel={t.settings.closeSettings} edgeBadge={searchPill} onClose={onClose}>
-      {/* qiji 螃蟹AI: 设置页=内容左 + 右侧竖排 rail（全大写+宽字距+直角）。
-          与 Hermes 原版（左 rail）镜像分置，去 Hermes 化；窄屏切回下拉。 */}
-      <div className="flex h-full min-h-0 flex-1 flex-row-reverse overflow-hidden bg-transparent">
+      {/* qiji 螃蟹AI: 设置页=左侧竖排 rail（全大写+宽字距+直角）+ 右内容。
+          风格对标 dashboard 侧栏，与 Hermes 原版常规导航形成视觉区隔。 */}
+      <div className="flex h-full min-h-0 flex-1 flex-row overflow-hidden bg-transparent">
         <div className="hidden px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)] max-[47.5rem]:block max-[47.5rem]:w-full">
           <SettingsNarrowNav footer={navFooter} groups={navGroups} />
         </div>
