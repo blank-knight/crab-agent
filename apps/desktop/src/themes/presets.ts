@@ -620,6 +620,142 @@ export const matchaTheme: DesktopTheme = {
  * Paper — 纸白极简。黑白灰三色,无彩色干扰,默认主题。
  * 亮=纸白底黑字;暗=碳黑底灰白字。黑=文字,白=留白,灰=层级。
  */
+/**
+ * 青瓷 Celadon — 深青底 + 暖米文字 + 琥珀暖光（dashboard 经典 Teal 皮肤的双端同源移植）。
+ * 暗色是本体；亮色为青灰纸感变体。midground=米色承担品牌描边/流式光标。
+ */
+export const celadonTheme: DesktopTheme = {
+  name: 'celadon',
+  label: '青瓷 Celadon',
+  description: '深青暖米 · 琥珀微光',
+  darkColors: {
+    background: '#041c1c',
+    foreground: '#ffe6cb',
+    card: '#0a2626',
+    cardForeground: '#ffe6cb',
+    muted: '#103030',
+    mutedForeground: '#b7a98f',
+    popover: '#0c2a2a',
+    popoverForeground: '#ffe6cb',
+    primary: '#ffe6cb',
+    primaryForeground: '#041c1c',
+    secondary: '#173a38',
+    secondaryForeground: '#e8d5b5',
+    accent: '#1b403c',
+    accentForeground: '#f5e3c8',
+    border: '#1f4744',
+    input: '#143532',
+    ring: '#ffbd38',
+    midground: '#ffe6cb',
+    composerRing: '#ffbd38',
+    destructive: '#fb2c36',
+    destructiveForeground: '#fff5f0',
+    sidebarBackground: '#031515',
+    sidebarBorder: '#123a37',
+    userBubble: '#0f3030',
+    userBubbleBorder: '#27504c'
+  },
+  colors: {
+    background: '#eef4ef',
+    foreground: '#173430',
+    card: '#f7faf6',
+    cardForeground: '#173430',
+    muted: '#e2ece4',
+    mutedForeground: '#5c7268',
+    popover: '#ffffff',
+    popoverForeground: '#173430',
+    primary: '#0f5c50',
+    primaryForeground: '#f2faf6',
+    secondary: '#cfe3d6',
+    secondaryForeground: '#1d453c',
+    accent: '#bcd8c8',
+    accentForeground: '#14342e',
+    border: '#d3e2d8',
+    input: '#e6efe8',
+    ring: '#b8860b',
+    midground: '#0f5c50',
+    composerRing: '#b8860b',
+    destructive: '#b3271e',
+    destructiveForeground: '#fdf3f1',
+    sidebarBackground: '#e6efe7',
+    sidebarBorder: '#d3e2d8',
+    userBubble: '#dcebe0',
+    userBubbleBorder: '#c2d8c9'
+  },
+  typography: {
+    fontMono: `"Courier Prime", ${SYSTEM_MONO}`,
+    fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
+  }
+}
+
+/**
+ * 玫瑰暮色 Rosé Dusk — 暖粉底 + 象牙文字（dashboard Rosé 皮肤移植），衬线气质配 Fraunces。
+ */
+export const roseDuskTheme: DesktopTheme = {
+  name: 'rose-dusk',
+  label: '玫瑰暮色 Rosé Dusk',
+  description: '柔粉暖象牙 · 夜色温柔',
+  darkColors: {
+    background: '#1a0f15',
+    foreground: '#ffd4e1',
+    card: '#25161e',
+    cardForeground: '#ffd4e1',
+    muted: '#2e1a24',
+    mutedForeground: '#b58a9c',
+    popover: '#291820',
+    popoverForeground: '#ffd4e1',
+    primary: '#ffd4e1',
+    primaryForeground: '#1a0f15',
+    secondary: '#3a2230',
+    secondaryForeground: '#f0c3d1',
+    accent: '#402436',
+    accentForeground: '#f5d3de',
+    border: '#462a3c',
+    input: '#33202b',
+    ring: '#f9a8d4',
+    midground: '#ffd4e1',
+    composerRing: '#f9a8d4',
+    destructive: '#e11d48',
+    destructiveForeground: '#fff1f4',
+    sidebarBackground: '#150b10',
+    sidebarBorder: '#361f2d',
+    userBubble: '#2b1822',
+    userBubbleBorder: '#4a2c3e'
+  },
+  colors: {
+    background: '#fdf4f7',
+    foreground: '#3f2530',
+    card: '#ffffff',
+    cardForeground: '#3f2530',
+    muted: '#f7e6ee',
+    mutedForeground: '#9a6f83',
+    popover: '#ffffff',
+    popoverForeground: '#3f2530',
+    primary: '#d16a92',
+    primaryForeground: '#fff7fa',
+    secondary: '#f3d3e0',
+    secondaryForeground: '#54303f',
+    accent: '#f0b7ca',
+    accentForeground: '#4a2836',
+    border: '#eed3de',
+    input: '#f8e8ef',
+    ring: '#d16a92',
+    midground: '#d16a92',
+    composerRing: '#d16a92',
+    destructive: '#be3455',
+    destructiveForeground: '#fff2f5',
+    sidebarBackground: '#faecf1',
+    sidebarBorder: '#eed3de',
+    userBubble: '#f6dde7',
+    userBubbleBorder: '#ecc3d2'
+  },
+  typography: {
+    fontSans: `"Fraunces", ${SYSTEM_SANS}`,
+    fontMono: `"DM Mono", ${SYSTEM_MONO}`,
+    fontUrl: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Mono:wght@400;500&display=swap'
+  }
+}
+
 export const paperTheme: DesktopTheme = {
   name: 'paper',
   label: '纸白 Paper',
@@ -692,6 +828,8 @@ export const paperTheme: DesktopTheme = {
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
   paper: paperTheme,
+  celadon: celadonTheme,
+  'rose-dusk': roseDuskTheme,
   nous: nousTheme,
   github: githubTheme,
   catppuccin: catppuccinTheme,
