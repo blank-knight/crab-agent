@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from 'react'
+import { memo, type ReactNode, useEffect, useState } from 'react'
 
 import { TabDropdown } from '@/components/ui/tab-dropdown'
 import type { IconComponent } from '@/lib/icons'
@@ -40,8 +40,8 @@ function RailItem({
     <button
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left font-medium uppercase tracking-[0.075em] transition-colors',
-        nested ? 'ml-2 h-6 pl-2 text-[0.64rem]' : 'h-7 text-[0.69rem]',
+        'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left font-medium transition-colors',
+        nested ? 'ml-2 h-6 pl-2 text-[0.69rem]' : 'h-7 text-[0.76rem]',
         active
           ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
           : 'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
@@ -61,20 +61,54 @@ function RailItem({
 }
 
 export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups }: SettingsSideRailProps) {
+  // 折叠态：默认全部收起，只有激活组展开子页；点分组头可手动开合。
+  // 手动展开记录在 state——离开该组时收起（与 OverlayNav 的 disclosures 语义一致）。
+  const [manual, setManual] = useState<Record<string, boolean>>({})
+  const activeGroup = groups.find(group => group.active)
+  const activeGroupId = activeGroup?.id
+
+  // 路由进入新分组时，清掉该组的手动折叠记录（让它自动展开）
+  useEffect(() => {
+    if (!activeGroupId) return
+    setManual(previous => {
+      if (previous[activeGroupId] !== false) return previous
+      const next = { ...previous }
+      delete next[activeGroupId]
+      return next
+    })
+  }, [activeGroupId])
+
   return (
     <aside
       className={cn('flex w-[11.5rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-[calc(var(--titlebar-height)/2+0.5rem)]', 'max-[47.5rem]:hidden')}
       data-tour="overlay-nav"
     >
-      {groups.map(group => (
-        <div key={group.id} className="contents">
-          {group.gapBefore && <div aria-hidden className="h-2" />}
-          <RailItem active={group.active} icon={group.icon} id={group.id} label={group.label} onClick={group.onSelect} />
-          {group.children?.map(child => (
-            <RailItem active={child.active} icon={child.icon} id={child.id} key={child.id} label={child.label} nested onClick={child.onSelect} />
-          ))}
-        </div>
-      ))}
+      {groups.map(group => {
+        const hasChildren = Boolean(group.children?.length)
+        // 展开条件：激活组（未被手动收起）或被手动展开的非激活组
+        const expanded = group.active ? manual[group.id] !== false : manual[group.id] === true
+        return (
+          <div key={group.id} className="contents">
+            {group.gapBefore && <div aria-hidden className="h-2" />}
+            <RailItem
+              active={group.active}
+              icon={group.icon}
+              id={group.id}
+              label={group.label}
+              onClick={() => {
+                group.onSelect()
+                // 点分组头=切过去+展开
+                setManual(previous => ({ ...previous, [group.id]: true }))
+              }}
+            />
+            {hasChildren && expanded ? (
+              group.children?.map(child => (
+                <RailItem active={child.active} icon={child.icon} id={child.id} key={child.id} label={child.label} nested onClick={child.onSelect} />
+              ))
+            ) : null}
+          </div>
+        )
+      })}
       {footer && <div className="mt-auto flex items-center gap-1 pt-2">{footer}</div>}
     </aside>
   )
