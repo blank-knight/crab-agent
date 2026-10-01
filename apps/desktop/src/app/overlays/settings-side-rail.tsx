@@ -1,4 +1,4 @@
-import { memo, type ReactNode, useEffect, useState } from 'react'
+import { memo, type ReactNode, useState } from 'react'
 
 import { TabDropdown } from '@/components/ui/tab-dropdown'
 import type { IconComponent } from '@/lib/icons'
@@ -40,11 +40,17 @@ function RailItem({
     <button
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left font-medium transition-colors',
-        nested ? 'ml-2 h-6 pl-2 text-[0.69rem]' : 'h-7 text-[0.76rem]',
-        active
-          ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
-          : 'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
+        'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left transition-colors',
+        nested
+          ? 'ml-2 h-6 pl-2 text-[0.7rem] font-normal'
+          : 'h-8 text-[0.83rem] font-semibold',
+        nested
+          ? active
+            ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
+            : 'text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground'
+          : active
+            ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
+            : 'text-foreground/85 hover:bg-(--chrome-action-hover)'
       )}
       data-tour={id ? `nav-${id}` : undefined}
       onClick={onClick}
@@ -61,22 +67,13 @@ function RailItem({
 }
 
 export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups }: SettingsSideRailProps) {
-  // 折叠态：默认全部收起，只有激活组展开子页；点分组头可手动开合。
-  // 手动展开记录在 state——离开该组时收起（与 OverlayNav 的 disclosures 语义一致）。
-  const [manual, setManual] = useState<Record<string, boolean>>({})
+  // 单开合：collapsed 只记当前激活组是否被手动收起；非激活组永远收起。
+  // 点已激活的组头 = 切换收起/展开；点其他组头 = 切过去并展开。
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const activeGroup = groups.find(group => group.active)
   const activeGroupId = activeGroup?.id
-
-  // 路由进入新分组时，清掉该组的手动折叠记录（让它自动展开）
-  useEffect(() => {
-    if (!activeGroupId) return
-    setManual(previous => {
-      if (previous[activeGroupId] !== false) return previous
-      const next = { ...previous }
-      delete next[activeGroupId]
-      return next
-    })
-  }, [activeGroupId])
+  // 激活组从未手动收起时默认展开
+  const activeExpanded = !collapsed[activeGroupId ?? '']
 
   return (
     <aside
@@ -85,22 +82,39 @@ export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups 
     >
       {groups.map(group => {
         const hasChildren = Boolean(group.children?.length)
-        // 展开条件：激活组（未被手动收起）或被手动展开的非激活组
-        const expanded = group.active ? manual[group.id] !== false : manual[group.id] === true
+        const expanded = group.active && activeExpanded
         return (
           <div key={group.id} className="contents">
             {group.gapBefore && <div aria-hidden className="h-2" />}
-            <RailItem
-              active={group.active}
-              icon={group.icon}
-              id={group.id}
-              label={group.label}
-              onClick={() => {
-                group.onSelect()
-                // 点分组头=切过去+展开
-                setManual(previous => ({ ...previous, [group.id]: true }))
-              }}
-            />
+            <div className="relative">
+              <RailItem
+                active={group.active}
+                icon={group.icon}
+                id={group.id}
+                label={group.label}
+                onClick={() => {
+                  if (group.active) {
+                    // 已激活组头：切换收起/展开
+                    setCollapsed(previous => ({ ...previous, [group.id]: expanded }))
+                  } else {
+                    // 切组：清收起标记（新组展开）
+                    setCollapsed({})
+                    group.onSelect()
+                  }
+                }}
+              />
+              {hasChildren && (
+                <span
+                  aria-hidden
+                  className={cn(
+                    'pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-(--ui-text-tertiary) transition-transform',
+                    expanded && 'rotate-90'
+                  )}
+                >
+                  <svg className="size-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+                </span>
+              )}
+            </div>
             {hasChildren && expanded ? (
               group.children?.map(child => (
                 <RailItem active={child.active} icon={child.icon} id={child.id} key={child.id} label={child.label} nested onClick={child.onSelect} />
