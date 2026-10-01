@@ -51,7 +51,7 @@ describe('useStatusSnapshot', () => {
   it.each(Object.entries(TRANSLATIONS) as [Locale, Translations][])(
     'localizes and deduplicates shared-profile warnings in %s',
     async (locale: Locale, copy: Translations): Promise<void> => {
-      // qiji: 品牌层把渲染文本的「奇计」换成生效品牌名(默认硅基Claw),断言同源
+      // qiji: 品牌层把渲染文本的「奇计」换成生效品牌名(默认螃蟹AI),断言同源
       const warning: string = brandText(copy.notifications.sharedProfileWarning)
 
       expect(warning).toBeTypeOf('string')

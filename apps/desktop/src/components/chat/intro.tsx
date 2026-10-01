@@ -162,7 +162,7 @@ function pickCopy(copies: IntroCopy[], seed = 0): IntroCopy {
   return copies[Math.abs(seed) % copies.length] || FALLBACK_COPY[0]
 }
 
-// qiji: 空态大字走品牌链——brandText('奇计') 运行时替换为生效品牌(默认硅基Claw/贴牌名)
+// qiji: 空态大字走品牌链——brandText('奇计') 运行时替换为生效品牌(默认螃蟹AI/贴牌名)
 const WORDMARK = brandText('奇计')
 
 function resolveCopy(personality?: string, seed?: number): IntroCopy {

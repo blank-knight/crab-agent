@@ -1,9 +1,9 @@
 {
   "name": "hermes",
-  "productName": "Hermes",
+  "productName": "Qiji",
   "private": true,
   "version": "0.0.0",
-  "description": "Native desktop shell for Hermes Agent.",
+  "description": "螃蟹AI — AI智能助手桌面版",
   "author": "Nous Research",
   "repository": {
     "type": "git",

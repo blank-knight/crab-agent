@@ -97,7 +97,7 @@ it.each(['gui', 'lite', 'full'] as const)(
       </I18nProvider>
     )
     const zh: (typeof TRANSLATIONS)['zh']['settings']['uninstallSection'] = TRANSLATIONS.zh.settings.uninstallSection
-    // qiji: 品牌层把渲染文本的「奇计」换成生效品牌名(默认硅基Claw),断言同源替换
+    // qiji: 品牌层把渲染文本的「奇计」换成生效品牌名(默认螃蟹AI),断言同源替换
     await screen.findByText(brandText(zh.uninstallHermes))
     fireEvent.click(screen.getByRole('button', { name: new RegExp(brandText(zh.options[mode].title)) }))
     expect(screen.getByText(brandText(zh.confirmBody(zh.options[mode].consequence)))).toBeTruthy()

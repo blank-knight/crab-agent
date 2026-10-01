@@ -1101,7 +1101,7 @@ export const en: Translations = {
         }
       },
       test: 'Send test notification',
-      testTitle: '硅基Claw',
+      testTitle: '螃蟹AI',
       testBody: 'Notifications are working.',
       testSent: 'Test sent. If nothing appears, check your OS notification permissions and Focus/Do Not Disturb.',
       testUnsupported: 'This system does not support native notifications.',
@@ -4344,7 +4344,7 @@ export const en: Translations = {
       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.'
     },
     // Update-status overlay + version-details (mechanism-aware update UI).
-    appName: '硅基Claw',
+    appName: '螃蟹AI',
     version: (value: string) => `Version ${value}`,
     versionUnavailable: 'Version unavailable',
     checkNow: 'Check now',

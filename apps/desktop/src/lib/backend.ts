@@ -29,7 +29,7 @@ export interface LoginResponse {
   base_url?: string
   /** 代理限定的可用模型（A 方案：非空=只能用这些，第一个为默认） */
   models?: string[]
-  /** 贴牌品牌（沿代理链向上找，无=官方默认硅基Claw） */
+  /** 贴牌品牌（沿代理链向上找，无=官方默认螃蟹AI） */
   brand?: { name: string; logo: string }
 }
 

@@ -12,5 +12,5 @@ export const BRAND = {
   // Electron userData（Roaming）目录名 —— 跟 productName 走，卸载器用它清登录态
   userDataDirName: 'Qiji',
   // 默认产品显示名（OEM 未推送时用）
-  defaultName: '硅基Claw'
+  defaultName: '螃蟹AI'
 } as const

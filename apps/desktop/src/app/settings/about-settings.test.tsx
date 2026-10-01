@@ -82,14 +82,14 @@ describe('AboutSettings（qiji 关于页）', () => {
     $auth.set({ token: 't', username: 'u', isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'formal', score: 5, loginAt: Date.now(), apiKey: null, avatar: null })
   })
 
-  it('渲染品牌标题/版本号/额度与更新卡片（硅基Claw 品牌）', async () => {
+  it('渲染品牌标题/版本号/额度与更新卡片（螃蟹AI 品牌）', async () => {
     const { $desktopVersion: versionAtom } = await import('@/store/updates')
     versionAtom.set({ appVersion: '0.20.0', channel: 'stable' } as DesktopVersionInfo)
 
     renderAbout()
 
-    // 品牌 hero：标题经品牌层替换为硅基Claw
-    expect(screen.getByText('硅基Claw Desktop')).toBeTruthy()
+    // 品牌 hero：标题经品牌层替换为螃蟹AI
+    expect(screen.getByText('螃蟹AI Desktop')).toBeTruthy()
     expect(screen.getByText('版本 0.20.0')).toBeTruthy()
     // 账户信息
     expect(screen.getByText('剩余额度')).toBeTruthy()

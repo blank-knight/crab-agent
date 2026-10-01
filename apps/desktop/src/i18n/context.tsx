@@ -70,7 +70,7 @@ function toError(error: unknown): Error {
 
 /**
  * OEM 品牌替换后的翻译目录（qiji-fork 同款）：按「当前品牌」缓存深拷贝，
- * 字符串/模板函数里的「奇计」/「Qiji」替换为生效品牌名（默认硅基Claw）。
+ * 字符串/模板函数里的「奇计」/「Qiji」替换为生效品牌名（默认螃蟹AI）。
  * 品牌变化（登录贴牌账号/登出）时 useMemo 依赖 brandName 触发重渲染。
  */
 const brandedCatalogCache = new Map<string, Translations>()
