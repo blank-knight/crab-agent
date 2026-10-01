@@ -37,7 +37,8 @@ import { confirmSharedGatewayRestart } from '@/store/system-actions'
 import { SidebarLoadMoreRow } from '../chat/sidebar/load-more-row'
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
-import { OverlayMain, OverlayNav, OverlaySplitLayout } from '../overlays/overlay-split-layout'
+import { OverlayMain, OverlaySplitLayout } from '../overlays/overlay-split-layout'
+import { SettingsSideRail } from '../overlays/settings-side-rail'
 import { OverlayView } from '../overlays/overlay-view'
 
 import { MaintenancePanel } from './maintenance'
@@ -380,7 +381,8 @@ export function CommandCenterView({
   return (
     <OverlayView closeLabel={cc.close} onClose={onClose}>
       <OverlaySplitLayout>
-        <OverlayNav groups={navGroups} />
+        {/* qiji 螃蟹AI: 统一设置页同款手风琴 rail */}
+        <SettingsSideRail groups={navGroups} />
 
         <OverlayMain>
           <header className="mb-4 flex items-center justify-between gap-3 max-[47.5rem]:mb-2">
