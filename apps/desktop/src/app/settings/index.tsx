@@ -43,7 +43,7 @@ import { $settingsScopeProfile } from '@/store/settings-scope'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { OverlayIconButton } from '../overlays/overlay-chrome'
 import { OverlayMain, type OverlayNavGroup } from '../overlays/overlay-split-layout'
-import { SettingsNarrowNav, SettingsTabStrip } from '../overlays/settings-tab-strip'
+import { SettingsNarrowNav, SettingsSideRail } from '../overlays/settings-side-rail'
 import { OverlayView } from '../overlays/overlay-view'
 
 import { AboutSettings } from './about-settings'
@@ -584,28 +584,23 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
   return (
     <OverlayView closeLabel={t.settings.closeSettings} edgeBadge={searchPill} onClose={onClose}>
-      {/* qiji 螃蟹AI: 设置页改顶部横向标签栏布局（对标 dashboard 页面 tab 形态，
-          与 Hermes 原版左 rail 设置页形成区隔）。窄屏切回下拉（TabDropdown 同语义）。 */}
-      <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent max-[47.5rem]:flex-none">
-        <div className="hidden px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)] max-[47.5rem]:block">
-          {/* 窄屏降级占位：TabDropdown 由 SettingsNarrowNav 渲染 */}
+      {/* qiji 螃蟹AI: 设置页=内容左 + 右侧竖排 rail（全大写+宽字距+直角）。
+          与 Hermes 原版（左 rail）镜像分置，去 Hermes 化；窄屏切回下拉。 */}
+      <div className="flex h-full min-h-0 flex-1 flex-row-reverse overflow-hidden bg-transparent">
+        <div className="hidden px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)] max-[47.5rem]:block max-[47.5rem]:w-full">
           <SettingsNarrowNav footer={navFooter} groups={navGroups} />
         </div>
-        <div className="hidden min-h-0 flex-1 flex-col max-[47.5rem]:flex md:flex">
-          <div className="px-1 pt-[calc(var(--titlebar-height)/2+0.5rem)]">
-            <SettingsTabStrip footer={navFooter} groups={navGroups} />
-          </div>
-          <OverlayMain className="px-0 pb-0 pt-2">
-            <SettingsBreadcrumbContext.Provider value>
-              {activeGroup && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
-              {needsSubpageRedirect ? (
-                <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
-              ) : (
-                activeSettingsContent
-              )}
-            </SettingsBreadcrumbContext.Provider>
-          </OverlayMain>
-        </div>
+        <SettingsSideRail footer={navFooter} groups={navGroups} />
+        <OverlayMain className="px-0 pb-0">
+          <SettingsBreadcrumbContext.Provider value>
+            {activeGroup && <SettingsSubpageHeader child={activeChild} group={activeGroup} />}
+            {needsSubpageRedirect ? (
+              <Navigate replace to={{ hash, pathname, search: `?${subpageSearch}` }} />
+            ) : (
+              activeSettingsContent
+            )}
+          </SettingsBreadcrumbContext.Provider>
+        </OverlayMain>
       </div>
     </OverlayView>
   )
