@@ -143,6 +143,10 @@ export default defineConfig(({ command }) => ({
     // 上游同步注意：merge 时保留此 qiji 标记块。
     manifest: 'renderer-manifest.json',
     chunkSizeWarningLimit: 25000,
+    // qiji 0.20.3: 加密链(blob: 协议)下 new URL(asset, import.meta.url) 必崩——
+    // import.meta.url 是 blob: 不是合法 base → "Failed to construct 'URL'"(设置页
+    // billing 档位图实锤)。10KB 以下资产全部内联 base64，产物自足（tier 图共 26KB）。
+    assetsInlineLimit: 10240,
     rolldownOptions: {
       output: {
         codeSplitting: false

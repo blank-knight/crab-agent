@@ -18,6 +18,9 @@ import { openReviewForPath, revealReview } from '@/store/review'
 // the transcript, not a wall the user has to scroll past to reach the composer.
 const MAX_ROWS_HEIGHT = '9.375rem'
 
+// qiji 0.20.3: 见组件内短路注释。
+const BRAND_DISABLE_CHANGED_FILES_CARD = true
+
 /**
  * Cursor-style "N files changed" summary closing out the newest assistant turn:
  * one row per file it edited with that file's +/-, and a Review action opening
@@ -27,6 +30,12 @@ const MAX_ROWS_HEIGHT = '9.375rem'
  * transcript's other inline widgets rather than inventing its own chrome.
  */
 export const ChangedFilesCard: FC<{ parts: readonly unknown[] }> = ({ parts }) => {
+  // qiji 0.20.3: 品牌客户端禁用「N files changed」卡片（git ±行数是代码视角，
+  // 对话产品用户不需要）。上游实现整体保留，仅此一处短路。
+  if (BRAND_DISABLE_CHANGED_FILES_CARD) {
+    return null
+  }
+
   const { t } = useI18n()
   const copy = t.assistant.thread
   const files = useMemo(() => deriveChangedFiles(parts), [parts])

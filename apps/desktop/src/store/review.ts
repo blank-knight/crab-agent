@@ -43,6 +43,19 @@ const $reviewOpenPref = persistentAtom(OPEN_KEY, false, Codecs.bool)
 
 export const $reviewOpen = modeBound('reviewOpen', $reviewOpenPref, open => $reviewOpenPref.set(open))
 
+// qiji 0.20.3: 品牌客户端禁用 git review 面板（用户买的是对话产品，不是看代码的）。
+// 渲染层入口三件套全部短路：openReview/toggleReview/revealReview 变 no-op，
+// 旧装机残留的 reviewOpen=true 偏好也在启动时强制落回 false。
+// 上游文件，改动集中在此单点，merge 时以本块为准。
+const BRAND_DISABLE_REVIEW_PANE = true
+if (BRAND_DISABLE_REVIEW_PANE) {
+  $reviewOpenPref.set(false)
+}
+
+function noopReview(): void {}
+
+function noopScopedReview(_scopeCwd: null | string = null, _scopeTarget = 'main'): void {}
+
 // The split-button's remembered default action ('commit' | 'commitPush').
 export type CommitAction = 'commit' | 'commitPush'
 
@@ -269,7 +282,13 @@ function refreshShipInfoIfStale(): void {
 /** Open the pane scoped to `scopeCwd` (a tile's worktree), or to the active
  *  session's cwd when null — see `$reviewScopeCwd`. Keep the originating
  *  composer target alongside it for agent-ship actions. */
+// qiji 0.20.3: BRAND_DISABLE_REVIEW_PANE 短路——函数体整段保留在下方死分支不可取，
+// 直接重定向 noop，保留原实现于 git 历史。
 export function openReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
+  if (BRAND_DISABLE_REVIEW_PANE) {
+    noopScopedReview(scopeCwd, scopeTarget)
+    return
+  }
   $reviewScopeCwd.set(scopeCwd?.trim() || null)
   $reviewScopeTarget.set(scopeTarget.trim() || 'main')
   $reviewOpen.set(true)
@@ -285,6 +304,10 @@ export function closeReview(): void {
 }
 
 export function toggleReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
+  if (BRAND_DISABLE_REVIEW_PANE) {
+    noopScopedReview(scopeCwd, scopeTarget)
+    return
+  }
   // Narrow width: the pane is a collapsed overlay (like the sidebar under ⌘B).
   // Make sure its data is loaded, then slide it in/out via the forced-reveal pin
   // — never the docked open state, which a 0px track would render invisibly.
@@ -321,6 +344,10 @@ export function toggleReview(scopeCwd: null | string = null, scopeTarget = 'main
  * by the transcript's changed-files card.
  */
 export function revealReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
+  if (BRAND_DISABLE_REVIEW_PANE) {
+    noopScopedReview(scopeCwd, scopeTarget)
+    return
+  }
   const wasOpen = $reviewOpen.get()
   const target = scopeTarget.trim() || 'main'
 
@@ -371,6 +398,10 @@ export async function openReviewForPath(
   scopeCwd: null | string = null,
   scopeTarget = 'main'
 ): Promise<void> {
+  if (BRAND_DISABLE_REVIEW_PANE) {
+    noopReview()
+    return
+  }
   revealReview(scopeCwd, scopeTarget)
   await refreshReview()
 
