@@ -765,6 +765,83 @@ export const roseDuskTheme: DesktopTheme = {
   }
 }
 
+/**
+ * 珊瑚螃蟹 Coral Crab — 螃蟹AI 自有品牌皮肤（design-preview/layout-preview.html 定稿）。
+ * 奶油白底 + 珊瑚橙品牌色 + 暖褐暗色；大圆角软糯风，与上游 Teal 彻底切割。
+ * 暗色=暖褐黑（参考 Claude 暖暗色）；midground=珊瑚承担品牌描边/流式光标。
+ */
+export const coralTheme: DesktopTheme = {
+  name: 'coral',
+  label: '珊瑚螃蟹 Coral Crab',
+  description: '奶油白 · 珊瑚橙 · 暖褐夜',
+  darkColors: {
+    background: '#1c1512',
+    foreground: '#f2e7dd',
+    card: '#2a201c',
+    cardForeground: '#f2e7dd',
+    muted: '#241b17',
+    mutedForeground: '#b3a294',
+    popover: '#2a201c',
+    popoverForeground: '#f2e7dd',
+    primary: '#ff8266',
+    primaryForeground: '#1c1512',
+    secondary: '#3a2c26',
+    secondaryForeground: '#e8d9cb',
+    accent: '#453329',
+    accentForeground: '#f0e0d0',
+    border: '#453329',
+    input: '#33261f',
+    ring: '#ff8266',
+    midground: '#ff8266',
+    composerRing: '#ff8266',
+    destructive: '#fb2c36',
+    destructiveForeground: '#fff5f0',
+    sidebarBackground: '#171110',
+    sidebarBorder: '#3a2c26',
+    userBubble: '#33261f',
+    userBubbleBorder: '#56423a'
+  },
+  colors: {
+    background: '#fbf6f0',
+    foreground: '#2d2420',
+    card: '#ffffff',
+    cardForeground: '#2d2420',
+    muted: '#f4ece3',
+    mutedForeground: '#6b5d54',
+    popover: '#ffffff',
+    popoverForeground: '#2d2420',
+    primary: '#ff6b4a',
+    primaryForeground: '#fff8f5',
+    secondary: '#ffe9e2',
+    secondaryForeground: '#8a3d28',
+    accent: '#ffd9cd',
+    accentForeground: '#7a3520',
+    border: '#ece2d8',
+    input: '#f4ece3',
+    ring: '#ff6b4a',
+    midground: '#ff6b4a',
+    composerRing: '#ff6b4a',
+    destructive: '#d63a24',
+    destructiveForeground: '#fff5f0',
+    sidebarBackground: '#f6efe7',
+    sidebarBorder: '#ece2d8',
+    userBubble: '#ffe9e2',
+    userBubbleBorder: '#ffd0c2'
+  },
+  typography: {
+    fontSans: `"MiSans", "HarmonyOS Sans SC", ${SYSTEM_SANS}`,
+    fontMono: `"MiSans Mono", ${SYSTEM_MONO}`
+  },
+  layout: {
+    vibe: 'chat',
+    bubbleStyle: 'pill',
+    radiusScalar: 1.1,
+    spacingMul: 1.08,
+    baseSize: 0.95,
+    chatMaxWidth: 44
+  }
+}
+
 export const paperTheme: DesktopTheme = {
   name: 'paper',
   label: '纸白 Paper',
@@ -837,6 +914,7 @@ export const paperTheme: DesktopTheme = {
 
 export const BUILTIN_THEMES: Record<string, DesktopTheme> = {
   paper: paperTheme,
+  coral: coralTheme,
   celadon: celadonTheme,
   'rose-dusk': roseDuskTheme,
   nous: nousTheme,
