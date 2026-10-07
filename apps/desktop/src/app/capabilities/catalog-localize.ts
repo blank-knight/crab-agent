@@ -24,22 +24,24 @@ export type LocalizedEntry = CatalogEntry & LocalizedFields
 /** 单条目录条目的中文投影（浅拷贝；无翻译返回原引用）。
  * 技能查 SKILL_ZH；插件目录条目查 PLUGIN_ZH（同一 CatalogBrowser 双 kind）。 */
 export function localizeCatalogEntry<T extends CatalogEntry>(entry: T): T & LocalizedFields {
-  const zh = SKILL_ZH[entry.name] ?? PLUGIN_ZH[entry.name]
+  const zhSkill = SKILL_ZH[entry.name]
+  const zhPlugin = PLUGIN_ZH[entry.name]
 
-  if (!zh) {
+  if (!zhSkill && !zhPlugin) {
     return entry
   }
 
+  // PLUGIN_ZH 的字段叫 desc，SKILL_ZH 叫 description——双源都收。
+  const nameZh = (zhSkill ?? zhPlugin).name
+  const descZh = zhSkill?.description ?? zhPlugin?.desc ?? ''
+
   return {
     ...entry,
-    nameZh: zh.name,
-    // PLUGIN_ZH 的字段叫 desc，SKILL_ZH 叫 description——两者都收。
-    descZh: zh.description ?? zh.desc,
-    // 线上目录的 overview 是长英文——详情页显示中文摘要优先。
-    overview: zh.description ?? entry.overview,
+    nameZh,
+    descZh,
+    overview: descZh || entry.overview,
     categoryLabel: CATEGORY_ZH[entry.category] ?? entry.categoryLabel,
-    // 搜索索引带上中文，保证中文关键词能搜到（filterCatalog 读 search 字段）。
-    search: `${entry.search} ${zh.name} ${zh.description}`
+    search: `${entry.search} ${nameZh} ${descZh}`
   }
 }
 
