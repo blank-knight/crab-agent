@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n'
 import type { SkillInfo } from '@/types/hermes'
 
 import { parseFrontmatter } from './frontmatter'
+import { skillDescZh, skillNameZh } from '../zh-display'
 
 export function SkillDetail({
   onArchive,
@@ -39,8 +40,17 @@ export function SkillDetail({
     [contentQuery.data]
   )
 
+  // qiji 0.20.4: 详情头加中文摘要（SKILL.md 原文是英文；有映射才显示，未收录不添乱）。
+  const zhDesc = skillDescZh(skill.name, '')
+
   return (
     <>
+      {zhDesc && (
+        <div className="mb-3 rounded-md border border-(--ui-border) bg-(--ui-bg-secondary)/40 px-3 py-2">
+          <p className="text-[0.82rem] font-semibold text-(--ui-text-primary)">{skillNameZh(skill.name, skill.name)}</p>
+          <p className="mt-0.5 text-[0.72rem] leading-relaxed text-(--ui-text-secondary)">{zhDesc}</p>
+        </div>
+      )}
       {editable && (
         <div className="flex items-center gap-2">
           <Button onClick={onEdit} size="xs" variant="text">

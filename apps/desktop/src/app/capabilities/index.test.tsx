@@ -135,7 +135,8 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     await renderSkills()
 
     // The switch names the action, so an enabled toolset offers to turn it off.
-    const sw = await screen.findByRole('switch', { name: 'Turn Web Search toolset off' })
+    // qiji 0.20.4: toolset label 走中文映射(web→网页搜索与抓取),aria-label 随之中文化。
+    const sw = await screen.findByRole('switch', { name: 'Turn 网页搜索与抓取 toolset off' })
     expect(sw.getAttribute('aria-checked')).toBe('true')
 
     await act(async () => {
@@ -289,8 +290,8 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     await screen.findByRole('switch', { name: 'web-research' })
     expect(screen.getByRole<HTMLButtonElement>('switch', { name: 'Added web-research' }).disabled).toBe(true)
     expect(screen.queryByRole('switch', { name: 'Add web-research' })).toBeNull()
-    const available = screen.getByRole('button', { name: 'gif-search' }).closest('article')!
-    fireEvent.click(within(available).getByRole('switch', { name: 'Add gif-search' }))
+    const available = screen.getByRole('button', { name: 'GIF 搜索' }).closest('article')!
+    fireEvent.click(within(available).getByRole('switch', { name: 'Add GIF 搜索' }))
     await waitFor(() =>
       expect(installHubSkill).toHaveBeenCalledExactlyOnceWith('official/gifs/gif-search', {
         connectionId: 'homelab',
@@ -489,10 +490,11 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       )
     })
 
-    const install = await screen.findByRole('switch', { name: 'Add gif-search' })
+    // qiji 0.20.4: gif-search 有中文映射(GIF 搜索)。
+    const install = await screen.findByRole('switch', { name: 'Add GIF 搜索' })
     expect(screen.getByRole('switch', { name: 'web-research' })).toBeTruthy()
     expect(screen.queryByRole('switch', { name: 'Add web-research' })).toBeNull()
-    expect(screen.getByRole<HTMLButtonElement>('switch', { name: 'Added ascii-art' }).disabled).toBe(true)
+    expect(screen.getByRole<HTMLButtonElement>('switch', { name: 'Added ASCII 字符画' }).disabled).toBe(true)
 
     await act(async () => {
       fireEvent.click(install)

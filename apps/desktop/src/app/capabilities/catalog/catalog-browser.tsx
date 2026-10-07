@@ -37,6 +37,7 @@ import {
   sortCatalog
 } from './catalog-query'
 import { $catalogCardView } from './store'
+import { localizeCatalogEntries } from '../catalog-localize'
 import { useCatalogFilters } from './use-catalog-filters'
 
 interface CatalogBrowserProps {
@@ -163,7 +164,8 @@ export const CatalogBrowser = memo(function CatalogBrowser({
   const root = useRef<HTMLDivElement>(null)
   useEffect(() => (CATALOG_POINTER_ENABLED && root.current ? trackCatalogPointer(root.current) : undefined), [])
 
-  const entries = mergeInstalled(data ?? [], installedEntries ?? [], matchInstalled)
+  // qiji 0.20.4: 中文名/描述/分类注入——未收录条目原样回退（见 catalog-localize.ts）。
+  const entries = localizeCatalogEntries(mergeInstalled(data ?? [], installedEntries ?? [], matchInstalled))
   const filtered = sortCatalog(filterCatalog(entries, facets, deferredQuery, isInstalled), sort, kind)
 
   const discover =
