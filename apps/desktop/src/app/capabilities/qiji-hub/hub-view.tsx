@@ -1,16 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-// qiji 0.20.4: 「技能与工具」自研页 — 主视图。
+// qiji 0.20.4: 「技能与工具」自研页 — 视觉 v2（design-preview 设计语言落地）。
 //
-// 对齐设置页的两级导航模式（用户认可的现役形态）：
-//   顶部大类标签栏（4 大类，一行放下）+ 左 rail（当前大类内的分组，手风琴单开合）
-//   + 右内容区（分组标题 + 行卡片 + 开关）。
+// 设计语言 = 珊瑚螃蟹（暖黑窄栏 + 大圆角卡片 + 软阴影 + 悬浮上浮）。
+// 全部颜色走主题 token（coral 皮肤下即预览稿效果，其他皮肤自动适配）。
+// 数据钩子/开关写入/翻译层不变（v1 已验证），只换视图层。
 //
-// 与上游 CapabilitiesView 的关系：数据钩子/开关写入/刷新全部复用
-// （useSkillsQuery / setSkillEnabled / refreshCapabilities），只重写视图层。
-// 旧视图（skills-tab / toolsets-tab / catalog）代码保留，路由一处切换。
-//
-// 上游同步注意：qiji 隔离区组件（本目录），上游 merge 不触碰；接线点只在
-// capabilities/index.tsx 的 qiji 标记块内。
+// 上游同步注意：qiji 隔离区组件；接线点在 capabilities/index.tsx 的 qiji 标记块。
 import { memo, useCallback, useMemo, useState } from 'react'
 
 import { Switch } from '@/components/ui/switch'
@@ -30,9 +25,7 @@ import { categoryZh, skillDescZh, skillNameZh } from '../zh-display'
 import { HUB_CATEGORIES, type HubCategory } from './categories'
 
 // ─────────────────────────────────────────────────────────────
-// 分类 rail：技能按分类分组（中文），手风琴单开合由 SettingsSideRail 语义自带。
-// 这里复刻 RailItem 视觉（不直接 import SettingsSideRail——它读
-// --titlebar-height 的 padding 是设置页布局专属，本页由外层统一给）。
+// 左 rail：暖黑窄栏 + 图标分组（设计稿的侧栏语言）。
 // ─────────────────────────────────────────────────────────────
 
 interface RailEntry {
@@ -40,6 +33,15 @@ interface RailEntry {
   label: string
   icon?: IconComponent
   count: number
+}
+
+/** 分类的首字当"彩色头像"——稳定 hash 出暖色系色相。 */
+function categoryHue(id: string): number {
+  let h = 0
+
+  for (const ch of id) {h = (h * 31 + ch.charCodeAt(0)) % 360}
+
+  return h
 }
 
 function HubRail({
@@ -55,43 +57,65 @@ function HubRail({
 }) {
   return (
     <aside
-      className="flex w-[11.5rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-2"
+      className="flex w-[10.5rem] min-h-0 shrink-0 flex-col gap-1 overflow-y-auto border-r border-(--ui-border)/50 bg-(--ui-sidebar-surface-background) px-2 pb-3 pt-3"
       data-tour="hub-nav"
     >
-      {entries.map((entry, index) => (
-        <button
-          aria-current={entry.id === activeId ? 'page' : undefined}
-          className={cn(
-            'row-hover flex h-8 w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left transition-colors',
-            index === 0 && entry.id === '__all' ? 'mt-0' : '',
-            entry.id === activeId
-              ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground text-[0.9rem] font-semibold'
-              : 'text-foreground/85 text-[0.9rem] font-semibold hover:bg-(--chrome-action-hover)'
-          )}
-          key={entry.id}
-          onClick={() => onSelect(entry.id)}
-          type="button"
-        >
-          <span className="min-w-0 flex-1 truncate">{entry.label}</span>
-          <span className="shrink-0 text-[0.7rem] font-normal text-(--ui-text-tertiary)">{entry.count}</span>
-        </button>
-      ))}
+      {entries.map(entry => {
+        const active = entry.id === activeId
+
+        return (
+          <button
+            aria-current={active ? 'page' : undefined}
+            className={cn(
+              'group flex w-full items-center gap-2.5 px-2 py-2 text-left transition-all duration-150',
+              active
+                ? 'rounded-xl bg-(--ui-row-active-background) text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.06)]'
+                : 'rounded-xl text-foreground/70 hover:bg-(--chrome-action-hover)/60 hover:text-foreground'
+            )}
+            key={entry.id}
+            onClick={() => onSelect(entry.id)}
+            type="button"
+          >
+            {/* 分类"头像"：首字圆片（快捷项用图标位） */}
+            <span
+              className="flex size-7 shrink-0 items-center justify-center rounded-[9px] text-[0.72rem] font-bold text-white transition-transform duration-150 group-hover:scale-105"
+              style={{
+                background:
+                  entry.id === '__all'
+                    ? 'var(--ui-primary)'
+                    : entry.id === '__enabled'
+                      ? 'color-mix(in srgb, var(--ui-primary) 55%, var(--ui-muted))'
+                      : `hsl(${categoryHue(entry.id)} 42% 58%)`
+              }}
+            >
+              {entry.label.slice(0, 1)}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[0.84rem] font-semibold">{entry.label}</span>
+            <span
+              className={cn(
+                'shrink-0 rounded-full px-1.5 py-0.5 text-[0.66rem] font-medium tabular-nums',
+                active ? 'bg-(--ui-primary)/15 text-(--ui-primary)' : 'text-(--ui-text-tertiary)'
+              )}
+            >
+              {entry.count}
+            </span>
+          </button>
+        )
+      })}
       {footer && <div className="mt-auto pt-2">{footer}</div>}
     </aside>
   )
 }
 
 // ─────────────────────────────────────────────────────────────
-// 内容区：分组标题（大而粗，用户偏好）+ 行卡片列表。
+// 内容区：分类大标题 + 卡片网格（圆角/软阴影/悬浮上浮）。
 // ─────────────────────────────────────────────────────────────
 
-function SkillRow({
-  disabled,
+function SkillCard({
   onToggle,
   profile,
   skill
 }: {
-  disabled: boolean
   onToggle: (enabled: boolean) => void
   profile?: ProfileScope
   skill: SkillInfo
@@ -101,40 +125,56 @@ function SkillRow({
   const zhDesc = skillDescZh(skill.name, skill.description || '')
 
   return (
-    <div className="border-b border-(--ui-border)/40 last:border-b-0">
-      <button
-        className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-(--chrome-action-hover)/40"
-        onClick={() => setExpanded(v => !v)}
-        type="button"
-      >
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.92rem] font-semibold text-(--ui-text-primary)">{zhName}</p>
-          <p className="mt-0.5 truncate text-[0.75rem] text-(--ui-text-tertiary)">{zhDesc}</p>
-        </div>
-        {usageOf(skill) > 0 && (
-          <span className="shrink-0 text-[0.7rem] text-(--ui-text-tertiary)">已用 {usageOf(skill)} 次</span>
-        )}
-      </button>
+    <div
+      className={cn(
+        'group flex flex-col rounded-2xl border border-(--ui-border)/70 bg-(--ui-card) p-4 transition-all duration-200',
+        'shadow-[0_2px_12px_rgba(45,36,32,0.05)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(45,36,32,0.10)]',
+        skill.enabled && 'border-(--ui-primary)/25'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <button
+          className="min-w-0 flex-1 text-left"
+          onClick={() => setExpanded(v => !v)}
+          type="button"
+        >
+          <div className="flex items-center gap-2">
+            <p className="truncate text-[0.95rem] font-bold text-(--ui-text-primary)">{zhName}</p>
+            {usageOf(skill) > 0 && (
+              <span className="shrink-0 rounded-full bg-(--ui-muted) px-1.5 py-0.5 text-[0.64rem] font-medium text-(--ui-text-tertiary)">
+                已用 {usageOf(skill)} 次
+              </span>
+            )}
+          </div>
+          <p className="mt-1 line-clamp-2 text-[0.76rem] leading-relaxed text-(--ui-text-tertiary)">{zhDesc}</p>
+        </button>
+        <Switch
+          aria-label={zhName}
+          checked={skill.enabled}
+          onCheckedChange={onToggle}
+          size="xs"
+        />
+      </div>
       {expanded && (
-        <div className="px-4 pb-3">
-          <div className="rounded-md border border-(--ui-border) bg-(--ui-bg-secondary)/40 px-3 py-2">
-            <p className="text-[0.72rem] leading-relaxed text-(--ui-text-secondary)">
+        <div className="mt-3 border-t border-(--ui-border)/50 pt-3">
+          <div className="rounded-xl bg-(--ui-muted)/60 px-3 py-2">
+            <p className="text-[0.74rem] leading-relaxed text-(--ui-text-secondary)">
               {zhDesc || '暂无描述。'}
             </p>
             {zhDesc !== (skill.description || '') && (
-              <p className="mt-1.5 text-[0.68rem] leading-relaxed text-(--ui-text-tertiary)">
+              <p className="mt-1.5 text-[0.68rem] leading-relaxed text-(--ui-text-quaternary)">
                 原文：{skill.description}
               </p>
             )}
           </div>
-          {skill.enabled && usageOf(skill) >= 0 && <SkillFullBody name={skill.name} profile={profile} />}
+          <SkillFullBody name={skill.name} profile={profile} />
         </div>
       )}
     </div>
   )
 }
 
-/** 详情展开区：完整 SKILL.md 正文（点开行才拉取；沿用 detail 的 frontmatter 剥离逻辑）。 */
+/** 详情展开区：完整 SKILL.md 正文（frontmatter 剥离）。 */
 function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope }) {
   const { t } = useI18n()
 
@@ -156,38 +196,11 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
 
   return (
     <pre
-      className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap wrap-break-word rounded-md border border-(--ui-border)/60 bg-(--ui-bg-secondary)/30 px-3 py-2 font-mono text-[0.68rem] leading-relaxed text-(--ui-text-secondary)"
+      className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap wrap-break-word rounded-xl bg-(--ui-muted)/40 px-3 py-2 font-mono text-[0.66rem] leading-relaxed text-(--ui-text-secondary)"
       data-selectable-text="true"
     >
       {parsed.body}
     </pre>
-  )
-}
-
-function SkillRowWithSwitch({
-  disabled,
-  onToggle,
-  profile,
-  skill
-}: {
-  disabled: boolean
-  onToggle: (enabled: boolean) => void
-  profile?: ProfileScope
-  skill: SkillInfo
-}) {
-  return (
-    <div className="relative">
-      <SkillRow disabled={disabled} onToggle={onToggle} profile={profile} skill={skill} />
-      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-        <Switch
-          aria-label={skillNameZh(skill.name, skill.name)}
-          checked={skill.enabled}
-          disabled={disabled}
-          onCheckedChange={onToggle}
-          size="xs"
-        />
-      </div>
-    </div>
   )
 }
 
@@ -209,7 +222,6 @@ function SkillsPane({
   const { t } = useI18n()
   const [activeCategory, setActiveCategory] = useState('__all')
 
-  // 分类 rail：全部 + 已启用 + 各分类（中文，按数量降序）
   const entries = useMemo(() => {
     const byCategory = new Map<string, number>()
 
@@ -235,7 +247,6 @@ function SkillsPane({
     return skills.filter(s => (s.category || 'general') === activeCategory)
   }, [skills, activeCategory])
 
-  // 排序：已启用在前，再按使用次数降序，最后按中文名
   const ordered = useMemo(
     () =>
       [...visible].sort(
@@ -250,7 +261,6 @@ function SkillsPane({
   const applyEnabled = useCallback(
     async (skill: SkillInfo, enabled: boolean) => {
       const previous = queryClient.getQueryData<SkillInfo[]>(skillsQueryKey(profile)) ?? []
-      // 乐观更新：缓存先行，失败回滚（渲染层不假设成功）
       queryClient.setQueryData(
         skillsQueryKey(profile),
         previous.map(s => (s.name === skill.name ? { ...s, enabled } : s))
@@ -279,17 +289,16 @@ function SkillsPane({
     <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
       <HubRail activeId={activeCategory} entries={entries} footer={marketEntry} onSelect={setActiveCategory} />
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="flex items-baseline gap-2 px-4 pb-1 pt-3">
-          <h2 className="text-[1.05rem] font-bold text-(--ui-text-primary)">{heading}</h2>
-          <span className="text-[0.75rem] text-(--ui-text-tertiary)">{ordered.length} 项</span>
+        <div className="flex items-baseline gap-2.5 px-5 pb-2 pt-4">
+          <h2 className="text-[1.15rem] font-bold tracking-tight text-(--ui-text-primary)">{heading}</h2>
+          <span className="text-[0.75rem] font-medium text-(--ui-text-tertiary)">{ordered.length} 项</span>
         </div>
         {ordered.length === 0 ? (
-          <p className="px-4 py-6 text-[0.8rem] text-(--ui-text-tertiary)">此分组暂无技能。</p>
+          <p className="px-5 py-8 text-[0.8rem] text-(--ui-text-tertiary)">此分组暂无技能。</p>
         ) : (
-          <div className="pb-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-2.5 px-5 pb-5">
             {ordered.map(skill => (
-              <SkillRowWithSwitch
-                disabled={false}
+              <SkillCard
                 key={skill.name}
                 onToggle={enabled => void applyEnabled(skill, enabled)}
                 profile={profile}
@@ -304,7 +313,7 @@ function SkillsPane({
 }
 
 // ─────────────────────────────────────────────────────────────
-// 外框：顶部大类栏（复刻 SettingsCategoryBar 视觉）+ 大类分发
+// 外框：顶部大类栏（胶囊 tab 设计）+ 大类分发
 // ─────────────────────────────────────────────────────────────
 
 const CategoryTab = memo(function CategoryTab({
@@ -322,16 +331,16 @@ const CategoryTab = memo(function CategoryTab({
     <button
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'flex h-9 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap border-b-2 bg-transparent px-3 text-sm font-medium transition-colors',
+        'flex h-8 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-[0.85rem] font-semibold transition-all duration-150',
         active
-          ? 'border-(--ui-text-primary) text-foreground'
-          : 'border-transparent text-(--ui-text-tertiary) hover:text-foreground'
+          ? 'bg-(--ui-primary) text-(--ui-primary-foreground) shadow-[0_3px_12px_color-mix(in_srgb,var(--ui-primary)_35%,transparent)]'
+          : 'text-(--ui-text-tertiary) hover:bg-(--ui-muted) hover:text-foreground'
       )}
       data-tour={`hub-category-${label}`}
       onClick={onClick}
       type="button"
     >
-      <Icon className={cn('size-4 shrink-0', active ? 'text-foreground/80' : 'text-muted-foreground/80')} />
+      <Icon className="size-3.5 shrink-0" />
       <span className="min-w-0 truncate">{label}</span>
     </button>
   )
@@ -360,9 +369,9 @@ export function QijiCapabilitiesHub({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
-      <div className="shrink-0 px-1 pt-[calc(var(--titlebar-height)/2+0.375rem)]">
+      <div className="shrink-0 px-4 pt-[calc(var(--titlebar-height)/2+0.375rem)]">
         <div
-          className="flex shrink-0 items-end gap-0.5 overflow-x-auto border-b border-(--ui-sidebar-border) px-1"
+          className="flex shrink-0 items-center gap-1 overflow-x-auto pb-1"
           data-tour="hub-categories"
         >
           {HUB_CATEGORIES.map(cat => (
@@ -386,8 +395,7 @@ export function QijiCapabilitiesHub({
             <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} skills={skills} />
           )
         ) : (
-          // qiji 0.20.4: 连接器/插件沿用旧 tab 组件，统一容器排版对齐新骨架
-          //（页头留白 + 内容 inset，与技能大类视觉一致）。
+          // qiji 0.20.4: 连接器/插件沿用旧 tab 组件，统一容器排版对齐新骨架。
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <div className="flex min-h-0 flex-1 flex-col pt-2">{fallbackContent}</div>
           </div>
