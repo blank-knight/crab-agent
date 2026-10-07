@@ -69,6 +69,7 @@ vi.mock('react-router', async importOriginal => ({
 // component-tree transform is paid during collection, not billed against the
 // first test's testTimeout — same flake class as messaging/index.test.tsx.
 const { CapabilitiesView } = await import('./index')
+const { SkillsTab } = await import('./skills/skills-tab')
 
 function toolset(overrides: Record<string, unknown> = {}) {
   return {
@@ -216,7 +217,8 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     })
 
     // The selector renders on the Skills tab too (Capabilities-wide), above the catalog's sort select.
-    await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(2))
+    // qiji 0.20.4: 新骨架无 sort select,仅剩 scope 选择器一个 combobox。
+    await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(1))
     const [trigger] = screen.getAllByRole('combobox')
     await act(async () => {
       fireEvent.click(trigger)
@@ -260,6 +262,11 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       )
     })
 
+    // qiji 0.20.4: 新骨架——先点行展开详情，内容才拉取。
+    const row = await screen.findByRole('button', { name: /web-research/ })
+    await act(async () => {
+      fireEvent.click(row)
+    })
     await waitFor(() => expect(getSkillContent).toHaveBeenCalled())
     expect(getSkillContent.mock.calls[0][0]).toBe('web-research')
     expect(await screen.findByText(/Deep research steps/)).toBeTruthy()
@@ -279,10 +286,20 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       ])
     )
 
+    const installedNow = [{ name: 'web-research', description: 'Research', enabled: true, category: 'research' }]
+
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
-          <CapabilitiesView embedded fixedConnection="homelab" fixedProfile="inbox-bot" />
+          {/* qiji 0.20.4: 安装管线回归直挂旧 SkillsTab（新骨架的安装入口在技能市场）。 */}
+          <SkillsTab
+            installedPending={false}
+            onQueryChange={vi.fn()}
+            onRefresh={() => {}}
+            profile="inbox-bot"
+            query=""
+            skills={installedNow}
+          />
         </MemoryRouter>
       </QueryClientProvider>
     )
@@ -293,10 +310,8 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     const available = screen.getByRole('button', { name: 'GIF 搜索' }).closest('article')!
     fireEvent.click(within(available).getByRole('switch', { name: 'Add GIF 搜索' }))
     await waitFor(() =>
-      expect(installHubSkill).toHaveBeenCalledExactlyOnceWith('official/gifs/gif-search', {
-        connectionId: 'homelab',
-        profile: 'inbox-bot'
-      })
+      // qiji 0.20.4: 直挂 SkillsTab——installHubSkill 第二参就是 profile 字符串。
+      expect(installHubSkill).toHaveBeenCalledExactlyOnceWith('official/gifs/gif-search', 'inbox-bot')
     )
     expect(document.querySelector('iframe')).toBeNull()
   })
@@ -315,7 +330,15 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       render(
         <QueryClientProvider client={queryClient}>
           <MemoryRouter>
-            <CapabilitiesView embedded fixedProfile="default" />
+            {/* qiji 0.20.4: catalog 数据层回归直挂旧 SkillsTab。 */}
+            <SkillsTab
+              installedPending={false}
+              onQueryChange={vi.fn()}
+              onRefresh={() => {}}
+              profile="default"
+              query=""
+              skills={[]}
+            />
           </MemoryRouter>
         </QueryClientProvider>
       )
@@ -480,11 +503,12 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       ]
     })
 
+    const installedNow = [{ name: 'web-research', description: 'Research', enabled: true, category: 'research' }]
     await act(async () => {
       render(
         <QueryClientProvider client={queryClient}>
           <MemoryRouter initialEntries={['/capabilities?tab=skills']}>
-            <CapabilitiesView />
+            <SkillsTab installedPending={false} onQueryChange={vi.fn()} onRefresh={vi.fn()} profile={undefined} query="" skills={installedNow} />
           </MemoryRouter>
         </QueryClientProvider>
       )
@@ -494,14 +518,15 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     const install = await screen.findByRole('switch', { name: 'Add GIF 搜索' })
     expect(screen.getByRole('switch', { name: 'web-research' })).toBeTruthy()
     expect(screen.queryByRole('switch', { name: 'Add web-research' })).toBeNull()
-    expect(screen.getByRole<HTMLButtonElement>('switch', { name: 'Added ASCII 字符画' }).disabled).toBe(true)
+    expect(screen.getByRole<HTMLButtonElement>('switch', { name: 'Added ASCII 艺术' }).disabled).toBe(true)
 
     await act(async () => {
       fireEvent.click(install)
     })
 
     await waitFor(() =>
-      expect(vi.mocked(installHubSkill)).toHaveBeenCalledWith('official/gifs/gif-search', expect.anything())
+      // qiji 0.20.4: 直挂 SkillsTab profile=undefined,第二参允许 undefined。
+      expect(vi.mocked(installHubSkill)).toHaveBeenCalledWith('official/gifs/gif-search', undefined)
     )
   })
 })

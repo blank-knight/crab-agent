@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
+import { Sparkles } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
@@ -25,6 +26,9 @@ import { PluginsTab } from './plugins/plugins-tab'
 import { CapabilityScopeSelector, useCapabilityScope } from './scope-selector'
 import { SKILLS_QUERY_KEY, skillSearchTerms, useSkillsQuery } from './skills/skills-data'
 import { SkillsTab } from './skills/skills-tab'
+// qiji 0.20.4: 自研「技能与工具」页（设置页同款两级导航）。旧 tab 视图保留可回退。
+import { QijiCapabilitiesHub } from './qiji-hub/hub-view'
+import type { HubCategory } from './qiji-hub/categories'
 import { refreshToolCalls } from './toolsets/tool-calls'
 import { TOOLSETS_QUERY_KEY, toolsetSearchTerms, useToolsetsQuery, visibleToolsetCount } from './toolsets/toolsets-data'
 import { ToolsetsTab } from './toolsets/toolsets-tab'
@@ -32,6 +36,15 @@ import { ToolsetsTab } from './toolsets/toolsets-tab'
 // Skills Hub browsing lives inside the Skills tab. Legacy `?tab=hub`
 // links fall back to 'skills' via useRouteEnumParam.
 const CAPABILITY_MODES = ['skills', 'toolsets', 'connectors', 'plugins', 'market'] as const
+
+// qiji 0.20.4: 自研骨架大类（market 不占大类，旧深链 market → skills 兜底渲染 MarketPanel）
+const HUB_MODE_OF: Record<CapabilityMode, HubCategory['id']> = {
+  skills: 'skills',
+  toolsets: 'toolsets',
+  connectors: 'connectors',
+  plugins: 'plugins',
+  market: 'skills'
+}
 
 type CapabilityMode = (typeof CAPABILITY_MODES)[number]
 
@@ -178,36 +191,58 @@ export function CapabilitiesView({
     )
   } satisfies Record<CapabilityMode, () => React.ReactNode>
 
+  // qiji 0.20.4: 自研骨架替换 PageSearchShell 壳——大类栏+左rail+内容区。
+  // 搜索保留（skills/toolsets 大类内容区顶部），scope 选择器保留。
+  const hubCategory = HUB_MODE_OF[mode]
+  const fallbackContent =
+    mode === 'connectors'
+      ? tabContent.connectors()
+      : mode === 'plugins'
+        ? tabContent.plugins()
+        : mode === 'market'
+          ? tabContent.market()
+          : mode === 'toolsets'
+            ? tabContent.toolsets()
+            : null
+
   return (
-    <PageSearchShell
-      {...props}
-      activeTab={mode}
-      onSearchChange={setQuery}
-      onTabChange={id => setMode(id as CapabilityMode)}
-      // Catalogs keep search beside their results; Connectors owns its field too.
-      searchHidden={mode !== 'toolsets'}
-      searchHints={searchHints}
-      searchPlaceholder={
-        mode === 'plugins'
-          ? t.catalog.searchPlugins
-          : mode === 'skills'
-            ? t.catalog.searchSkills
-            : t.skills.searchToolsets
-      }
-      searchValue={query}
-      tabs={[
-        { id: 'skills', label: t.skills.tabSkills, meta: skills?.length ?? null },
-        { id: 'toolsets', label: t.skills.tabToolsets, meta: toolsets ? visibleToolsetCount(toolsets) : null },
-        { id: 'connectors', label: t.connectorsPage.title },
-        { id: 'plugins', label: t.skills.tabPlugins },
-        { id: 'market', label: t.settings.account.skillmarket.title }
-      ]}
-    >
-      <div className="flex h-full flex-col">
-        {mode !== 'plugins' && <CapabilityScopeSelector scope={scope} />}
-        <div className="flex min-h-0 flex-1 flex-col">{loadGate ?? tabContent[mode]()}</div>
+    <section {...props} className={cn('flex h-full min-h-0 flex-col', props.className)}>
+      <div className="flex shrink-0 items-center justify-between gap-2 px-3 pt-[calc(var(--titlebar-height)/2+0.375rem)]">
+        {mode !== 'plugins' && mode !== 'connectors' && <CapabilityScopeSelector scope={scope} />}
+        <div className="flex min-w-0 flex-1 justify-end">
+          {(mode === 'skills' || mode === 'toolsets') && (
+            <input
+              className="h-8 w-full max-w-[18rem] rounded-md border border-(--ui-border) bg-(--ui-bg-secondary)/60 px-3 text-[0.85rem] text-(--ui-text-primary) outline-none placeholder:text-(--ui-text-tertiary) focus:border-(--ui-text-primary)/40"
+              onChange={event => setQuery(event.target.value)}
+              placeholder={mode === 'skills' ? '搜索技能（支持中文）…' : '搜索工具集…'}
+              value={query}
+            />
+          )}
+        </div>
       </div>
-    </PageSearchShell>
+      <QijiCapabilitiesHub
+        activeCategory={hubCategory}
+        fallbackContent={fallbackContent}
+        marketEntry={
+          <button
+            className="row-hover flex h-8 w-full items-center gap-2 border border-transparent px-2.5 text-left text-[0.9rem] font-semibold text-foreground/85 transition-colors hover:bg-(--chrome-action-hover)"
+            onClick={() => setMode('market')}
+            type="button"
+          >
+            <Sparkles className="size-4 shrink-0 text-muted-foreground/80" />
+            <span className="min-w-0 flex-1 truncate">{t.settings.account.skillmarket.title}</span>
+          </button>
+        }
+        onCategoryChange={id => {
+          setQuery('')
+          setMode(id)
+        }}
+        onRefresh={() => void refreshCapabilities()}
+        profile={scope.profile}
+        skills={skills ?? []}
+        skillsPending={!skills}
+      />
+    </section>
   )
 }
 

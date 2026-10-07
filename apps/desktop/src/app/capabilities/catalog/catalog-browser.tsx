@@ -37,7 +37,7 @@ import {
   sortCatalog
 } from './catalog-query'
 import { $catalogCardView } from './store'
-import { localizeCatalogEntries } from '../catalog-localize'
+import { displayName, localizeCatalogEntries } from '../catalog-localize'
 import { useCatalogFilters } from './use-catalog-filters'
 
 interface CatalogBrowserProps {
@@ -211,7 +211,7 @@ export const CatalogBrowser = memo(function CatalogBrowser({
         disabled={Boolean(installedPending) || installed || (kind === 'skills' && !entry.installIdentifier)}
         installed={installed}
         installing={isInstalling?.(entry) ?? false}
-        name={entry.name}
+        name={displayName(entry)}
         onInstall={() => {
           if (kind === 'plugins') {
             setDetailOpen(false)

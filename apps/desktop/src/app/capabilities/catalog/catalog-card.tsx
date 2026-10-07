@@ -9,6 +9,7 @@ import { type CatalogEntry, catalogLabel } from './catalog-data'
 import { CatalogDates, CatalogHeaderMeta, CatalogMetadata } from './catalog-metadata'
 import { resolveSkillIconName, SkillIcon, skillIconTone } from '../../skills/skill-icon'
 import { isZhLocale } from '@/i18n'
+import { displayName, displayDesc } from '../catalog-localize'
 import { translateSkillField } from '../../skills/translations'
 
 export function catalogIcon(category: string) {
@@ -94,11 +95,11 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
           </span>
           <RowButton
             aria-haspopup="dialog"
-            aria-label={entry.name}
+            aria-label={displayName(entry)}
             className="min-w-0 flex-1 cursor-pointer text-left font-semibold leading-snug after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary focus-visible:after:-outline-offset-2"
             onClick={() => onOpen(entry)}
           >
-            <span className="line-clamp-2 min-w-0 break-words text-lg">{isZhLocale() ? translateSkillField(entry.name, 'name', entry.name) : entry.name}</span>
+            <span className="line-clamp-2 min-w-0 break-words text-lg">{displayName(entry)}</span>
           </RowButton>
           {action && (
             <span className="relative shrink-0 opacity-[.66] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -113,7 +114,7 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
             <CatalogHeaderMeta entry={entry} />
           </span>
           <span className="line-clamp-4 min-h-0 text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-secondary)">
-            {isZhLocale() ? translateSkillField(entry.name, 'description', entry.description) : entry.description}
+            {displayDesc(entry)}
           </span>
         </div>
       </div>
