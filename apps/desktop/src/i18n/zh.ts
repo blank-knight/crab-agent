@@ -215,7 +215,7 @@ export const zh = defineLocale({
       desktopBootFailed: '桌面启动失败',
       gatewayConnectionLost: '与网关的连接已断开',
       gatewayConnectionLostDetail:
-        'Still retrying in the background. You can keep reading and drafting — open Gateway settings if this persists.',
+        '仍在后台重试。你可以继续阅读和编辑——若持续失败请打开网关设置检查。',
       gatewaySignInRequired: '需要登录网关',
       ipcBridgeUnavailable: '桌面 IPC 桥不可用。'
     },
@@ -4474,7 +4474,7 @@ export const zh = defineLocale({
       toggleTerminal: '终端',
       toggleTokensPerSecond: '每秒 token 数',
       toggleVersion: '版本与更新',
-      toggleFreeTier: 'Free tier',
+      toggleFreeTier: '免费额度',
       toggleWorkspace: '工作区',
       cacheHitRateTitle: '本会话的提示缓存命中率 — 缓存 token 更便宜，越高越省',
       tokensPerSecondTitle: '每秒输出 token 数，取最近 10 次模型调用的平均值',

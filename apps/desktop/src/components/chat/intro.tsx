@@ -38,26 +38,27 @@ export type IntroProps = {
 
 const NEUTRAL_PERSONALITIES = new Set(['', 'default', 'none', 'neutral'])
 
+// qiji 0.20.4: 兜底文案中文化（产品默认中文心智；回退池不再出现英文句）。
 const FALLBACK_COPY: IntroCopy[] = [
   {
-    headline: 'What are we moving today?',
-    body: "Send a bug, branch, plan, or rough idea. I'll inspect the repo and turn it into the next concrete step."
+    headline: '今天推进点什么？',
+    body: '丢个 bug、分支、计划或粗略想法，我先看仓库再给出下一步。'
   },
   {
-    headline: "What's on your mind?",
-    body: "Bring the code, question, or stuck part. I'll read the room before making changes."
+    headline: '想聊什么？',
+    body: '贴代码、提问或卡住的部分，我先看全上下文再动手。'
   },
   {
-    headline: 'What should we look at?',
-    body: "Send the task, failing path, or half-formed plan. I'll help turn it into action."
+    headline: '从哪里开始？',
+    body: '给出问题、目标或文件，我先摸清现状再保持下一步具体可做。'
   },
   {
-    headline: 'Where should we start?',
-    body: "Bring the problem, goal, or file. I'll inspect first and keep the next step concrete."
+    headline: '哪里需要处理？',
+    body: '把手头的上下文发来，我帮你整理成计划或直接修。'
   },
   {
-    headline: 'What needs attention?',
-    body: "Send the context you have. I'll help sort it into a plan or a fix."
+    headline: '现在做什么？',
+    body: '提个问题、贴个报错、指个仓库都行——读码、跑工具、出结果。'
   }
 ]
 

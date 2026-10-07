@@ -279,33 +279,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             label: t.settings.nav.notifications,
             onSelect: () => setActiveView('notifications')
           },
-          {
-            active: activeView === 'billing',
-            children: [
-              {
-                active: activeView === 'billing' && (billingView === 'overview' || !canViewPlans),
-                icon: BarChart3,
-                id: 'bview:overview',
-                label: t.settings.subpages.billingOverview,
-                onSelect: () => openSubView('billing', 'bview', 'overview', 'overview')
-              },
-              ...(canViewPlans
-                ? [
-                    {
-                      active: activeView === 'billing' && billingView === 'plans',
-                      icon: BarChart3,
-                      id: 'bview:plans',
-                      label: t.settings.subpages.billingPlans,
-                      onSelect: () => openSubView('billing', 'bview', 'plans', 'overview')
-                    }
-                  ]
-                : [])
-            ],
-            icon: BarChart3,
-            id: 'billing',
-            label: t.settings.nav.billing,
-            onSelect: () => setActiveView('billing')
-          },
+          // qiji 0.20.4: 隐藏「账单与套餐」导航（纯 Nous Portal 订阅页；中转站
+          // 未定。接自家中转时恢复此 entry 与子项）。
           {
             active: activeView === 'providers',
             children: [
@@ -596,6 +571,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
     ) : activeView === 'notifications' ? (
       <NotificationsSettings subpage={subpage} />
     ) : activeView === 'billing' ? (
+      // qiji 0.20.4: 账单页随导航一起隐藏（Nous 订阅页）；深链/?tab=billing
+      // 兜底渲染空区块，接自家中转时随 nav entry 一并恢复。
       <BillingSettings />
     ) : activeView === 'vault' ? (
       <VaultSettings key={vaultOwnerKey(activeConnectionId, scopeProfile)} subpage={subpage} />

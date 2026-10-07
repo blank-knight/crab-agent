@@ -249,7 +249,10 @@ import {
 import { createFirstRunSetupGate } from './first-run-setup-gate'
 import { registerFsIpc } from './fs-ipc'
 // qiji 商业层（品牌/壁纸/技能市场/客户端更新/诊断/listDir）— 隔离区模块。
-import { registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme } from './qiji'
+// qiji 0.20.4: appBrandName 同时喂主进程 APP_NAME（窗口标题/托盘/About 单一源）。
+import { registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme, appBrandName, brandText } from './qiji'
+// qiji 0.20.4: 品牌常量（AUMI 等）——与 electron/brand.cjs、qiji/brand.ts 同源同步。
+import { BRAND as QIJI_BRAND } from './qiji/brand'
 import type {
   GatewayFileSaveContext,
   GatewayFileSaveDeps,
@@ -1098,7 +1101,11 @@ const BOOT_FAKE_STEP_MS = (() => {
   return Math.max(120, raw)
 })()
 
-const APP_NAME: string = IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || 'Hermes'
+// qiji 0.20.4: 主进程品牌单一源收敛——APP_NAME 优先取 qiji 品牌默认名
+// （electron/qiji/brand.ts，与 brand.cjs/渲染层 oem-brand 同源）。改名只改
+// 那一处；上游 Hermes 构建未接 qiji 模块时行为不变。
+const APP_NAME: string =
+  IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || appBrandName()
 const HUD_WINDOW_TITLE = `${APP_NAME} HUD`
 const TITLEBAR_HEIGHT = 34
 const MACOS_TRAFFIC_LIGHTS_HEIGHT = 14
@@ -1508,7 +1515,11 @@ Menu.setApplicationMenu(null)
 // need this, so gate it on Windows. (Fixes: desktop approval/turn notifications
 // never firing on Windows.)
 if (IS_WINDOWS) {
-  app.setAppUserModelId(IDENTITY_APP_NAME ? PRODUCT_IDENTITY.appId : 'com.nousresearch.hermes')
+  // qiji 0.20.4: AUMI 对齐 electron-builder 的 appId（brand.cjs 单一源；
+  // qiji-builder.config.cjs 同读）。原 fallback 'com.nousresearch.hermes'
+  // 与安装包 AUMID 不一致——Windows toast 通知静默丢失、任务栏分组错误的
+  // 双重根源。
+  app.setAppUserModelId(QIJI_BRAND.appId)
 }
 
 // Seed the native About panel with the best-known Hermes version. This is
@@ -2704,7 +2715,7 @@ async function waitForUpdateToFinish() {
       rememberLog(`[updates] detached update finished with manual action (branch ${result.branch}): ${result.message}`)
       dialog.showMessageBox({
         type: 'warning',
-        title: 'Hermes update',
+        title: brandText('螃蟹AI 更新'),
         message: 'The update finished, but needs one more step',
         detail: result.message
       })
@@ -2720,7 +2731,7 @@ async function waitForUpdateToFinish() {
       void dialog
         .showMessageBox({
           type: 'error',
-          title: 'Hermes update',
+          title: brandText('螃蟹AI 更新'),
           message: "Hermes couldn't finish updating",
           detail:
             "You're still on the previous version and can keep using it. Try the update again, or open the update log to report the problem.\n\n" +
@@ -13650,7 +13661,7 @@ function spawnSecondaryWindow({
     height: SESSION_WINDOW_MIN_HEIGHT,
     minWidth: SESSION_WINDOW_MIN_WIDTH,
     minHeight: SESSION_WINDOW_MIN_HEIGHT,
-    title: 'Hermes',
+    title: APP_NAME,
     titleBarStyle: 'hidden',
     titleBarOverlay: getTitleBarOverlayOptions(),
     trafficLightPosition: IS_MAC ? WINDOW_BUTTON_POSITION : undefined,
@@ -13753,7 +13764,7 @@ function spawnBrowserWindow(tabId) {
     height: BROWSER_WINDOW_HEIGHT,
     minWidth: BROWSER_WINDOW_MIN_WIDTH,
     minHeight: BROWSER_WINDOW_MIN_HEIGHT,
-    title: 'Hermes',
+    title: APP_NAME,
     titleBarStyle: 'hidden',
     titleBarOverlay: getTitleBarOverlayOptions(),
     trafficLightPosition: IS_MAC ? WINDOW_BUTTON_POSITION : undefined,
@@ -13855,7 +13866,7 @@ function createInstanceWindow(
     ...nextInstanceBounds(source),
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
-    title: 'Hermes',
+    title: APP_NAME,
     titleBarStyle: 'hidden',
     titleBarOverlay: getTitleBarOverlayOptions(),
     trafficLightPosition: IS_MAC ? WINDOW_BUTTON_POSITION : undefined,
@@ -14923,7 +14934,7 @@ function createWindow() {
     ...computeWindowOptions(savedWindowState, screen.getAllDisplays()),
     minWidth: WINDOW_MIN_WIDTH,
     minHeight: WINDOW_MIN_HEIGHT,
-    title: 'Hermes',
+    title: APP_NAME,
     // Frameless title bar on every platform so the renderer can paint the
     // "hide sidebar" button (and other left-side titlebar tools) flush with
     // the top edge — matching the macOS layout where the traffic lights sit
@@ -15200,7 +15211,7 @@ function createWindow() {
         const exit = details?.exitCode === undefined ? '' : `, exit code ${String(details.exitCode)}`
         rememberLog(`[renderer:main] renderer terminated while live (reason=${reason}${exit}); surfacing recovery page`)
         void loadRendererLoadErrorPage(mainWindow, {
-          title: 'Hermes desktop UI was terminated',
+          title: brandText('螃蟹AI 桌面界面已终止'),
           errorDescription:
             `The desktop UI process was terminated unexpectedly (reason: ${reason}${exit}). ` +
             'Your sessions and the background gateway are unaffected — reload to continue.',

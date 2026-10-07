@@ -12,5 +12,9 @@ export const BRAND = {
   // Electron userData（Roaming）目录名 —— 跟 productName 走，卸载器用它清登录态
   userDataDirName: 'Qiji',
   // 默认产品显示名（OEM 未推送时用）
-  defaultName: '螃蟹AI'
+  defaultName: '螃蟹AI',
+  // exe 版本资源 CompanyName / LegalCopyright（set-exe-identity.mjs 经 brand.cjs 消费）
+  companyName: 'Qiji',
+  // Windows AUMI：toast 通知 + 任务栏分组；必须与 qiji-builder.config.cjs 的 appId 一致
+  appId: 'com.qiji.desktop'
 } as const

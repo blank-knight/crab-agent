@@ -52,7 +52,7 @@ function provider(id: string, loggedIn: boolean, patch: Partial<OAuthProvider> =
     docs_url: '',
     flow: 'device_code',
     id,
-    name: id === 'nous' ? 'Nous Portal' : 'MiniMax',
+    name: id === 'minimax-oauth' ? 'MiniMax' : id === 'testprov' ? 'Test Provider' : 'MiniMax',
     status: {
       logged_in: loggedIn
     },
@@ -82,11 +82,11 @@ function keyVar(patch: Partial<EnvVarInfo> = {}): EnvVarInfo {
 beforeEach(() => {
   onboarding.set({ manual: false })
   getEnvVars.mockResolvedValue({})
-  disconnectOAuthProvider.mockResolvedValue({ ok: true, provider: 'nous' })
+  disconnectOAuthProvider.mockResolvedValue({ ok: true, provider: 'testprov' })
   revealEnvVar.mockResolvedValue({ value: 'old-secret' })
   setEnvVar.mockResolvedValue({ ok: true })
   listOAuthProviders.mockResolvedValue({
-    providers: [provider('nous', true), provider('minimax-oauth', false)]
+    providers: [provider('testprov', true), provider('minimax-oauth', false)]
   })
 })
 
@@ -162,11 +162,11 @@ describe('ProvidersSettings', () => {
       await renderProvidersSettings()
       expect(getEnvVars).toHaveBeenCalledWith('beta')
       expect(listOAuthProviders).toHaveBeenCalledWith('beta')
-      fireEvent.click(await screen.findByText('Nous Portal'))
-      expect(startManualProviderOAuth).toHaveBeenCalledWith('nous', 'beta')
-      fireEvent.click(await screen.findByRole('button', { name: 'Remove Nous Portal' }))
+      fireEvent.click(await screen.findByText('Test Provider'))
+      expect(startManualProviderOAuth).toHaveBeenCalledWith('testprov', 'beta')
+      fireEvent.click(await screen.findByRole('button', { name: 'Remove Test Provider' }))
       fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
-      await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous', 'beta'))
+      await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('testprov', 'beta'))
     } finally {
       $settingsScopeOverride.set(null)
     }
@@ -175,7 +175,7 @@ describe('ProvidersSettings', () => {
   it('disconnects a connected provider account and refreshes the accounts list', async () => {
     await renderProvidersSettings()
 
-    const remove = await screen.findByRole('button', { name: 'Remove Nous Portal' })
+    const remove = await screen.findByRole('button', { name: 'Remove Test Provider' })
     await act(async () => {
       fireEvent.click(remove)
     })
@@ -188,7 +188,7 @@ describe('ProvidersSettings', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
     })
 
-    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous', 'default'))
+    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('testprov', 'default'))
     expect(listOAuthProviders).toHaveBeenCalledTimes(2)
   })
 
@@ -196,7 +196,7 @@ describe('ProvidersSettings', () => {
     await renderProvidersSettings()
 
     await act(async () => {
-      fireEvent.click(await screen.findByRole('button', { name: 'Remove Nous Portal' }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Remove Test Provider' }))
     })
 
     await act(async () => {

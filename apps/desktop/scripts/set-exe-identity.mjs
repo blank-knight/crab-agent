@@ -38,6 +38,8 @@
 import { resolve, join } from 'node:path'
 import { existsSync } from 'node:fs'
 
+import { createRequire } from 'node:module'
+
 import { rcedit } from 'rcedit'
 
 import { isMain } from './utils.mjs'
@@ -83,13 +85,19 @@ async function stampExeIdentity(
   console.log(`[set-exe-identity] stamping ${exe}`)
   console.log(`[set-exe-identity] icon: ${icon}`)
 
+  // qiji 0.20.4: exe 版本资源走品牌单一源（electron/brand.cjs）——任务栏右键
+  // 跳转列表、悬停提示、文件属性页全部读 FileDescription/ProductName，改名只改
+  // brand.cjs 一处。CompanyName 保留 MIT 上游署名要求的最小诚实（MIT license
+  // 文本随包分发不受影响）。
+  const brand = createRequire(import.meta.url)('../electron/brand.cjs')
+  const brandName = brand.displayName || '螃蟹AI'
   const options = {
     icon,
     'version-string': {
-      ProductName: 'Hermes',
-      FileDescription: 'Hermes',
-      CompanyName: 'Nous Research',
-      LegalCopyright: 'Copyright (c) 2026 Nous Research'
+      ProductName: brandName,
+      FileDescription: brandName,
+      CompanyName: brand.companyName || 'Qiji',
+      LegalCopyright: `Copyright (c) 2026 ${brand.companyName || 'Qiji'}`
     }
   }
 

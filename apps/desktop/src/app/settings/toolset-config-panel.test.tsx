@@ -522,12 +522,14 @@ describe('ToolsetConfigPanel', () => {
               status: 'ready'
             },
             {
-              name: 'Nous Subscription',
+              // qiji 0.20.4: Nous 行已隐藏，换普通 needs_auth 行保住
+              // 「pill 跟服务端 status 走」的回归语义。
+              name: 'Managed Cloud TTS',
               badge: 'subscription',
               tag: 'Managed OpenAI TTS',
               env_vars: [],
               post_setup: null,
-              requires_nous_auth: true,
+              requires_nous_auth: false,
               is_active: false,
               status: 'needs_auth'
             },
@@ -682,7 +684,9 @@ describe('ToolsetConfigPanel', () => {
     })
   })
 
-  describe('managed Nous provider activation', () => {
+  // qiji 0.20.4: Nous 托管行已按产品要求隐藏（中转站未定）——整块 OAuth
+  // device-code 流程测试随之冻结。接自家中转时把 xdescribe 改回 describe。
+  describe.skip('managed Nous provider activation', () => {
     const nousBrowserConfig = () =>
       config({
         name: 'browser',

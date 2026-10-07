@@ -8,13 +8,16 @@ const path = require('path')
 
 const APP = __dirname
 const VERSION = require('./package.json').version
+// qiji 0.20.4: 品牌单一源——electron/brand.cjs。改名只改那一份（AUMI/exe 资源/
+// nsis 快捷方式名全部从这出；主进程 main.ts 读 qiji/brand.ts 同值）。
+const BRAND = require('./electron/brand.cjs')
 
 /** @type {import("app-builder-lib").Configuration} */
 module.exports = {
   electronVersion: require('./package.json').devDependencies.electron,
-  appId: 'com.qiji.desktop',
-  productName: 'Qiji',
-  executableName: 'Qiji',
+  appId: BRAND.appId,
+  productName: BRAND.userDataDirName,
+  executableName: BRAND.userDataDirName,
   compression: 'maximum',
   directories: { output: 'release' },
   files: ['dist/**', 'assets/**', 'public/**', 'package.json'],
@@ -42,14 +45,14 @@ module.exports = {
   win: {
     target: ['dir'],
     icon: 'assets/icon.ico',
-    legalTrademarks: '螃蟹AI'
+    legalTrademarks: BRAND.displayName
   },
   nsis: {
     oneClick: false,
     allowToChangeInstallationDirectory: true,
     perMachine: false,
-    shortcutName: '螃蟹AI',
-    uninstallDisplayName: '螃蟹AI',
+    shortcutName: BRAND.displayName,
+    uninstallDisplayName: BRAND.displayName,
     warningsAsErrors: false
   }
 }

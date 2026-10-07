@@ -3,6 +3,11 @@ import path from 'node:path'
 
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, Tray } from 'electron'
 
+// qiji 0.20.4: 托盘文案品牌单一源（electron/qiji/brand.ts，与主进程 APP_NAME 同源）。
+import { appBrandName } from './qiji/oem-brand'
+
+const brandName = appBrandName
+
 export interface MinimizeToTrayStatus {
   enabled: boolean
   available: boolean
@@ -158,13 +163,15 @@ export function createMinimizeToTray(options: Options) {
             height: process.platform === 'darwin' ? 18 : 24
           })
         )
-        tray.setToolTip('Hermes')
+        // qiji 0.20.4: 托盘文案走品牌单一源（与 APP_NAME 同源，OEM 推送后由
+        // oem-brand IPC 刷新 tooltip）。
+        tray.setToolTip(brandName())
         tray.setContextMenu(
           Menu.buildFromTemplate([
-            { label: 'Show Hermes', click: restore },
+            { label: `显示 ${brandName()}`, click: restore },
             { type: 'separator' },
             // Do not bypass the ordinary active-work confirmation or teardown.
-            { label: 'Quit Hermes', click: () => app.quit() }
+            { label: `退出 ${brandName()}`, click: () => app.quit() }
           ])
         )
 

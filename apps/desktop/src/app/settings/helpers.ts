@@ -12,8 +12,46 @@ export { asText, includesQuery, prettyName } from '@/lib/text'
 export const stripToolsetLabel = (label: string): string =>
   label.replace(/^[\p{Emoji}\p{Extended_Pictographic}\s]+/u, '').trim() || label
 
+// qiji 0.20.4: 工具集中文名映射——后端 label 是英文（hermes_cli/tools_config.py
+// CONFIGURABLE_TOOLSETS），渲染层统一翻译。未收录的 key 原样显示（插件/新增
+// 工具集不受影响）。接自家中转或上游改文案时同步这张表。
+const TOOLSET_ZH_LABELS: Readonly<Record<string, string>> = {
+  web: '网页搜索与抓取',
+  browser: '浏览器自动化',
+  terminal: '终端与进程',
+  file: '文件操作',
+  code_execution: '代码执行',
+  vision: '视觉与图像分析',
+  video: '视频分析',
+  image_gen: '图像生成',
+  video_gen: '视频生成',
+  x_search: 'X (Twitter) 搜索',
+  tts: '文字转语音',
+  stt: '语音转文字',
+  skills: '技能',
+  todo: '任务规划',
+  kanban: '看板',
+  memory: '记忆',
+  context_engine: '上下文引擎',
+  session_search: '会话搜索',
+  connections: '连接器',
+  clarify: '澄清提问',
+  delegation: '任务分派',
+  cronjob: '定时任务',
+  homeassistant: 'Home Assistant',
+  spotify: 'Spotify',
+  discord: 'Discord（读取/参与）',
+  discord_admin: 'Discord 服务器管理',
+  yuanbao: '元宝',
+  computer_use: '电脑操控',
+  messaging: '消息平台',
+  browser_use: '浏览器操控',
+  mcp: 'MCP 工具',
+  'browser-real-profile': '浏览器真实配置'
+}
+
 export const toolsetDisplayLabel = (toolset: Pick<ToolsetInfo, 'label' | 'name'>): string =>
-  stripToolsetLabel(asText(toolset.label || toolset.name))
+  TOOLSET_ZH_LABELS[toolset.name] ?? stripToolsetLabel(asText(toolset.label || toolset.name))
 
 export const toolNames = (t: ToolsetInfo) => (Array.isArray(t.tools) ? t.tools.map(asText).filter(Boolean) : [])
 

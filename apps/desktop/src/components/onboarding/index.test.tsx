@@ -48,22 +48,15 @@ afterEach(() => {
 })
 
 describe('onboarding Picker', () => {
-  it('features Nous Portal and hides other providers behind a disclosure', () => {
+  // qiji 0.20.4: Nous Portal 行已按产品要求隐藏（中转站未定）。featured 行
+  // 不存在 → 全列表直出、无折叠。原 featured 行为见 git 历史。
+  it('hides the Nous Portal row and shows the full provider list', () => {
     setProviders([makeOAuthProvider('anthropic', 'Anthropic Claude'), makeOAuthProvider('nous', 'Nous Portal')])
     render(<Picker ctx={ctx} />)
 
-    expect(screen.getByText('Nous Portal')).toBeTruthy()
-    expect(screen.getByText('Recommended')).toBeTruthy()
-    // Fireworks stays behind the disclosure with the other alternatives; only
-    // Nous Portal is visible before the user expands the list.
-    expect(screen.queryByText('Fireworks AI')).toBeNull()
-    expect(screen.queryByText('Anthropic Account')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Other providers' }))
-
-    expect(screen.getByText('Fireworks AI')).toBeTruthy()
+    expect(screen.queryByText('Nous Portal')).toBeNull()
+    // No featured row → no disclosure, everything visible directly.
     expect(screen.getByText('Anthropic Account')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Collapse' })).toBeTruthy()
   })
 
   it('shows every provider directly when Nous Portal is absent', () => {
