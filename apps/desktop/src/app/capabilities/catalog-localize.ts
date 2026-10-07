@@ -33,7 +33,8 @@ export function localizeCatalogEntry<T extends CatalogEntry>(entry: T): T & Loca
   return {
     ...entry,
     nameZh: zh.name,
-    descZh: zh.description,
+    // PLUGIN_ZH 的字段叫 desc，SKILL_ZH 叫 description——两者都收。
+    descZh: zh.description ?? zh.desc,
     // 线上目录的 overview 是长英文——详情页显示中文摘要优先。
     overview: zh.description ?? entry.overview,
     categoryLabel: CATEGORY_ZH[entry.category] ?? entry.categoryLabel,
