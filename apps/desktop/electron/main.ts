@@ -3317,7 +3317,17 @@ function runGit(args, options: any = {}): Promise<{ code: number; stdout: string
       isWindows: IS_WINDOWS,
       pythonBin: host?.pythonBin ?? null,
       scriptPath: host?.scriptPath ?? null,
-      env: { ...process.env, ...((options.env || {}) as any), GIT_TERMINAL_PROMPT: '0' }
+      // qiji 0.20.2: 凭据 GUI 全家压制（qiji-fork 09-26 案十二同款）——
+      // GIT_TERMINAL_PROMPT 只管终端提示，管不住 GCM 登录窗(GCM_INTERACTIVE)
+      // 与 helper-selector 选择窗(GCM_GUI_PROMPT)。私有 gitee origin 的匿名
+      // ls-remote 会把两扇窗都弹到终端用户脸上。
+      env: {
+        ...process.env,
+        ...((options.env || {}) as any),
+        GIT_TERMINAL_PROMPT: '0',
+        GCM_INTERACTIVE: 'never',
+        GCM_GUI_PROMPT: 'never'
+      }
     })
 
     const child = spawn(
@@ -3366,6 +3376,23 @@ function emitUpdateProgress(payload) {
 }
 
 async function checkUpdates(opts: { force?: boolean } = {}): Promise<UpdaterStatusWire> {
+  // qiji 0.20.2: git-channel update checks are permanently disabled (ported
+  // from qiji-fork 0.19.2). The runtime repo's origin may point at a PRIVATE
+  // gitee mirror; anonymous `git ls-remote` triggers GCM / helper-selector
+  // credential GUI popups on end-user machines (0.20.1 装机实锤复发).
+  // Client updates ship as signed Setup.exe via the fa_version channel
+  // ("关于 → 检查更新"). Severe the git path at the source: no git child
+  // process is ever spawned from the update check, so no popup is possible.
+  rememberLog('[updates] git channel disabled (qiji build); fa_version is the update path')
+
+  return {
+    supported: false,
+    mechanism: 'manual' as const,
+    error: 'git-channel-disabled',
+    message: '客户端更新走完整安装包通道',
+    fetchedAt: Date.now()
+  }
+
   // A packaged install delegates to the update owner named by its stamp.
   let strategy: UpdaterStrategy | null = null
 

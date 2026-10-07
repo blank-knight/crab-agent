@@ -133,68 +133,19 @@ export default defineConfig(({ command }) => ({
     postcss: { plugins: [] }
   },
   build: {
-    // Validate the packaged generation with metadata checks at launch, without
-    // reading every lazy vendor chunk (and triggering on-access AV scans).
+    // qiji 加密链适配（0.20.2）：与 RC4 加密 loader 架构性冲突的两处——
+    // ①完整性门禁 missingRendererAssets 按 index.html 声明的 .js 查物理存在，
+    // 加密钩子把 dist/assets/*.js 全改名 .js.enc → 130 条 modulepreload 全判
+    // missing，启动即 "130 missing file(s)"；②loader 用 import(blob:) 加载
+    // 解密入口，chunk 内相对路径 import 在 blob 协议下无法解析。单 chunk
+    // （同 qiji-fork 老生产线 22MB 单文件形态）两条全解，代价=冷启动多解析
+    // ~28MB 惰性依赖（shiki/mermaid/katex 全部内联，上游量过 ~1s）。
+    // 上游同步注意：merge 时保留此 qiji 标记块。
     manifest: 'renderer-manifest.json',
-    // The renderer intentionally ships FEW chunks (not one, not thousands):
-    //   · `codeSplitting: false` (the old setup) inlines every `lazy()` /
-    //     dynamic import into the entry, so heavyweight lazy-only deps
-    //     (mermaid, shiki grammars, katex) are parsed + evaluated on every
-    //     cold start even though nothing rendered them. By the time the
-    //     bundle hit ~28 MB that eval was ~1s of launch on an M-series.
-    //   · Default splitting emits a chunk per shiki grammar/theme — thousands
-    //     of files, which electron-builder OOMs scanning (#38888).
-    // `advancedChunks` is the middle ground: heavyweight libraries merge into
-    // a handful of named vendor chunks loaded on first use, app-level dynamic
-    // imports stay lazy, and the file count stays in the tens.
     chunkSizeWarningLimit: 25000,
     rolldownOptions: {
       output: {
-        advancedChunks: {
-          groups: [
-            // Shared foundations FIRST (first match wins): an unmatched
-            // module shared by the entry and a heavy chunk gets merged INTO
-            // the heavy chunk, and the entry then statically imports 19 MB of
-            // shiki just to reach react/hast utils — putting the heavy chunk
-            // right back on the boot path.
-            //
-            // @tanstack/react-query is here for the same reason react-router
-            // is: it carries MODULE-LEVEL context (QueryClientContext) that
-            // the entry's QueryClientProvider and every lazy chunk's useQuery
-            // must share. Left to rolldown's merge heuristics, an unmatched
-            // shared module can be inlined into a lazy chunk — the packaged
-            // app then runs TWO react-query runtimes, the provider's context
-            // is invisible to the other copy, and useQuery throws "No
-            // QueryClient set, use QueryClientProvider to set one" on the
-            // launch path (#95560). Grouping it forces one shared instance.
-            {
-              name: 'vendor-react',
-              test: /node_modules[\\/](react|react-dom|scheduler|react-router|@tanstack[\\/]react-query)[\\/]/
-            },
-            {
-              name: 'vendor-md',
-              test: /node_modules[\\/](property-information|hast-util-[^\\/]+|mdast-util-[^\\/]+|micromark[^\\/]*|unist-util-[^\\/]+|vfile[^\\/]*|unified|stringify-entities|space-separated-tokens|comma-separated-tokens|zwitch|html-void-elements|devlop|style-to-js|style-to-object|clsx)[\\/]/
-            },
-            // Shared utility packages the entry ALSO uses — kept out of the
-            // heavy groups for the same boot-path reason.
-            {
-              name: 'vendor-util',
-              test: /node_modules[\\/](lodash-es|es-toolkit|uuid|dayjs|d3-array|d3-color|d3-force|d3-interpolate|d3-time[^\\/]*|dompurify|stylis)[\\/]/
-            },
-            // One chunk per heavyweight, lazy-only library family.
-            // @streamdown/code lives WITH shiki because it statically imports
-            // the full shiki bundle.
-            {
-              name: 'mermaid',
-              test: /node_modules[\\/](mermaid|cytoscape|dagre|khroma|elkjs|d3|d3-[^\\/]+|@mermaid-js)[\\/]/
-            },
-            {
-              name: 'shiki',
-              test: /node_modules[\\/](shiki|@shikijs|react-shiki|@streamdown[\\/]code|oniguruma-to-es|oniguruma-parser|regex(-[^\\/]+)?)[\\/]/
-            },
-            { name: 'katex', test: /node_modules[\\/]katex[\\/]/ }
-          ]
-        }
+        codeSplitting: false
       }
     }
   },
