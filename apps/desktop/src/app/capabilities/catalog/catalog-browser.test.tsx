@@ -40,6 +40,7 @@ function setup(kind: CatalogKind) {
 
   queryClient.setQueryData(['public-catalog', kind], entries)
   const onInstall = vi.fn()
+
   // qiji 0.20.4: plugins 默认 installedOnly——需要未安装目录条目的测试先关掉它。
   const showNotInstalled = () => {
     if (kind === 'plugins') {
@@ -66,6 +67,7 @@ function setup(kind: CatalogKind) {
   }
 
   const helpers = render(<Harness />)
+
   // qiji 0.20.4: 暴露 installedOnly 开关复位(plugins 默认只看已安装)。
   return { entries, onInstall, showNotInstalled, ...helpers }
 }
