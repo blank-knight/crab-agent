@@ -1,3 +1,7 @@
+import { SKILL_ZH } from '@/app/skills/translations'
+
+import type { CatalogEntry } from './catalog/catalog-data'
+import { PLUGIN_ZH } from './plugins-zh'
 // qiji 0.20.4: CatalogEntry 中文化投影——行/卡/详情的显示字段中文化。
 // 未收录条目回退原值（新技能/插件自动免疫）。
 //
@@ -8,10 +12,6 @@
 // 真源也是 @/app/skills/translations.ts（catalog-card 同款 translateSkillField），
 // 本层只补 categoryLabel/search 的目录侧投影。
 import { CATEGORY_ZH } from './zh-catalog'
-import { SKILL_ZH } from '@/app/skills/translations'
-import { PLUGIN_ZH } from './plugins-zh'
-
-import type { CatalogEntry } from './catalog/catalog-data'
 
 /** 中文显示字段（加在条目上的可选中文化投影）。 */
 export interface LocalizedFields {
@@ -25,9 +25,11 @@ export type LocalizedEntry = CatalogEntry & LocalizedFields
  * 技能查 SKILL_ZH；插件目录条目查 PLUGIN_ZH（同一 CatalogBrowser 双 kind）。 */
 export function localizeCatalogEntry<T extends CatalogEntry>(entry: T): T & LocalizedFields {
   const zh = SKILL_ZH[entry.name] ?? PLUGIN_ZH[entry.name]
+
   if (!zh) {
     return entry
   }
+
   return {
     ...entry,
     nameZh: zh.name,
