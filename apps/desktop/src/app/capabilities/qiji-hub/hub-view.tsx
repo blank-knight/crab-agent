@@ -378,7 +378,11 @@ export function QijiCapabilitiesHub({
             <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} skills={skills} />
           )
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{fallbackContent}</div>
+          // qiji 0.20.4: 连接器/插件沿用旧 tab 组件，统一容器排版对齐新骨架
+          //（页头留白 + 内容 inset，与技能大类视觉一致）。
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col pt-2">{fallbackContent}</div>
+          </div>
         )}
       </div>
     </div>

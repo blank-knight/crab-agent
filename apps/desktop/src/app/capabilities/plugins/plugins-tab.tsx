@@ -12,6 +12,8 @@ import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/p
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
 import type { ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
+// qiji 0.20.4: 插件名/描述中文化（未收录回退英文）。
+import { pluginDescZh, pluginNameZh } from '../plugins-zh'
 import { DESKTOP_PLUGIN_TOOLSETS } from '@/lib/desktop-toolsets'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
@@ -307,7 +309,7 @@ function PackageRow({
         <div className="flex w-full min-w-0 flex-1 items-start gap-2" role="cell">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 text-[length:var(--conversation-text-font-size)] font-medium text-foreground">
-              <span>{pkg.name}</span>
+              <span>{pluginNameZh(pkg.name, pkg.name)}</span>
               {agent?.version && <span className="text-(--ui-text-quaternary)">v{agent.version}</span>}
               <KindBadge kind={pkg.kind} />
               <ProvenancePill pkg={pkg} />
@@ -326,7 +328,7 @@ function PackageRow({
                   desktop?.status === 'error' ? 'text-(--ui-danger,#f87171)' : 'text-(--ui-text-tertiary)'
                 )}
               >
-                {desktop?.status === 'error' ? desktop.error : pkg.description}
+                {desktop?.status === 'error' ? desktop.error : pluginDescZh(pkg.name, pkg.description)}
               </div>
             )}
             {unavailableServers.map(server =>

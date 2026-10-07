@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button'
 import { ConnectorLogo } from '@/components/ui/connector-logo'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
+
+// qiji 0.20.4: 连接器名/描述中文化（未收录回退英文）。
+import { connectorDescZh, connectorNameZh } from '../connectors-zh'
 import type { Translations } from '@/i18n/types'
 import { connectorIconUrl } from '@/lib/connector-tools'
 import { cn } from '@/lib/utils'
@@ -102,7 +105,7 @@ export function ConnectorRowCard({
             onClick={onOpen}
             type="button"
           >
-            {card.name}
+            {connectorNameZh(card.slug, card.name)}
             <span className="sr-only">{` — ${copy.open(card.name)}`}</span>
           </button>
 
@@ -195,6 +198,6 @@ function SecondLine({ card, reason }: { card: ConnectorCardModel; reason?: strin
   }
 
   return card.description ? (
-    <p className="line-clamp-2 text-[0.72rem] leading-snug text-(--ui-text-secondary)">{card.description}</p>
+    <p className="line-clamp-2 text-[0.72rem] leading-snug text-(--ui-text-secondary)">{connectorDescZh(card.slug, card.description)}</p>
   ) : null
 }
