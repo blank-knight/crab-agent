@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 // qiji 0.20.4: 「技能与工具」自研页 — 主视图。
 //
 // 对齐设置页的两级导航模式（用户认可的现役形态）：
@@ -12,21 +13,20 @@
 // capabilities/index.tsx 的 qiji 标记块内。
 import { memo, useCallback, useMemo, useState } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
-
 import { Switch } from '@/components/ui/switch'
-import { getSkillContent, profileScopeKey, setSkillEnabled, type ProfileScope } from '@/hermes'
+import { getSkillContent, type ProfileScope, profileScopeKey, setSkillEnabled } from '@/hermes'
 import { useI18n } from '@/i18n'
 import type { IconComponent } from '@/lib/icons'
-import { cn } from '@/lib/utils'
-import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { queryClient } from '@/lib/query-client'
+import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
+import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
 import type { SkillInfo } from '@/types/hermes'
 
 import { parseFrontmatter } from '../skills/frontmatter'
 import { skillsQueryKey, usageOf } from '../skills/skills-data'
 import { categoryZh, skillDescZh, skillNameZh } from '../zh-display'
+
 import { HUB_CATEGORIES, type HubCategory } from './categories'
 
 // ─────────────────────────────────────────────────────────────
@@ -137,11 +137,13 @@ function SkillRow({
 /** 详情展开区：完整 SKILL.md 正文（点开行才拉取；沿用 detail 的 frontmatter 剥离逻辑）。 */
 function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope }) {
   const { t } = useI18n()
+
   const { data, isLoading } = useQuery({
     queryKey: ['skill-content', name, profileScopeKey(profile)],
     queryFn: () => getSkillContent(name, profile),
     staleTime: 60_000
   })
+
   const parsed = useMemo(() => (data ? parseFrontmatter(data.content) : null), [data])
 
   if (isLoading) {
@@ -210,11 +212,14 @@ function SkillsPane({
   // 分类 rail：全部 + 已启用 + 各分类（中文，按数量降序）
   const entries = useMemo(() => {
     const byCategory = new Map<string, number>()
+
     for (const skill of skills) {
       const cat = skill.category || 'general'
       byCategory.set(cat, (byCategory.get(cat) ?? 0) + 1)
     }
+
     const sorted = [...byCategory.entries()].sort((a, b) => b[1] - a[1])
+
     return [
       { id: '__all', label: '全部', count: skills.length },
       { id: '__enabled', label: '已启用', count: skills.filter(s => s.enabled).length },
@@ -223,8 +228,10 @@ function SkillsPane({
   }, [skills])
 
   const visible = useMemo(() => {
-    if (activeCategory === '__all') return skills
-    if (activeCategory === '__enabled') return skills.filter(s => s.enabled)
+    if (activeCategory === '__all') {return skills}
+
+    if (activeCategory === '__enabled') {return skills.filter(s => s.enabled)}
+
     return skills.filter(s => (s.category || 'general') === activeCategory)
   }, [skills, activeCategory])
 
@@ -248,6 +255,7 @@ function SkillsPane({
         skillsQueryKey(profile),
         previous.map(s => (s.name === skill.name ? { ...s, enabled } : s))
       )
+
       try {
         await setSkillEnabled(skill.name, enabled, profile)
         invalidateSlashCompletions()

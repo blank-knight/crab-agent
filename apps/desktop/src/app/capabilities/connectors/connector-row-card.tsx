@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button'
 import { ConnectorLogo } from '@/components/ui/connector-logo'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/i18n'
-
-// qiji 0.20.4: 连接器名/描述中文化（未收录回退英文）。
-import { connectorDescZh, connectorNameZh } from '../connectors-zh'
 import type { Translations } from '@/i18n/types'
 import { connectorIconUrl } from '@/lib/connector-tools'
 import { cn } from '@/lib/utils'
+
+// qiji 0.20.4: 连接器名/描述中文化（未收录回退英文）。
+import { connectorDescZh, connectorNameZh } from '../connectors-zh'
 
 import { CatalogMark } from './catalog-mark'
 import { connectorKindWord, showsCatalogMark } from './connector-kind'

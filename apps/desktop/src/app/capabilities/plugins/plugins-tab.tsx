@@ -12,8 +12,6 @@ import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/p
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
 import type { ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
-// qiji 0.20.4: 插件名/描述中文化（未收录回退英文）。
-import { pluginDescZh, pluginNameZh } from '../plugins-zh'
 import { DESKTOP_PLUGIN_TOOLSETS } from '@/lib/desktop-toolsets'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
@@ -46,6 +44,8 @@ import { useDeepLinkHighlight } from '../../settings/use-deep-link-highlight'
 import { CatalogAlert } from '../catalog/catalog-alert'
 import { CatalogBrowser } from '../catalog/catalog-browser'
 import { type CatalogEntry, parseCatalog } from '../catalog/catalog-data'
+// qiji 0.20.4: 插件名/描述中文化（未收录回退英文）。
+import { pluginDescZh, pluginNameZh } from '../plugins-zh'
 import { TOOLSETS_QUERY_KEY } from '../toolsets/toolsets-data'
 
 import { mergePluginPackages, type PackageKind, type PluginPackage } from './plugin-packages'
