@@ -11,7 +11,9 @@ const toggled = (list: string[], value: string) =>
 /** Rail state for one catalog. `onChange` runs after every change so the
  *  browser can drop paging and selection that no longer apply. */
 export function useCatalogFilters(kind: CatalogKind, onChange: () => void) {
-  const [facets, setFacets] = useState(EMPTY_FACETS)
+  // qiji 0.20.4: 插件目录默认只看已安装——上游社区目录(数百个英文插件)不对
+  // 客户默认展示;需要时点「所有来源」旁的已安装开关放开。
+  const [facets, setFacets] = useState(kind === 'plugins' ? { ...EMPTY_FACETS, installedOnly: true } : EMPTY_FACETS)
   const [sort, setSortState] = useState<CatalogSort>(kind === 'plugins' ? 'stars' : 'discover')
 
   const update = (next: (current: CatalogFacets) => CatalogFacets) => {

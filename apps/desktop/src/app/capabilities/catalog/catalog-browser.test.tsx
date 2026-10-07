@@ -40,6 +40,12 @@ function setup(kind: CatalogKind) {
 
   queryClient.setQueryData(['public-catalog', kind], entries)
   const onInstall = vi.fn()
+  // qiji 0.20.4: plugins 默认 installedOnly——需要未安装目录条目的测试先关掉它。
+  const showNotInstalled = () => {
+    if (kind === 'plugins') {
+      fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
+    }
+  }
 
   function Harness() {
     const [query, setQuery] = useState('')
@@ -59,7 +65,9 @@ function setup(kind: CatalogKind) {
     )
   }
 
-  return { entries, onInstall, ...render(<Harness />) }
+  const helpers = render(<Harness />)
+  // qiji 0.20.4: 暴露 installedOnly 开关复位(plugins 默认只看已安装)。
+  return { entries, onInstall, showNotInstalled, ...helpers }
 }
 
 const card = (name: string) =>
@@ -69,7 +77,9 @@ describe.each(['skills', 'plugins'] as const)('%s catalog layouts', kind => {
   it('defaults to cards, with installed entries already switched on', () => {
     const { container } = setup(kind)
 
-    expect(screen.getAllByRole('article')).toHaveLength(2)
+    // qiji 0.20.4: plugins 默认 installedOnly（社区目录不对客户默认展示）——
+    // skills 仍全显 2 张卡；plugins 只剩已安装的 1 张。
+    expect(screen.getAllByRole('article')).toHaveLength(kind === 'plugins' ? 1 : 2)
     expect(container.querySelector('[data-catalog-list]')).toBeNull()
     expect(screen.getByRole('button', { name: 'List view' })).toBeTruthy()
     expect(
@@ -78,7 +88,8 @@ describe.each(['skills', 'plugins'] as const)('%s catalog layouts', kind => {
   })
 
   it('installs from the card switch without opening its details', () => {
-    const { entries, onInstall } = setup(kind)
+    const { entries, onInstall, showNotInstalled } = setup(kind)
+    showNotInstalled()
 
     fireEvent.click(within(card('alpha')).getByRole('switch', { name: 'Add alpha' }))
 
@@ -87,7 +98,8 @@ describe.each(['skills', 'plugins'] as const)('%s catalog layouts', kind => {
   })
 
   it('opens the shared detail dialog with source links and the same install target', async () => {
-    const { entries, onInstall } = setup(kind)
+    const { entries, onInstall, showNotInstalled } = setup(kind)
+    showNotInstalled()
     fireEvent.click(screen.getByRole('button', { name: 'alpha' }))
     const dialog = screen.getByRole('dialog', { name: 'alpha' })
 
@@ -106,7 +118,8 @@ describe.each(['skills', 'plugins'] as const)('%s catalog layouts', kind => {
   })
 
   it('preserves the parent search and filter when switching to list and back', async () => {
-    const { container } = setup(kind)
+    const { container, showNotInstalled } = setup(kind)
+    showNotInstalled()
     const search = screen.getByRole<HTMLInputElement>('textbox', { name: 'Search catalog' })
     fireEvent.change(search, { target: { value: 'workflow' } })
     fireEvent.click(screen.getByRole('button', { name: /^Memory/, pressed: false }))

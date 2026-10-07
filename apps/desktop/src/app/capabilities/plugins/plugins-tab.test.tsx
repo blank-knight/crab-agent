@@ -322,6 +322,8 @@ describe('PluginsTab', () => {
       weatherEntry
     ])
     renderPlugins({ profile: 'workbot' })
+    // qiji 0.20.4: 插件目录默认只看已安装——测试要选未装条目,先放开。
+    fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
 
     await selectCatalogEntry(weatherEntry.name)
     expect($pluginInstallRequest.get()).toBeNull()
@@ -416,6 +418,8 @@ describe('PluginsTab', () => {
 
     seedCatalog([entry])
     renderPlugins({ profile: null })
+    // qiji 0.20.4: 默认只看已安装——测试要未装目录条目,先放开。
+    fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
 
     await selectCatalogEntry(entry.name)
     fireEvent.click(screen.getByRole('switch', { name: `Add ${entry.name}` }))
@@ -703,6 +707,9 @@ describe('PluginsTab catalog UX', () => {
       renderPlugins({ profile: null })
     })
 
+    // qiji 0.20.4: 默认只看已安装——garden-plugin 未装,先放开筛选再选。
+    await waitFor(() => screen.getByRole('button', { name: 'Installed' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
     await selectCatalogEntry('garden-plugin')
 
     const search = screen.getByRole<HTMLInputElement>('textbox', { name: 'Search plugins' })
@@ -744,6 +751,9 @@ describe('PluginsTab catalog UX', () => {
     expect(screen.getByText('Catalog HTTP 503')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
+    // qiji 0.20.4: 默认只看已安装——weatherEntry 未装,重试成功后放开筛选。
+    await waitFor(() => screen.getByRole('button', { name: 'Installed' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
     expect(await screen.findByRole('heading', { name: weatherEntry.name })).toBeTruthy()
     expect(fetchCatalog).toHaveBeenCalledTimes(2)
   })

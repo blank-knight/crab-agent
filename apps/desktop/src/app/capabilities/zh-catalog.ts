@@ -20,6 +20,17 @@ export const CATEGORY_ZH: Readonly<Record<string, string>> = {
   'social-media': '社交媒体',
   'software-development': '软件开发',
   yuanbao: '元宝',
+  devops: '运维部署',
+  product: '产品与业务',
+  'openclaw-imports': 'OpenClaw 导入',
+  frontend: '前端开发',
+  gaming: '游戏与服务器',
+  health: '健康',
+  leisure: '生活娱乐',
+  market: '市场与交易',
+  mcp: 'MCP 工具',
+  'red-teaming': '红队测试',
+  learning: '学习与笔记',
   general: '通用',
   hub: '技能市场'
 }
