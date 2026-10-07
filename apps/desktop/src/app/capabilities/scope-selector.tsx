@@ -126,7 +126,8 @@ export function useCapabilityScope({
 
     return (profilesData?.profiles ?? []).map(p => ({
       key: p.name,
-      label: p.is_default ? 'Hermes (default)' : p.name,
+      // qiji 0.20.4: 默认 profile 不再显示上游品牌名——统一「默认」。
+      label: p.is_default ? '默认' : p.name,
       value: p.name
     }))
   }, [multiConnection, profilesData, rosterData])
