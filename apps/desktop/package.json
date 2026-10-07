@@ -1,10 +1,10 @@
 {
   "name": "hermes",
-  "productName": "Qiji",
+  "productName": "螃蟹AI",
   "private": true,
-  "version": "0.20.3",
+  "version": "0.20.4",
   "description": "螃蟹AI — AI智能助手桌面版",
-  "author": "Nous Research",
+  "author": "Qiji",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NousResearch/hermes-agent.git"

@@ -16,7 +16,9 @@ const BRAND = require('./electron/brand.cjs')
 module.exports = {
   electronVersion: require('./package.json').devDependencies.electron,
   appId: BRAND.appId,
-  productName: BRAND.userDataDirName,
+  // qiji 0.20.4: productName=显示名(eb把它烙进exe FileDescription/任务栏右键
+  // 名);exe文件名/安装目录走 executableName/userDataDirName(独立=Qiji,不动用户现场)。
+  productName: BRAND.displayName,
   executableName: BRAND.userDataDirName,
   compression: 'maximum',
   directories: { output: 'release' },
@@ -40,6 +42,10 @@ module.exports = {
   nativeModules: { npmRebuild: false, nodeGypRebuild: false },
   // 上游 beforePack:清残 appOutDir + 拷 node-pty 原生树到 dist/node_modules(运行时硬依赖)
   beforePack: 'scripts/before-pack.mjs',
+  // qiji 0.20.4: exe 版本资源烙印(FileDescription/ProductName=品牌名)——
+  // 上游 electron-builder.config.cjs 同款钩子,qiji overlay 此前漏挂导致 exe
+  // 顶着 stock "Qiji/Nous Research" 出厂(任务栏右键名/文件属性页全错)。
+  afterExtract: 'scripts/after-extract.mjs',
   // qiji 加密钩子(渲染层 RC4 + 主进程 bootstrap);QIJI_OBF_SEED 未设=dev 明文跳过
   afterPack: 'scripts/afterpack-encrypt.cjs',
   win: {
