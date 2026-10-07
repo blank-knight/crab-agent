@@ -71,8 +71,28 @@ function webUrl(value: unknown): string | null {
 
 /** Display form of a source or category id: domains stay verbatim (`browse.sh`),
  *  slugs read as words (`software-development` → `Software Development`). */
+// qiji 0.20.4: 目录来源/分类值的中文映射（未收录走原 title-case 逻辑）。
+const CATALOG_VALUE_ZH: Record<string, string> = {
+  community: '社区',
+  official: '官方',
+  bundled: '内置',
+  hub: '技能中心',
+  local: '本地',
+  'built-in': '内置',
+  desktop: '桌面',
+  memory: '记忆',
+  platforms: '平台集成',
+  'web & browser': '网页与浏览器',
+  tools: '工具',
+  voice: '语音',
+  automation: '自动化',
+  models: '模型',
+  general: '通用'
+}
+
 export const catalogLabel = (value: string) =>
-  value.includes('.') ? value : value.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  CATALOG_VALUE_ZH[value.trim().toLowerCase()] ??
+  (value.includes('.') ? value : value.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
 
 export function parseCatalog(kind: CatalogKind, data: unknown): CatalogEntry[] {
   if (!Array.isArray(data)) {
