@@ -1,0 +1,439 @@
+import { useStore } from '@nanostores/react'
+import { type ReactElement, useEffect, useState } from 'react'
+
+import { BrandMark } from '@/components/brand-mark'
+import { Button } from '@/components/ui/button'
+import { type Translations, useI18n } from '@/i18n'
+import { CheckCircle2, Download, Loader2, RefreshCw, Send, Sparkles } from '@/lib/icons'
+import { cn } from '@/lib/utils'
+import { clearAuth, $auth } from '@/store/auth'
+import {
+  $clientUpdate,
+  checkClientUpdate,
+  discardDownloadedInstaller,
+  installClientUpdate,
+  openClientUpdateDownloadPage,
+  startClientUpdate
+} from '@/store/client-update'
+import { $desktopVersion, refreshDesktopVersion } from '@/store/updates'
+import { submitReport } from '@/lib/client-report'
+
+import { ListRow, SectionHeading, SettingsContent } from './primitives'
+import { SETTING_IDS, settingElementId } from './settings-manifest'
+import { UninstallSection } from './uninstall-section'
+import { useSettingDeepLink } from './use-setting-deep-link'
+
+// 修改密码弹窗（登录用户）：原密码 + 新密码，成功后跳回登录页。
+// 用受控条件渲染而非全局 Dialog——设置面板本身层级高，全局弹窗可能被压住。
+function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
+  const [oldpwd, setOldpwd] = useState('')
+  const [newpwd, setNewpwd] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function submit() {
+    if (busy) return
+    if (newpwd.length < 6) {
+      setError('新密码长度不能少于6位')
+      return
+    }
+    if (newpwd !== confirm) {
+      setError('两次输入的新密码不一致')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const { backendPost } = await import('@/lib/backend')
+      await backendPost('/api/client/v1/auth/changepwd', {
+        oldpassword: oldpwd,
+        newpassword: newpwd
+      })
+      // 改密成功：后端已作废当前 token，清本地状态回登录页。
+      clearAuth()
+      await window.hermesDesktop?.resetBootstrap().catch(() => undefined)
+      window.location.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '修改失败，请稍后重试')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40"
+      onClick={busy ? undefined : onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-xl border border-border bg-background p-5 shadow-lg"
+        onClick={event => event.stopPropagation()}
+      >
+        <h2 className="text-base font-semibold text-foreground">修改密码</h2>
+        <div className="mt-4 space-y-3">
+          <input
+            autoComplete="current-password"
+            className="h-10 w-full rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
+            disabled={busy}
+            onChange={e => setOldpwd(e.target.value)}
+            placeholder="原密码"
+            type="password"
+            value={oldpwd}
+          />
+          <input
+            autoComplete="new-password"
+            className="h-10 w-full rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
+            disabled={busy}
+            onChange={e => setNewpwd(e.target.value)}
+            placeholder="新密码（至少6位）"
+            type="password"
+            value={newpwd}
+          />
+          <input
+            autoComplete="new-password"
+            className="h-10 w-full rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
+            disabled={busy}
+            onChange={e => setConfirm(e.target.value)}
+            placeholder="再次输入新密码"
+            type="password"
+            value={confirm}
+          />
+        </div>
+        {error ? (
+          <div className="mt-3 rounded-md bg-(--ui-destructive-soft) p-2.5 text-xs leading-5 text-(--ui-destructive)">
+            {error}
+          </div>
+        ) : null}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button disabled={busy} onClick={onClose} type="button" variant="ghost">
+            取消
+          </Button>
+          <Button disabled={busy} onClick={() => void submit()} type="button">
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            {busy ? '提交中…' : '确认修改'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function relativeTime(ms: number | undefined, a: Translations['settings']['about']) {
+  if (!ms) {
+    return a.never
+  }
+
+  const diff = Date.now() - ms
+
+  if (diff < 60_000) {
+    return a.justNow
+  }
+
+  if (diff < 3_600_000) {
+    return a.minAgo(Math.round(diff / 60_000))
+  }
+
+  if (diff < 86_400_000) {
+    return a.hoursAgo(Math.round(diff / 3_600_000))
+  }
+
+  return a.daysAgo(Math.round(diff / 86_400_000))
+}
+
+interface AboutSettingsProps {
+  subpage?: string
+}
+
+/**
+ * qiji 关于页（生产线同款）：品牌 hero + 账户信息（额度/改密/退出）+
+ * URL 通道更新卡片（/update/check）+ 诊断导出/一键上报 + 卸载区。
+ * 上游 source-updater UI（pm launcher 检查）不适用——离线包无 git 仓库。
+ */
+export function AboutSettings({ subpage }: AboutSettingsProps = {}): ReactElement {
+  useSettingDeepLink('about', page => subpage === undefined || page === subpage)
+
+  if (subpage === 'uninstall') {
+    return (
+      <SettingsContent>
+        <UninstallSection />
+      </SettingsContent>
+    )
+  }
+
+  return <QijiAboutSettings />
+}
+
+function QijiAboutSettings(): ReactElement {
+  const { t } = useI18n()
+  const a = t.settings.about
+  const version = useStore($desktopVersion)
+  const clientUpdate = useStore($clientUpdate)
+  const authState = useStore($auth)
+  const [showChangePwd, setShowChangePwd] = useState(false)
+  const [diagBusy, setDiagBusy] = useState(false)
+  const [diagMsg, setDiagMsg] = useState<string | null>(null)
+  const [diagOk, setDiagOk] = useState(false)
+  const [reportBusy, setReportBusy] = useState(false)
+  const [reportMsg, setReportMsg] = useState<string | null>(null)
+  const [reportOk, setReportOk] = useState(false)
+
+  // 一键上报: 打包最近日志直接传平台后台(用户不用自己发文件)
+  async function handleSubmitReport() {
+    if (reportBusy) return
+    setReportBusy(true)
+    setReportMsg(null)
+    const r = await submitReport('manual', '用户手动上报(设置-关于页)')
+    setReportOk(r.ok)
+    setReportMsg(r.ok ? `${r.message}，技术支持会尽快处理` : r.message)
+    setReportBusy(false)
+  }
+
+  async function handleExportDiagnostics() {
+    if (diagBusy) {
+      return
+    }
+    setDiagBusy(true)
+    setDiagMsg(null)
+    try {
+      const api = window.hermesDesktop?.exportDiagnostics
+      if (!api) {
+        setDiagOk(false)
+        setDiagMsg('当前版本不支持诊断导出，请手动拷贝 %LOCALAPPDATA%\\qiji\\logs 目录')
+        return
+      }
+      const result = await api()
+      if (result?.ok) {
+        setDiagOk(true)
+        setDiagMsg(`已导出到桌面：${result.path ?? 'qiji-diagnostics-*.txt'}`)
+      } else {
+        setDiagOk(false)
+        setDiagMsg(result?.error ? `导出失败：${result.error}` : '导出失败，请稍后重试')
+      }
+    } catch (err) {
+      setDiagOk(false)
+      setDiagMsg(err instanceof Error ? err.message : '导出失败，请稍后重试')
+    } finally {
+      setDiagBusy(false)
+    }
+  }
+
+  // The version atom is loaded once at app boot, which makes About show a
+  // stale number after a self-update. Re-read on mount so opening About
+  // always reflects the running build.
+  useEffect(() => {
+    void refreshDesktopVersion()
+  }, [])
+
+  const checking = clientUpdate.status === 'checking'
+  const available = clientUpdate.status === 'available' && clientUpdate.info
+  const downloading = clientUpdate.status === 'downloading'
+  const downloaded = clientUpdate.status === 'downloaded'
+  const failed = clientUpdate.status === 'error'
+
+  let statusLine: string
+  let statusTone: 'idle' | 'available' | 'error' = 'idle'
+
+  if (downloading) {
+    statusLine = clientUpdate.progressIndeterminate
+      ? '正在后台下载新版本…'
+      : `正在后台下载新版本 ${clientUpdate.progressPercent}%`
+    statusTone = 'available'
+  } else if (downloaded) {
+    statusLine = `新版本 v${clientUpdate.info?.newversion} 已下载完成`
+    statusTone = 'available'
+  } else if (available) {
+    statusLine = `有新版本 v${clientUpdate.info?.newversion}`
+    statusTone = 'available'
+  } else if (failed) {
+    statusLine = clientUpdate.error ?? '版本检查失败'
+    statusTone = 'error'
+  } else if (clientUpdate.status === 'uptodate') {
+    statusLine = '已是最新版本'
+  } else {
+    statusLine = '点击检查更新'
+  }
+
+  return (
+    <SettingsContent>
+      <div className="flex flex-col items-center gap-3 pt-6 pb-2 text-center">
+        <BrandMark className="size-16" />
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">{a.heading}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {version?.appVersion ? a.version(version.appVersion) : a.versionUnavailable}
+          </p>
+        </div>
+      </div>
+
+      <div className="mx-auto mt-4 w-full max-w-2xl">
+        {/* 账户信息：额度显示（被动查看）+改密/退出 */}
+        <SectionHeading icon={Sparkles} title="账户信息" />
+        <div className="mb-4 rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">剩余额度</span>
+            <span className={cn('font-medium', authState.score <= 0 && 'text-destructive')}>
+              {authState.score}
+            </span>
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+            <span>账号模式</span>
+            <span>{authState.mode === 'formal' ? '正式' : '体验'}</span>
+          </div>
+          <div className="mt-3 border-t border-border/50 pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full"
+              onClick={() => setShowChangePwd(true)}
+            >
+              修改密码
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-1 w-full text-destructive hover:text-destructive"
+              onClick={() => {
+                clearAuth()
+                // 退出登录：needLogin 置位后登录层原地覆盖。
+              }}
+            >
+              退出登录
+            </Button>
+          </div>
+        </div>
+        {showChangePwd ? <ChangePasswordPanel onClose={() => setShowChangePwd(false)} /> : null}
+
+        <SectionHeading icon={RefreshCw} title={a.updates} />
+
+        <div
+          id={settingElementId(SETTING_IDS.about.updates)}
+          className={cn(
+            'rounded-xl border px-4 py-3 text-sm',
+            statusTone === 'available' && 'border-primary/30 bg-primary/5 text-foreground',
+            statusTone === 'error' && 'border-destructive/35 bg-destructive/5 text-destructive',
+            statusTone === 'idle' && 'border-border/70 bg-muted/20 text-foreground'
+          )}
+        >
+          <div className="flex items-start gap-2">
+            {statusTone === 'available' ? (
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
+            ) : statusTone === 'error' ? null : (
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{statusLine}</p>
+              {available && clientUpdate.info?.upgradetext && (
+                <pre className="mt-1.5 whitespace-pre-wrap font-sans text-xs text-muted-foreground">
+                  {clientUpdate.info.upgradetext}
+                </pre>
+              )}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {a.lastChecked(relativeTime(clientUpdate.lastCheckedAt, a))}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <Button
+              disabled={checking || downloading}
+              onClick={() => void checkClientUpdate({ manual: true })}
+              size="sm"
+              variant="textStrong"
+            >
+              {checking ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
+              {checking ? a.checking : a.checkNow}
+            </Button>
+
+            {available && !downloading && !downloaded && (
+              <Button onClick={() => void startClientUpdate()} size="sm">
+                <Download className="size-3" />
+                {a.updateNow}
+              </Button>
+            )}
+
+            {downloaded && (
+              <>
+                <Button onClick={() => void installClientUpdate()} size="sm">
+                  <Download className="size-3" />
+                  立即安装 v{clientUpdate.info?.newversion}
+                </Button>
+                <Button onClick={() => void discardDownloadedInstaller()} size="sm" variant="text">
+                  重新下载
+                </Button>
+              </>
+            )}
+
+            {(available || failed) && !downloading && !downloaded && (
+              <Button onClick={openClientUpdateDownloadPage} size="sm" variant="textStrong">
+                手动下载
+              </Button>
+            )}
+          </div>
+
+          {downloading && (
+            <div className="mt-3">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    'h-full rounded-full bg-primary transition-[width] duration-300',
+                    clientUpdate.progressIndeterminate && 'w-1/3 animate-pulse'
+                  )}
+                  style={clientUpdate.progressIndeterminate ? undefined : { width: `${clientUpdate.progressPercent}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <ListRow description={a.automaticUpdatesDesc} title={a.automaticUpdates} />
+
+        {/* 诊断快照导出：用户反馈问题时一键把日志打包到桌面 */}
+        <SectionHeading icon={Download} title="诊断" />
+        <div className="mb-4 rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm">
+          <p className="text-xs text-muted-foreground">
+            遇到问题时点击下方按钮，客户端会把运行日志与环境信息打包成一个文本文件放到桌面，发给客服即可（不含任何密钥明文）。
+          </p>
+          <Button
+            className="mt-2"
+            disabled={diagBusy}
+            onClick={handleExportDiagnostics}
+            size="sm"
+            variant="textStrong"
+          >
+            {diagBusy ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />}
+            {diagBusy ? '正在导出…' : '导出诊断日志'}
+          </Button>
+          {diagMsg ? (
+            <p className={cn('mt-2 text-xs', diagOk ? 'text-emerald-600' : 'text-destructive')}>
+              {diagMsg}
+            </p>
+          ) : null}
+        </div>
+
+        {/* 一键上报：日志直接传到平台后台 */}
+        <div className="mb-4 rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm">
+          <p className="text-xs text-muted-foreground">
+            或者直接把最近日志一键上传给平台（自动附带版本与环境信息，不含密钥明文），技术支持会在后台收到。
+          </p>
+          <Button
+            className="mt-2"
+            disabled={reportBusy}
+            onClick={handleSubmitReport}
+            size="sm"
+            variant="textStrong"
+          >
+            {reportBusy ? <Loader2 className="size-3 animate-spin" /> : <Send className="size-3" />}
+            {reportBusy ? '正在上报…' : '一键上报日志'}
+          </Button>
+          {reportMsg ? (
+            <p className={cn('mt-2 text-xs', reportOk ? 'text-emerald-600' : 'text-destructive')}>
+              {reportMsg}
+            </p>
+          ) : null}
+        </div>
+
+        <UninstallSection />
+      </div>
+    </SettingsContent>
+  )
+}
