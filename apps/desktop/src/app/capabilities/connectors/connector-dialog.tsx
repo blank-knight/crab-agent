@@ -11,6 +11,9 @@ import { connectorIconUrl } from '@/lib/connector-tools'
 import { X } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
+// qiji 0.20.4: 连接器名/描述中文化（未收录回退英文）。
+import { connectorDescZh, connectorNameZh } from '../connectors-zh'
+
 import { CatalogMark } from './catalog-mark'
 import { connectorKindWord, showsCatalogMark } from './connector-kind'
 import { type InstallField, LocalInstall } from './local-server-control'
@@ -119,7 +122,7 @@ function Header({ card, titleRef, ...rest }: PartProps & { titleRef: RefObject<H
       <div className="grid min-w-0 flex-1 gap-0.5">
         <div className="flex min-w-0 items-center gap-2">
           <DialogTitle className="truncate text-base font-semibold outline-none" ref={titleRef} tabIndex={-1}>
-            {card.name}
+            {connectorNameZh(card.slug, card.name)}
           </DialogTitle>
 
           <span className="shrink-0 text-[0.6875rem] text-(--ui-text-tertiary)">{connectorKindWord(card, copy)}</span>
@@ -132,7 +135,7 @@ function Header({ card, titleRef, ...rest }: PartProps & { titleRef: RefObject<H
         </div>
 
         <DialogDescription className="truncate text-[0.72rem] text-(--ui-text-secondary)">
-          {card.description ?? localTarget(card) ?? copy.state[card.stateWord]}
+          {connectorDescZh(card.slug, card.description ?? '') || localTarget(card) || copy.state[card.stateWord]}
         </DialogDescription>
       </div>
 
