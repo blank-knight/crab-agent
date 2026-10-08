@@ -69,7 +69,7 @@ export const en: Translations = {
     retry: 'Try again',
     more: 'Show more',
     pinned: 'Reviewed commit',
-    snapshotHint: 'From the 螃蟹AI catalog. Browsing never contacts source repositories.',
+    snapshotHint: 'From the 螃蟹OPC catalog. Browsing never contacts source repositories.',
     installHint: 'Review the source before installing. Changes apply to new sessions.',
     results: (count: number) => `${count.toLocaleString()} result${count === 1 ? '' : 's'}`,
     back: 'Back to results'
@@ -98,7 +98,7 @@ export const en: Translations = {
     ownerMissing: 'Reopen this conversation to manage its connections.',
     search: 'Find an app',
     empty: 'No matching apps',
-    disclaimer: 'Connecting is optional. Only authorize the apps you want 螃蟹AI to use.',
+    disclaimer: 'Connecting is optional. Only authorize the apps you want 螃蟹OPC to use.',
     execution: 'Connector tools',
     setup: server => `Set up ${server}`,
     openInBrowser: 'Open in browser',
@@ -137,7 +137,7 @@ export const en: Translations = {
       kindCatalog: 'MCP · Catalog',
       kindCustom: 'MCP · Custom',
       kindPlugin: (plugin: string) => `MCP · Plugin ${plugin}`,
-      inCatalog: 'In the 螃蟹AI catalog',
+      inCatalog: 'In the 螃蟹OPC catalog',
       hostedTwin: 'Managed version available',
       alsoLocal: 'Also runs on this device',
       open: (name: string) => `Open ${name}`,
@@ -187,7 +187,7 @@ export const en: Translations = {
       loading: 'Reading the catalog and the servers on this computer',
       emptyTitle: 'No apps here yet. Add a server on this computer to get started.',
       noMatchTitle: 'No matching apps',
-      noMatchBody: 'Nothing here matches. Point 螃蟹AI at your own MCP server to add it.',
+      noMatchBody: 'Nothing here matches. Point 螃蟹OPC at your own MCP server to add it.',
       clearSearch: 'Clear the search',
       hostedFailedTitle: 'Could not reach the hosted apps.',
       hostedFailedBody: 'The servers on this computer are unaffected and still running. Nothing was turned off.',
@@ -201,7 +201,7 @@ export const en: Translations = {
       managedUnavailable: 'Managed apps are not available for this account yet.',
       writeFailed: 'That change was not saved.',
       refreshFailed: 'The tool list was not refreshed.',
-      disconnectNoAccount: '螃蟹AI has no account to disconnect here. Refresh the page and try again.',
+      disconnectNoAccount: '螃蟹OPC has no account to disconnect here. Refresh the page and try again.',
       disconnectRefused:
         'Nous could not remove this sign-in right now. Turn the app off with the switch instead, or try again later.'
     },
@@ -243,16 +243,16 @@ export const en: Translations = {
     dialog: {
       disconnect: 'Disconnect',
       disconnectTitle: (name: string) => `Disconnect ${name}?`,
-      disconnectBody: '螃蟹AI stops acting as this account. You can connect again at any time.',
+      disconnectBody: '螃蟹OPC stops acting as this account. You can connect again at any time.',
       menuRefreshTools: 'Refresh tools',
       moreActions: 'More actions',
       removeServerTitle: (name: string) => `Remove ${name}?`,
       removeServerBody: 'The entry leaves mcp.json on this computer. Nothing else is deleted.',
-      appSwitch: (name: string) => `螃蟹AI can use ${name}`,
+      appSwitch: (name: string) => `螃蟹OPC can use ${name}`,
       waysTitle: (name: string) => `Where ${name} runs`,
       wayNotConnected: (name: string) => `Not connected yet. Sign in to ${name} in your browser.`,
       wayHosted: 'Managed',
-      bothOn: (name: string) => `Both are on, so 螃蟹AI sees every ${name} tool twice.`,
+      bothOn: (name: string) => `Both are on, so 螃蟹OPC sees every ${name} tool twice.`,
       turnOffLocal: 'Turn off the local server',
       providedByPlugin: (plugin: string) => `Provided by plugin ${plugin}`,
       openPlugins: 'Open the Plugins tab',
@@ -260,7 +260,7 @@ export const en: Translations = {
       nousLine: 'Nous apps follow your account, not the profile.',
       rulesReadOnly: 'Rules cannot be changed right now.',
       rulesAppOff: (name: string) => `Turn ${name} on to change its tools.`,
-      rulesSignIn: 'Sign in to change what 螃蟹AI may do here.',
+      rulesSignIn: 'Sign in to change what 螃蟹OPC may do here.',
       orgNote: (count: number) => `Your organisation turned ${count} tools off.`,
       orgLink: 'Open the connectors admin',
       connectEnded: 'The sign-in did not finish.',
@@ -274,8 +274,8 @@ export const en: Translations = {
     tools: {
       title: 'Tools',
       notInstalledBody: 'Install it on this device to see the tools it brings.',
-      summaryTitle: (name: string) => `What 螃蟹AI may do with ${name}`,
-      summaryPreviewTitle: (name: string) => `What 螃蟹AI could do with ${name} once you connect`,
+      summaryTitle: (name: string) => `What 螃蟹OPC may do with ${name}`,
+      summaryPreviewTitle: (name: string) => `What 螃蟹OPC could do with ${name} once you connect`,
       summaryCount: (count: number) => `${count} tool${count === 1 ? '' : 's'}`,
       summaryAllTools: 'All tools',
       summaryOther: 'Other',
@@ -308,7 +308,7 @@ export const en: Translations = {
       needsAuthBody: 'The sign-in stays on this computer. Nothing leaves it.',
       retry: 'Retry',
       goneTitle: (name: string) => `${name} left the catalog.`,
-      goneBody: '螃蟹AI cannot call it any more. The row stays until you remove it, so nothing vanishes.',
+      goneBody: '螃蟹OPC cannot call it any more. The row stays until you remove it, so nothing vanishes.',
       remove: 'Remove',
       offTitle: (name: string) => `${name} is off.`,
       offBody: 'Turn it on with the switch above to read the tools it brings.',
@@ -352,7 +352,7 @@ export const en: Translations = {
 
   sessionImport: {
     title: 'Continue from another app',
-    subtitle: 'Bring a conversation into 螃蟹AI and pick up where you left off.',
+    subtitle: 'Bring a conversation into 螃蟹OPC and pick up where you left off.',
     action: 'Import session',
     readingFrom: 'Reading from',
     connectedComputer: 'the connected computer',
@@ -370,18 +370,18 @@ export const en: Translations = {
     more: 'Load more sessions',
     messages: 'messages',
     choose: 'A conversation worth continuing',
-    chooseHelp: 'Choose a session to read its history before bringing it into 螃蟹AI.',
+    chooseHelp: 'Choose a session to read its history before bringing it into 螃蟹OPC.',
     previewLoading: 'Opening preview',
     previewError: 'Preview unavailable',
     previewHelp: 'The source may have moved or changed. Refresh the list and try again.',
     previewLimit: 'Preview shortened for readability. The complete conversation is imported.',
     you: 'You',
-    snapshot: 'This conversation is already in 螃蟹AI. Open your existing copy to continue.',
+    snapshot: 'This conversation is already in 螃蟹OPC. Open your existing copy to continue.',
     copyNotice:
       'Copies conversation text. Source files stay unchanged. Tool output and reasoning are not carried over.',
     importing: 'Importing…',
-    open: 'Open in 螃蟹AI',
-    continue: 'Continue in 螃蟹AI',
+    open: 'Open in 螃蟹OPC',
+    continue: 'Continue in 螃蟹OPC',
     importError: 'Could not import this conversation.'
   },
   common: {
@@ -449,48 +449,48 @@ export const en: Translations = {
   },
 
   boot: {
-    ready: '螃蟹AI Desktop is ready',
+    ready: '螃蟹OPC Desktop is ready',
     desktopBootFailedWithMessage: message => `Desktop boot failed: ${message}`,
     steps: {
       connectingGateway: 'Connecting live desktop gateway',
-      loadingSettings: 'Loading 螃蟹AI settings',
+      loadingSettings: 'Loading 螃蟹OPC settings',
       loadingSessions: 'Loading recent sessions',
-      retryingRemoteBackend: 'Reconnecting to the remote 螃蟹AI backend…',
+      retryingRemoteBackend: 'Reconnecting to the remote 螃蟹OPC backend…',
       startingDesktopConnection: 'Starting desktop connection',
-      startingHermesDesktop: 'Starting 螃蟹AI Desktop…'
+      startingHermesDesktop: 'Starting 螃蟹OPC Desktop…'
     },
     errors: {
       backgroundExited:
         'The service that runs your chats closed unexpectedly. Restart it to keep going — your chats and settings are safe.',
-      backgroundExitedDuringStartup: '螃蟹AI stopped right after it started.',
-      backendStopped: '螃蟹AI stopped working in the background',
-      restartHermes: 'Restart 螃蟹AI',
+      backgroundExitedDuringStartup: '螃蟹OPC stopped right after it started.',
+      backendStopped: '螃蟹OPC stopped working in the background',
+      restartHermes: 'Restart 螃蟹OPC',
       openLogs: 'Open logs',
-      desktopBootFailed: "螃蟹AI couldn't start",
-      gatewayConnectionLost: '螃蟹AI lost its connection',
+      desktopBootFailed: "螃蟹OPC couldn't start",
+      gatewayConnectionLost: '螃蟹OPC lost its connection',
       gatewayConnectionLostDetail:
         'Still trying to reconnect. You can keep reading and drafting. If this keeps up, reconnect now or check your connection settings.',
       reconnectNow: 'Reconnect now',
       connectionSettings: 'Connection settings',
-      gatewaySignInRequired: 'Your remote 螃蟹AI signed you out',
+      gatewaySignInRequired: 'Your remote 螃蟹OPC signed you out',
       gatewaySignInRequiredDetail: 'Sign in again to reconnect. Your chats and settings are safe.',
       signInAgain: 'Sign in again',
-      ipcBridgeUnavailable: "螃蟹AI Desktop couldn't talk to its own background layer. Restart the app."
+      ipcBridgeUnavailable: "螃蟹OPC Desktop couldn't talk to its own background layer. Restart the app."
     },
     // Plain causes for a local backend boot failure (`classifyBootFailure`);
     // the raw output stays behind "Show recent logs".
     causes: {
-      exitedEarly: "螃蟹AI' background service stopped right after starting.",
-      timedOut: "螃蟹AI' background service didn't answer in time.",
-      permission: "螃蟹AI couldn't write to its data folder (permission problem).",
-      diskFull: 'The disk is full, so 螃蟹AI could not start.',
-      portInUse: 'Another program is using the network port 螃蟹AI needs.',
-      installMissing: "Part of 螃蟹AI' installation is missing. Choose Repair install to put it back."
+      exitedEarly: "螃蟹OPC' background service stopped right after starting.",
+      timedOut: "螃蟹OPC' background service didn't answer in time.",
+      permission: "螃蟹OPC couldn't write to its data folder (permission problem).",
+      diskFull: 'The disk is full, so 螃蟹OPC could not start.',
+      portInUse: 'Another program is using the network port 螃蟹OPC needs.',
+      installMissing: "Part of 螃蟹OPC' installation is missing. Choose Repair install to put it back."
     },
     failure: {
-      title: "螃蟹AI couldn't start",
+      title: "螃蟹OPC couldn't start",
       description:
-        "螃蟹AI' background service didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
+        "螃蟹OPC' background service didn't come up. Try one of the recovery steps below. Nothing here deletes your chats or settings.",
       details: 'Details',
       remoteTitle: 'Remote gateway sign-in required',
       remoteDescription:
@@ -531,7 +531,7 @@ export const en: Translations = {
 
   notifications: {
     sharedProfileWarning:
-      'Another 螃蟹AI installation is using this profile. Both installations share its settings and data, so changes can conflict. You can continue, or close the other installation before making changes.',
+      'Another 螃蟹OPC installation is using this profile. Both installations share its settings and data, so changes can conflict. You can continue, or close the other installation before making changes.',
     region: 'Notifications',
     hide: 'Hide',
     show: 'Show',
@@ -544,17 +544,17 @@ export const en: Translations = {
     compressDeferredDone: 'Context compression finished',
     backendOutOfDateTitle: 'Backend out of date',
     backendOutOfDateMessage:
-      'Your 螃蟹AI backend is older than this desktop build and may not work correctly. Update to align them.',
-    desktopOutOfDateTitle: '螃蟹AI app out of date',
+      'Your 螃蟹OPC backend is older than this desktop build and may not work correctly. Update to align them.',
+    desktopOutOfDateTitle: '螃蟹OPC app out of date',
     desktopOutOfDateMessage:
-      'This 螃蟹AI app is older than the backend it is connected to and may not work correctly. Update the app to align them.',
+      'This 螃蟹OPC app is older than the backend it is connected to and may not work correctly. Update the app to align them.',
     updateDesktopApp: 'Update app',
     installMethodUnsupportedTitle: 'Unsupported install method',
-    updateHermes: 'Update 螃蟹AI',
+    updateHermes: 'Update 螃蟹OPC',
     updateReadyTitle: 'Update ready',
     updateReadyMessage: count => `${count} new change${count === 1 ? '' : 's'} available.`,
     updateReadyMessageUnknown: 'A new update is available.',
-    updateReadyMessageAppInstaller: 'A new version of 螃蟹AI is ready. Update now and Windows will finish it for you.',
+    updateReadyMessageAppInstaller: 'A new version of 螃蟹OPC is ready. Update now and Windows will finish it for you.',
     seeWhatsNew: "See what's new",
     mcp: {
       needsAuthTitle: 'MCP server needs re-authentication',
@@ -571,21 +571,21 @@ export const en: Translations = {
       elevenLabsNeedsKey: 'Voice input needs an ElevenLabs key. Add one in Settings → Keys.',
       elevenLabsRejectedKey: "ElevenLabs didn't accept your API key. Update it in Settings → Keys, then try again.",
       diskFull: 'Disk full — free some space, then try again.',
-      storageFailure: "螃蟹AI couldn't save to its data folder. Open Maintenance to check and repair it.",
+      storageFailure: "螃蟹OPC couldn't save to its data folder. Open Maintenance to check and repair it.",
       gatewayAuthFailed:
-        'This 螃蟹AI no longer accepts your saved sign-in. Open Gateways and sign in again (or paste a new access token), then retry.',
+        'This 螃蟹OPC no longer accepts your saved sign-in. Open Gateways and sign in again (or paste a new access token), then retry.',
       methodNotAllowed:
-        "螃蟹AI' background service is out of step with the app, probably after an update. Restart it to fix this.",
+        "螃蟹OPC' background service is out of step with the app, probably after an update. Restart it to fix this.",
       microphonePermission: 'Microphone permission was denied.',
       openaiRejectedApiKey: "OpenAI didn't accept your API key. Update it in Settings → Keys, then try again.",
       openaiTtsNeedsKey: 'Voice needs an OpenAI key. Add one in Settings → Keys.',
       codeSkewRestartRequired:
-        '螃蟹AI was updated but is still running the old version. Restart it to finish the update.',
+        '螃蟹OPC was updated but is still running the old version. Restart it to finish the update.',
       rpcOutOfSync: 'The app and the backend are on different versions. Update both.',
-      restartHermesFailed: "Couldn't restart 螃蟹AI"
+      restartHermesFailed: "Couldn't restart 螃蟹OPC"
     },
     actions: {
-      restartHermes: 'Restart 螃蟹AI',
+      restartHermes: 'Restart 螃蟹OPC',
       openKeys: 'Open Keys',
       openGateways: 'Open Gateways',
       openMaintenance: 'Open Maintenance'
@@ -613,7 +613,7 @@ export const en: Translations = {
       liveEndedConnectionLost: 'The live voice session lost its connection.',
       liveEndedClosed: 'The live voice session was closed by the service.',
       liveError: 'Live voice',
-      liveDelegationFailed: 'Could not hand the request to 螃蟹AI',
+      liveDelegationFailed: 'Could not hand the request to 螃蟹OPC',
       liveUnavailable: reason => `GPT-Live voice chat is not available: ${reason}. Using speech-to-text instead.`
     },
     native: {
@@ -623,8 +623,8 @@ export const en: Translations = {
       rejectAction: 'Reject',
       inputTitle: 'Input needed',
       inputTitleNamed: session => `Input needed — ${session}`,
-      inputBody: '螃蟹AI is waiting for your response.',
-      turnDoneTitle: '螃蟹AI finished',
+      inputBody: '螃蟹OPC is waiting for your response.',
+      turnDoneTitle: '螃蟹OPC finished',
       turnDoneBody: '',
       turnErrorTitle: 'Turn failed',
       backgroundDoneTitle: 'Background task finished',
@@ -717,6 +717,7 @@ export const en: Translations = {
       'nav.settings': 'Open settings',
       'nav.profiles': 'Open profiles',
       'nav.capabilities': 'Open skills',
+      'nav.opc': 'Open OPC agents',
       'nav.messaging': 'Open messaging',
       'nav.artifacts': 'Open artifacts',
       'nav.cron': 'Open scheduled jobs',
@@ -891,7 +892,7 @@ export const en: Translations = {
     exportConfig: 'Export config',
     importConfig: 'Import config',
     resetToDefaults: 'Reset to defaults',
-    resetConfirm: 'Reset all settings to 螃蟹AI defaults?',
+    resetConfirm: 'Reset all settings to 螃蟹OPC defaults?',
     exportFailed: 'Export failed',
     resetFailed: 'Reset failed',
     nav: {
@@ -945,7 +946,7 @@ export const en: Translations = {
         agentTargetLocal: (profile, dir) => `Installs into the ${profile} backend (${dir})`,
         agentTargetRemote: profile => `Installs into the connected ${profile} backend`,
         catalogPinned: (name, sha) =>
-          `螃蟹AI catalog entry "${name}" — the agent component installs at the reviewed pin${sha ? ` ${sha}` : ''}, not the branch tip.`,
+          `螃蟹OPC catalog entry "${name}" — the agent component installs at the reviewed pin${sha ? ` ${sha}` : ''}, not the branch tip.`,
         reviewedHeading: 'Reviewed catalog entry',
         reviewedIntro:
           'This entry was human-reviewed at its pinned commit. You can still inspect the exact code below.',
@@ -983,7 +984,7 @@ export const en: Translations = {
         desktopSuccess: name => `Desktop plugin ${name} installed`,
         agentFailed: 'Agent plugin install failed',
         installUncertain:
-          '螃蟹AI stopped waiting for the install result, but the plugin may still be installing. Close this dialog and use Rescan in Plugins before trying Install again.',
+          '螃蟹OPC stopped waiting for the install result, but the plugin may still be installing. Close this dialog and use Rescan in Plugins before trying Install again.',
         desktopFailed: 'Desktop plugin install failed',
         missingEnv: (name, vars) =>
           `${name} is installed but needs a key before it can work: ${vars}. Add it now, or the plugin's tools will fail.`
@@ -1035,7 +1036,7 @@ export const en: Translations = {
       deleteAction: 'Remove saved item',
       otpField: 'Authenticator key',
       otpPlaceholder: 'Base32 secret or otpauth:// link',
-      otpHint: 'The "setup key" the site shows when you enable 2FA. With it saved, 螃蟹AI generates the codes itself.',
+      otpHint: 'The "setup key" the site shows when you enable 2FA. With it saved, 螃蟹OPC generates the codes itself.',
       twoFactorBadge: '2FA auto',
       deleteTitle: 'Delete this item?',
       deleteDescription: label => `"${label}" will be removed. This cannot be undone.`,
@@ -1046,10 +1047,10 @@ export const en: Translations = {
           'Installed password managers are picked up automatically. The agent asks you to unlock one the first time it needs a login from it (once per session); only a session token stays in memory, and the agent never sees your master password or any login.',
         toggleFailed: 'Could not update password manager',
         notInstalled: name =>
-          `Not detected. Install the ${name} command-line tool and sign in to it; 螃蟹AI picks it up automatically.`,
-        disabledDesc: 'Detected but turned off for 螃蟹AI.',
+          `Not detected. Install the ${name} command-line tool and sign in to it; 螃蟹OPC picks it up automatically.`,
+        disabledDesc: 'Detected but turned off for 螃蟹OPC.',
         lockedDesc: 'Detected. The agent will ask you to unlock it when it needs a login, or unlock now.',
-        unlockedDesc: 'Unlocked for this session. Locks automatically after 30 minutes idle or when 螃蟹AI closes.',
+        unlockedDesc: 'Unlocked for this session. Locks automatically after 30 minutes idle or when 螃蟹OPC closes.',
         statusLocked: 'Locked',
         statusNotDetected: 'Not detected',
         statusOff: 'Off',
@@ -1069,7 +1070,7 @@ export const en: Translations = {
       intro: 'OS notifications (not in-app toasts). Per device.',
       enableAll: 'Enable notifications',
       enableAllDesc: 'Off silences every notification below.',
-      focusedHint: 'Completion alerts only fire while 螃蟹AI is in the background.',
+      focusedHint: 'Completion alerts only fire while 螃蟹OPC is in the background.',
       kinds: {
         approval: {
           label: 'Approval needed',
@@ -1077,11 +1078,11 @@ export const en: Translations = {
         },
         input: {
           label: 'Input needed',
-          description: '螃蟹AI asked a question or needs a password or secret.'
+          description: '螃蟹OPC asked a question or needs a password or secret.'
         },
         turnDone: {
           label: 'Response ready',
-          description: 'A turn finished while 螃蟹AI was in the background.'
+          description: 'A turn finished while 螃蟹OPC was in the background.'
         },
         turnError: {
           label: 'Turn failed',
@@ -1097,11 +1098,11 @@ export const en: Translations = {
         },
         plugin: {
           label: 'Plugin notifications',
-          description: 'A desktop plugin sent a notification while 螃蟹AI was in the background.'
+          description: 'A desktop plugin sent a notification while 螃蟹OPC was in the background.'
         }
       },
       test: 'Send test notification',
-      testTitle: '螃蟹AI',
+      testTitle: '螃蟹OPC',
       testBody: 'Notifications are working.',
       testSent: 'Test sent. If nothing appears, check your OS notification permissions and Focus/Do Not Disturb.',
       testUnsupported: 'This system does not support native notifications.',
@@ -1120,7 +1121,7 @@ export const en: Translations = {
       advanced: 'Advanced'
     },
     searchPlaceholder: {
-      about: 'About 螃蟹AI Desktop',
+      about: 'About 螃蟹OPC Desktop',
       config: 'Search settings...',
       gateway: 'Gateway connection...',
       keys: 'Search API keys...',
@@ -1136,7 +1137,7 @@ export const en: Translations = {
       title: 'Appearance',
       intro: 'Desktop-only. Mode is brightness; theme is palette and chat chrome.',
       colorMode: 'Color Mode',
-      colorModeDesc: 'Pick a fixed mode or let 螃蟹AI follow your system setting.',
+      colorModeDesc: 'Pick a fixed mode or let 螃蟹OPC follow your system setting.',
       toolViewTitle: 'Tool Call Display',
       toolViewDesc: 'Product hides raw tool payloads; Technical shows full input/output.',
       hideCodeDiffsTitle: 'Hide code diffs',
@@ -1207,14 +1208,14 @@ export const en: Translations = {
       introSplashTitle: 'Intro Splash',
       introSplashDesc: 'The wordmark and prompt shown on an empty chat.',
       reactionsTitle: 'Message Reactions',
-      reactionsDesc: 'iMessage-style emoji tapbacks — react to messages, and 螃蟹AI can react to yours.',
+      reactionsDesc: 'iMessage-style emoji tapbacks — react to messages, and 螃蟹OPC can react to yours.',
       tipsTitle: 'In-App Tips',
       tipsDesc:
-        'Occasional hints from the app and 螃蟹AI. Each tip appears once. Turns off automatically after your first 30 days; you can turn it back on.',
+        'Occasional hints from the app and 螃蟹OPC. Each tip appears once. Turns off automatically after your first 30 days; you can turn it back on.',
       tipsReset: (count: number) => `Show ${count} ${count === 1 ? 'tip' : 'tips'} again`,
       toursTitle: 'Guided Tours',
       toursDesc:
-        'Let 螃蟹AI spotlight each step as it guides you through the app. Turns off automatically after your first 30 days; you can turn it back on.',
+        'Let 螃蟹OPC spotlight each step as it guides you through the app. Turns off automatically after your first 30 days; you can turn it back on.',
       composerPopoutTitle: 'Floating Composer',
       composerPopoutDesc: 'Allow dragging the composer out of its dock. When off, it stays docked at the bottom.',
       fileBrowserTitle: 'File Browser',
@@ -1254,9 +1255,9 @@ export const en: Translations = {
       pet: {
         title: 'Pet',
         intro:
-          'Adopt an animated petdex mascot that floats over the app and reacts to what 螃蟹AI is doing — running while tools execute, celebrating on success, sulking on errors.',
+          'Adopt an animated petdex mascot that floats over the app and reacts to what 螃蟹OPC is doing — running while tools execute, celebrating on success, sulking on errors.',
         restartHint:
-          'Pets need a quick restart — the running app started before this feature was added. Quit and reopen 螃蟹AI, then come back here.',
+          'Pets need a quick restart — the running app started before this feature was added. Quit and reopen 螃蟹OPC, then come back here.',
         scaleTitle: 'Size',
         scaleDesc: 'Resize the floating mascot. Applies everywhere instantly.',
         roamTitle: 'Roam',
@@ -1294,7 +1295,7 @@ export const en: Translations = {
     uninstallSection: {
       dangerZone: 'Danger zone',
       checkingInstalled: 'Checking what’s installed…',
-      uninstallHermes: 'Uninstall 螃蟹AI',
+      uninstallHermes: 'Uninstall 螃蟹OPC',
       chooseHowMuch:
         'Choose how much to remove. The app closes to finish the job; reopen the installer any time to come back.',
       confirmUninstall: 'Confirm uninstall',
@@ -1306,19 +1307,19 @@ export const en: Translations = {
       options: {
         gui: {
           title: 'Uninstall Chat GUI only',
-          description: 'Remove this desktop app. The 螃蟹AI agent, your config, and chats all stay.',
+          description: 'Remove this desktop app. The 螃蟹OPC agent, your config, and chats all stay.',
           consequence: 'the desktop Chat GUI (this app and its data)'
         },
         lite: {
           title: 'Uninstall GUI + agent, keep my data',
           description:
-            'Remove the app and the 螃蟹AI agent, but keep config, chats, and secrets for a future reinstall.',
-          consequence: 'the Chat GUI and the 螃蟹AI agent (config, chats, and secrets are kept)'
+            'Remove the app and the 螃蟹OPC agent, but keep config, chats, and secrets for a future reinstall.',
+          consequence: 'the Chat GUI and the 螃蟹OPC agent (config, chats, and secrets are kept)'
         },
         full: {
           title: 'Uninstall everything',
           description: 'Remove the app, the agent, and all user data — config, chats, scheduled jobs, secrets, logs.',
-          consequence: 'EVERYTHING — the Chat GUI, the 螃蟹AI agent, and all of your config, chats, secrets, and logs'
+          consequence: 'EVERYTHING — the Chat GUI, the 螃蟹OPC agent, and all of your config, chats, secrets, and logs'
         }
       }
     },
@@ -1463,7 +1464,7 @@ export const en: Translations = {
     config: {
       minimizeToTrayTitle: 'Minimize to tray',
       minimizeToTrayDesc:
-        'Minimize windows or close the main window to hide them in the system tray (menu bar on macOS) and keep 螃蟹AI running. Use Quit 螃蟹AI from the tray menu or Cmd+Q to exit. Off by default; applies only to this device.',
+        'Minimize windows or close the main window to hide them in the system tray (menu bar on macOS) and keep 螃蟹OPC running. Use Quit 螃蟹OPC from the tray menu or Cmd+Q to exit. Off by default; applies only to this device.',
       minimizeToTrayUnavailable:
         'The system tray is unavailable. Windows will minimize and close normally. Turn this off and on to retry.',
       none: 'None',
@@ -1474,7 +1475,7 @@ export const en: Translations = {
       searchPlaceholder: 'Search…',
       noResults: 'No results found',
       systemDefault: 'System default',
-      loading: 'Loading 螃蟹AI configuration...',
+      loading: 'Loading 螃蟹OPC configuration...',
       emptyTitle: 'Nothing to configure',
       emptyDesc: 'This section has no adjustable settings.',
       failedLoad: 'Settings failed to load',
@@ -1505,27 +1506,27 @@ export const en: Translations = {
       description:
         'Tap and release ⌘ + Option on Mac, or Ctrl + Alt on Windows/Linux, to bring the HUD forward from any app. Off by default; applies only to this device.',
       permission:
-        'Allow 螃蟹AI in System Settings → Privacy & Security → Input Monitoring, then retry. This gesture does not record keystrokes or capture your screen.',
+        'Allow 螃蟹OPC in System Settings → Privacy & Security → Input Monitoring, then retry. This gesture does not record keystrokes or capture your screen.',
       unavailable:
-        'The HUD gesture helper could not start or stopped unexpectedly. Retry, or restart 螃蟹AI. The existing HUD shortcut still works inside 螃蟹AI.',
+        'The HUD gesture helper could not start or stopped unexpectedly. Retry, or restart 螃蟹OPC. The existing HUD shortcut still works inside 螃蟹OPC.',
       missingHelper:
-        'This 螃蟹AI installation is missing the HUD gesture helper. Update or reinstall 螃蟹AI, then retry.',
+        'This 螃蟹OPC installation is missing the HUD gesture helper. Update or reinstall 螃蟹OPC, then retry.',
       unsupportedSession:
         'This desktop session does not support global modifier taps. Linux requires X11; Wayland is not supported.'
     },
     screenshot: {
       enabledTitle: 'Screenshot shortcut',
       enabledDesc:
-        'Press both Command keys together from any app to capture its frontmost window and attach it to your current 螃蟹AI draft. Never sends automatically. Off by default; applies only to this Mac. Window contents may be sensitive — review the attachment before sending.',
+        'Press both Command keys together from any app to capture its frontmost window and attach it to your current 螃蟹OPC draft. Never sends automatically. Off by default; applies only to this Mac. Window contents may be sensitive — review the attachment before sending.',
       statusTitle: 'Screenshot shortcut status',
       checking: 'Checking screenshot shortcut…',
       disabled: 'Screenshot shortcut is off.',
       starting: 'Starting the shortcut listener. It is not ready yet.',
       ready: 'Shortcut is ready. Screenshots attach to your current draft without sending.',
       inputPermission:
-        'Input Monitoring permission lets 螃蟹AI detect both Command keys while another app is active. Allow 螃蟹AI in System Settings → Privacy & Security → Input Monitoring, then return here and retry.',
+        'Input Monitoring permission lets 螃蟹OPC detect both Command keys while another app is active. Allow 螃蟹OPC in System Settings → Privacy & Security → Input Monitoring, then return here and retry.',
       screenPermission:
-        'Screen Recording permission lets 螃蟹AI capture the frontmost app window when you use this shortcut. Allow 螃蟹AI in System Settings → Privacy & Security → Screen Recording, then return here and retry. Restart 螃蟹AI if macOS asks.',
+        'Screen Recording permission lets 螃蟹OPC capture the frontmost app window when you use this shortcut. Allow 螃蟹OPC in System Settings → Privacy & Security → Screen Recording, then return here and retry. Restart 螃蟹OPC if macOS asks.',
       openSettings: 'Open System Settings',
       retry: 'Retry',
       unavailable: 'The screenshot shortcut is unavailable. Retry, or turn it off.',
@@ -1539,7 +1540,7 @@ export const en: Translations = {
     quickEntry: {
       enabledTitle: 'Quick Entry',
       enabledDesc:
-        'Summon a small composer from anywhere with a global shortcut and fire a prompt without opening 螃蟹AI.',
+        'Summon a small composer from anywhere with a global shortcut and fire a prompt without opening 螃蟹OPC.',
       shortcutTitle: 'Quick Entry shortcut',
       shortcutDesc: 'Needs at least one modifier, e.g. CommandOrControl+Shift+Space.',
       active: 'Shortcut is active.',
@@ -1569,7 +1570,7 @@ export const en: Translations = {
     // v2 multi-connection registry: Settings → Gateways.
     connections: {
       title: 'Registered gateways',
-      intro: 'Manage this device and every 螃蟹AI gateway it can reach through remote, SSH, or Cloud connections.',
+      intro: 'Manage this device and every 螃蟹OPC gateway it can reach through remote, SSH, or Cloud connections.',
       stagedNote:
         'Switch gateways from Sessions. Profiles, chats, messaging, and cron jobs stay with their gateway; work on other gateways keeps running.',
       launchModeTitle: 'At startup, return to Sessions on the last-used gateway',
@@ -1596,15 +1597,15 @@ export const en: Translations = {
       updateAllRunning: 'Updating all instances…',
       updateAllDone: 'Updates dispatched',
       updateAllFailed: 'Update fan-out failed',
-      updateSkippedCloud: 'Managed by 螃蟹AI Cloud',
+      updateSkippedCloud: 'Managed by 螃蟹OPC Cloud',
       kindLocal: 'Local',
       kindRemote: 'Remote gateway',
-      kindCloud: '螃蟹AI Cloud',
+      kindCloud: '螃蟹OPC Cloud',
       kindSsh: 'SSH',
-      kindLocalDesc: 'The 螃蟹AI runtime managed by this app.',
-      kindRemoteDesc: 'A 螃蟹AI gateway reachable over HTTP(S) — LAN, Tailscale, or the internet.',
-      kindCloudDesc: 'A hosted instance discovered through your 螃蟹AI Cloud account.',
-      kindSshDesc: 'A 螃蟹AI install reached over SSH.',
+      kindLocalDesc: 'The 螃蟹OPC runtime managed by this app.',
+      kindRemoteDesc: 'A 螃蟹OPC gateway reachable over HTTP(S) — LAN, Tailscale, or the internet.',
+      kindCloudDesc: 'A hosted instance discovered through your 螃蟹OPC Cloud account.',
+      kindSshDesc: 'A 螃蟹OPC install reached over SSH.',
       labelTitle: 'Name',
       labelDesc: 'Required. Shown everywhere this instance appears; must be unique (e.g. “Homelab”, “Work laptop”).',
       labelPlaceholder: 'Homelab',
@@ -1612,7 +1613,7 @@ export const en: Translations = {
       sshHostTitle: 'SSH host',
       headersTitle: 'Extra gateway headers',
       headersDesc:
-        'Sent with every HTTP and WebSocket request to this gateway — for access proxies such as Cloudflare Access (CF-Access-Client-Id / CF-Access-Client-Secret). Values are stored encrypted. Headers 螃蟹AI manages (Authorization, Cookie, Host…) are ignored.',
+        'Sent with every HTTP and WebSocket request to this gateway — for access proxies such as Cloudflare Access (CF-Access-Client-Id / CF-Access-Client-Secret). Values are stored encrypted. Headers 螃蟹OPC manages (Authorization, Cookie, Host…) are ignored.',
       headerValuePlaceholder: 'Value',
       headerValueSaved: 'Saved — leave blank to keep',
       headerAdd: 'Add header',
@@ -1623,7 +1624,7 @@ export const en: Translations = {
       sameBackendHint: (label: string) => `Same backend as “${label}”`,
       localAddHint: 'Local is unavailable: the managed local connection already exists (there is only ever one).',
       cloudAddHint:
-        'Tip: signing in under 螃蟹AI Cloud above discovers your agents automatically — use this form only to register a known instance URL by hand.',
+        'Tip: signing in under 螃蟹OPC Cloud above discovers your agents automatically — use this form only to register a known instance URL by hand.',
       save: 'Save connection',
       saving: 'Saving…',
       cancel: 'Cancel',
@@ -1651,26 +1652,26 @@ export const en: Translations = {
       loading: 'Loading gateway settings...',
       unavailableTitle: 'Gateway settings unavailable',
       unavailableDesc:
-        'Connection settings can only be changed from the 螃蟹AI Desktop app on the computer running it.',
+        'Connection settings can only be changed from the 螃蟹OPC Desktop app on the computer running it.',
       title: 'Gateway Connection',
       envOverride: 'env override',
       intro:
-        'Local by default. Use remote when this app should drive a 螃蟹AI backend elsewhere. Gateway connections are machine-level; profiles are discovered from the gateways you connect.',
-      envOverrideTitle: 'This connection was fixed by the way 螃蟹AI was launched.',
+        'Local by default. Use remote when this app should drive a 螃蟹OPC backend elsewhere. Gateway connections are machine-level; profiles are discovered from the gateways you connect.',
+      envOverrideTitle: 'This connection was fixed by the way 螃蟹OPC was launched.',
       envOverrideDesc:
-        'A startup setting outside the app chose this connection, so the options below are read-only. Restart 螃蟹AI without that setting — or ask whoever set it up — to change it here.',
+        'A startup setting outside the app chose this connection, so the options below are read-only. Restart 螃蟹OPC without that setting — or ask whoever set it up — to change it here.',
       modeTitle: 'Connection mode',
       localTitle: 'Local gateway',
-      localDesc: 'Start a private 螃蟹AI backend on localhost. This is the default and works offline.',
+      localDesc: 'Start a private 螃蟹OPC backend on localhost. This is the default and works offline.',
       remoteTitle: 'Remote gateway',
-      remoteDesc: 'Connect this desktop shell to a remote 螃蟹AI backend.',
+      remoteDesc: 'Connect this desktop shell to a remote 螃蟹OPC backend.',
       remoteAuthHint: 'Hosted gateways use OAuth or a username and password; self-hosted ones may use a session token.',
-      cloudTitle: '螃蟹AI Cloud',
-      cloudDesc: 'Sign in once to 螃蟹AI Cloud and pick from the agents on your account — no URL to paste.',
-      cloudSignInTitle: '螃蟹AI Cloud',
-      cloudSignIn: 'Sign in to 螃蟹AI Cloud',
-      cloudSignedIn: 'Signed in to 螃蟹AI Cloud',
-      cloudNeedsSignIn: 'Sign in to 螃蟹AI Cloud to discover the agents on your account.',
+      cloudTitle: '螃蟹OPC Cloud',
+      cloudDesc: 'Sign in once to 螃蟹OPC Cloud and pick from the agents on your account — no URL to paste.',
+      cloudSignInTitle: '螃蟹OPC Cloud',
+      cloudSignIn: 'Sign in to 螃蟹OPC Cloud',
+      cloudSignedIn: 'Signed in to 螃蟹OPC Cloud',
+      cloudNeedsSignIn: 'Sign in to 螃蟹OPC Cloud to discover the agents on your account.',
       cloudSignedInDesc: 'You are signed in. Pick an agent below; the session refreshes automatically.',
       cloudAgentsTitle: 'Your agents',
       cloudOrgPickerTitle: 'Choose an organization',
@@ -1691,11 +1692,11 @@ export const en: Translations = {
       cloudUseSaved: 'Use gateway',
       cloudActive: 'Active in this window',
       cloudConnecting: 'Connecting…',
-      cloudDiscoverFailed: 'Could not load your 螃蟹AI Cloud agents',
+      cloudDiscoverFailed: 'Could not load your 螃蟹OPC Cloud agents',
       cloudConnectFailed: 'Could not connect to that agent',
-      cloudSignInFailed: '螃蟹AI Cloud sign-in failed',
-      cloudSignedOutTitle: 'Signed out of 螃蟹AI Cloud',
-      cloudSignedOutMessage: 'Cleared the 螃蟹AI Cloud session.',
+      cloudSignInFailed: '螃蟹OPC Cloud sign-in failed',
+      cloudSignedOutTitle: 'Signed out of 螃蟹OPC Cloud',
+      cloudSignedOutMessage: 'Cleared the 螃蟹OPC Cloud session.',
       cloudConnectedTitle: 'Connected',
       cloudConnectedPill: 'Connected',
       cloudConnectedTo: name => `Connected to ${name}.`,
@@ -1705,7 +1706,7 @@ export const en: Translations = {
       remoteUrlDesc: 'Base URL for the remote dashboard backend. Path prefixes are supported, for example /hermes.',
       probing: 'Checking how this gateway authenticates…',
       probeError:
-        "螃蟹AI can't reach that address. Check the URL and that the other computer is running 螃蟹AI — sign-in options appear once it answers.",
+        "螃蟹OPC can't reach that address. Check the URL and that the other computer is running 螃蟹OPC — sign-in options appear once it answers.",
       signedIn: 'Signed in',
       signIn: 'Sign in',
       signOut: 'Sign out',
@@ -1746,9 +1747,9 @@ export const en: Translations = {
       enterUrlFirst: 'Enter a remote URL first.',
       restartingTitle: 'Gateway connection restarting',
       savedTitle: 'Gateway settings saved',
-      restartingMessage: '螃蟹AI Desktop will reconnect using the saved settings — the shell stays open.',
+      restartingMessage: '螃蟹OPC Desktop will reconnect using the saved settings — the shell stays open.',
       savedMessage: 'Saved for the next restart.',
-      connectedTo: (baseUrl, version) => `Connected to ${baseUrl}${version ? ` · 螃蟹AI ${version}` : ''}`,
+      connectedTo: (baseUrl, version) => `Connected to ${baseUrl}${version ? ` · 螃蟹OPC ${version}` : ''}`,
       reachableTitle: 'Remote gateway reachable',
       signedOutTitle: 'Signed out',
       signedOutMessage: 'Cleared the remote gateway session.',
@@ -1760,7 +1761,7 @@ export const en: Translations = {
       saveFailed: 'Could not save gateway settings',
       sshTitle: 'Connect via SSH',
       sshDesc:
-        '螃蟹AI is launched on the remote over SSH and tunneled to this app — nothing to start or expose yourself. Requires working key-based SSH access to the host.',
+        '螃蟹OPC is launched on the remote over SSH and tunneled to this app — nothing to start or expose yourself. Requires working key-based SSH access to the host.',
       sshTrustHint: 'The first presented host key is trusted and pinned; later changes fail closed.',
       sshHostTitle: 'Host',
       sshHostDesc: 'user@host, or a Host alias from ~/.ssh/config.',
@@ -1775,25 +1776,25 @@ export const en: Translations = {
       sshPortDesc: 'Blank = 22 or the ~/.ssh/config port.',
       sshKeyTitle: 'Identity file',
       sshKeyDesc: 'Private key path. Blank = ssh-agent or ~/.ssh/config.',
-      sshHermesPathTitle: '螃蟹AI path (optional)',
+      sshHermesPathTitle: '螃蟹OPC path (optional)',
       sshHermesPathDesc: 'Full path to the remote hermes binary. Blank = auto-detect.',
       sshHermesPathPlaceholder: 'auto-detect',
       sshTestConnection: 'Test SSH',
       sshConnect: 'Connect',
       sshButtonsHint: 'Save applies on the next launch. Connect reconnects now.',
-      sshReachable: (host, platform) => `Reachable: ${host} (${platform}) — 螃蟹AI found`,
+      sshReachable: (host, platform) => `Reachable: ${host} (${platform}) — 螃蟹OPC found`,
       sshIncompleteHost: 'Enter an SSH host before connecting.',
       sshErrUnreachable: 'Could not reach that host over SSH. Check the host, port, and your network.',
       sshErrAuth:
-        'SSH authentication failed. Load your key into the ssh-agent (ssh-add) or set an IdentityFile in ~/.ssh/config — 螃蟹AI runs ssh non-interactively.',
+        'SSH authentication failed. Load your key into the ssh-agent (ssh-add) or set an IdentityFile in ~/.ssh/config — 螃蟹OPC runs ssh non-interactively.',
       sshErrHostKey:
         'The host key has CHANGED since you last connected. Verify this is expected, then run ssh-keygen -R <host> and reconnect.',
       sshErrNotInstalled:
-        '螃蟹AI is not installed on the remote host. Install it there (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) or set the 螃蟹AI path.',
+        '螃蟹OPC is not installed on the remote host. Install it there (curl -fsSL https://hermes-agent.nousresearch.com/install.sh | sh) or set the 螃蟹OPC path.',
       sshErrPlatform:
-        'Unsupported remote platform. 螃蟹AI Desktop SSH mode supports Linux, macOS, and Windows remote hosts.',
+        'Unsupported remote platform. 螃蟹OPC Desktop SSH mode supports Linux, macOS, and Windows remote hosts.',
       sshErrTimeout: 'SSH connection timed out. The host may be unreachable or asleep.',
-      sshErrUpdateRequired: 'Update 螃蟹AI on the remote host before connecting with Desktop SSH.',
+      sshErrUpdateRequired: 'Update 螃蟹OPC on the remote host before connecting with Desktop SSH.',
       sshErrUnknown: 'SSH connection failed.'
     },
     keys: {
@@ -1840,7 +1841,7 @@ export const en: Translations = {
       noOutput: 'No output yet.',
       deepLinkTitle: 'Add MCP server?',
       deepLinkDescription:
-        'A link asked to add this MCP server to 螃蟹AI. Review the exact configuration below — it comes from the link, not from 螃蟹AI.',
+        'A link asked to add this MCP server to 螃蟹OPC. Review the exact configuration below — it comes from the link, not from 螃蟹OPC.',
       deepLinkStdioWarning:
         'This server runs a local process on your machine with the command shown below. Only continue if you trust its source.',
       deepLinkConfirm: 'Add server',
@@ -1926,7 +1927,7 @@ export const en: Translations = {
       serverRunning: 'Running',
       runtimeInstalled: 'llama.cpp runtime installed',
       runtimeInstalledDetail: (tag, backend) =>
-        `Build ${tag}, ${backend} backend. 螃蟹AI starts and manages the server for you.`,
+        `Build ${tag}, ${backend} backend. 螃蟹OPC starts and manages the server for you.`,
       installTitle: 'Install the local runtime',
       installDetail:
         'Downloads the llama.cpp inference engine (a few hundred MB). Models you download run entirely on this machine — no account, nothing leaves your computer.',
@@ -2264,7 +2265,7 @@ export const en: Translations = {
         cliBillingDisabled: {
           title: 'Remote spending is off',
           message:
-            "Remote spending is off for this account — a billing admin can turn it on from the portal's 螃蟹AI Agent page."
+            "Remote spending is off for this account — a billing admin can turn it on from the portal's 螃蟹OPC Agent page."
         },
         roleRequired: {
           title: 'Admin role required',
@@ -2329,7 +2330,7 @@ export const en: Translations = {
       connectAccount: 'Connect an account',
       haveApiKey: 'Have an API key instead?',
       intro:
-        'Sign in with a subscription — no API key to copy. 螃蟹AI runs the browser sign-in for you, right here in the app.',
+        'Sign in with a subscription — no API key to copy. 螃蟹OPC runs the browser sign-in for you, right here in the app.',
       connected: 'Connected',
       collapse: 'Collapse',
       connectAnother: 'Connect another provider',
@@ -2350,7 +2351,7 @@ export const en: Translations = {
       noKeysMatch: 'No providers match your search.',
       localEndpoint: {
         title: 'Local / custom endpoint',
-        description: 'Point 螃蟹AI at any OpenAI-compatible endpoint (Zyphra, vLLM, llama.cpp, Ollama, etc).'
+        description: 'Point 螃蟹OPC at any OpenAI-compatible endpoint (Zyphra, vLLM, llama.cpp, Ollama, etc).'
       },
       loading: 'Loading providers...'
     },
@@ -2477,7 +2478,7 @@ export const en: Translations = {
         needsSetupConfirmAction: 'Select anyway',
         unavailableTitle: 'Terminal commands are unavailable',
         unavailableMessage: backend =>
-          `螃蟹AI can't run shell commands right now: ${backend} isn't ready. Switch to Local, or finish setting up ${backend} and try again.`,
+          `螃蟹OPC can't run shell commands right now: ${backend} isn't ready. Switch to Local, or finish setting up ${backend} and try again.`,
         openBackendSettings: 'Open terminal settings',
         useLocal: 'Use Local',
         switchedToLocal: 'Terminal commands now run locally. Applies to new sessions.'
@@ -2493,7 +2494,7 @@ export const en: Translations = {
         failedSave: 'Could not save the real-profile setting',
         prompt: {
           title: 'Stay signed in to your sites',
-          body: 'Let 螃蟹AI browse with a snapshot of your default browser profile, so sites open already signed in.',
+          body: 'Let 螃蟹OPC browse with a snapshot of your default browser profile, so sites open already signed in.',
           bulletSnapshot: 'Cookies and logins are copied into a managed snapshot.',
           bulletLiveProfile: 'Your live browser profile is never opened directly.',
           bulletLocal: 'Nothing leaves this computer.',
@@ -2570,7 +2571,7 @@ export const en: Translations = {
       halfDesktopHint: 'this app, same for every profile',
       halfAgent: 'Agent',
       halfAgentIn: (profile: string) => `Agent in ${profile}`,
-      defaultProfile: '螃蟹AI (default)',
+      defaultProfile: '螃蟹OPC (default)',
       kindAgent: 'Agent',
       kindDesktop: 'Desktop',
       kindBoth: 'Agent + Desktop',
@@ -2594,7 +2595,7 @@ export const en: Translations = {
       toolsetOff: (name: string, profile: string) => `${name} agent tools disabled for ${profile}`,
       toolsetToggleFailed: (name: string) =>
         `Could not toggle the ${name} agent tools; the Desktop panel was left unchanged`,
-      legacyBackend: 'This backend predates key-addressed plugin toggles — update 螃蟹AI to manage it here.',
+      legacyBackend: 'This backend predates key-addressed plugin toggles — update 螃蟹OPC to manage it here.',
       portableBadge: 'portable',
       serverStates: {
         connected: 'connected',
@@ -2612,7 +2613,7 @@ export const en: Translations = {
       catalogHint:
         'Hit "+ Add to this Agent" on any plugin — reviewed entries install at their pinned commit into the selected profile. Bundled agent+desktop plugins offer both halves.',
       alreadyInstalled: (name: string) => `${name} is already installed in this profile.`,
-      catalogProvenance: (sha: string) => `Installed from the 螃蟹AI catalog${sha ? ` at pin ${sha}` : ''}.`,
+      catalogProvenance: (sha: string) => `Installed from the 螃蟹OPC catalog${sha ? ` at pin ${sha}` : ''}.`,
       pinnedProvenance: (sha: string) =>
         `Pinned to commit ${sha}. Updates are refused until it is reinstalled with a new pin.`,
       pinnedBadge: (sha: string) => `pinned @ ${sha}`,
@@ -2639,9 +2640,9 @@ export const en: Translations = {
       deepLinkErrorTitle: 'Plugin install link rejected',
       deepLinkCatalogInvalidName: 'The link\u2019s catalog name is missing or invalid.',
       deepLinkCatalogUnknown: (name: string) =>
-        `\u201C${name}\u201D is not in the 螃蟹AI plugin catalog. Nothing was installed.`,
+        `\u201C${name}\u201D is not in the 螃蟹OPC plugin catalog. Nothing was installed.`,
       deepLinkCatalogUnavailable:
-        'Could not load the 螃蟹AI plugin catalog. Check your connection and open the link again.',
+        'Could not load the 螃蟹OPC plugin catalog. Check your connection and open the link again.',
       settingsToggle: (name: string) => `Settings: ${name}`,
       settingsForm: {
         save: 'Save settings',
@@ -2728,7 +2729,7 @@ export const en: Translations = {
     loadFailed: 'Could not load memory graph',
     loading: 'Loading…',
     emptyTitle: 'Nothing learned yet',
-    emptyDesc: 'As 螃蟹AI builds skills and memories for your work, they appear here.',
+    emptyDesc: 'As 螃蟹OPC builds skills and memories for your work, they appear here.',
     share: 'Share map',
     shareHint:
       'Copy the code to share this map, or paste one to load. It only includes the layout, not your memory or skill text.',
@@ -2810,7 +2811,7 @@ export const en: Translations = {
       placeholder: 'Search pets…',
       loading: 'Loading petdex gallery…',
       error: 'Could not reach the petdex gallery.',
-      staleBackend: 'Restart 螃蟹AI to use pets — the backend predates this feature.',
+      staleBackend: 'Restart 螃蟹OPC to use pets — the backend predates this feature.',
       empty: 'No matching pets.',
       turnOff: 'Turn off',
       turnOn: 'Turn on',
@@ -2837,8 +2838,8 @@ export const en: Translations = {
       hatchComposing: 'Piecing it together…',
       hatchSaving: 'Almost there…',
       namePlaceholder: 'Name your pet',
-      staleBackend: 'Update 螃蟹AI to generate pets.',
-      backgroundHint: 'You can close this — 螃蟹AI will notify you when it’s done.',
+      staleBackend: 'Update 螃蟹OPC to generate pets.',
+      backgroundHint: 'You can close this — 螃蟹OPC will notify you when it’s done.',
       slowProviderHint: 'This can take several minutes',
       remix: 'Remix',
       remixConfirmTitle: 'Remix this look?',
@@ -2874,7 +2875,7 @@ export const en: Translations = {
     },
     nav: {
       newChat: { title: 'New session', detail: 'Start a fresh session' },
-      settings: { title: 'Settings', detail: 'Configure 螃蟹AI desktop' },
+      settings: { title: 'Settings', detail: 'Configure 螃蟹OPC desktop' },
       capabilities: { title: 'Capabilities', detail: 'Skills, tools, MCP servers, and plugins' },
       messaging: { title: 'Messaging', detail: 'Set up Telegram, Slack, Discord, and more' },
       artifacts: { title: 'Artifacts', detail: 'Browse generated outputs' }
@@ -2896,7 +2897,7 @@ export const en: Translations = {
     noSessions: 'No sessions yet.',
     gatewayRunning: 'Messaging gateway running',
     gatewayStopped: 'Messaging gateway stopped',
-    hermesActiveSessions: (version, count) => `螃蟹AI ${version} · Active sessions ${count}`,
+    hermesActiveSessions: (version, count) => `螃蟹OPC ${version} · Active sessions ${count}`,
     restartGateway: 'Restart gateway',
     openBrowser: 'Open browser',
     gatewayRestartFailed: 'Gateway restart failed.',
@@ -2904,7 +2905,7 @@ export const en: Translations = {
     sharedGatewayRestartDescription: bots => `All bots on this device reconnect: ${bots}`,
     sharedGatewayRestartConfirm: 'Restart all',
     sharedGatewayRestarted: count => `Shared gateway restarted (${count} ${count === 1 ? 'bot' : 'bots'})`,
-    updateHermes: 'Update 螃蟹AI',
+    updateHermes: 'Update 螃蟹OPC',
     reloadWindow: 'Reload window',
     actionRunning: 'running',
     actionDone: 'done',
@@ -3051,17 +3052,17 @@ export const en: Translations = {
     restartNeeded: 'Saved. Restart the messaging gateway so the new settings take effect.',
     restartNow: 'Restart now',
     restarting: 'Restarting…',
-    restartFailedManual: "螃蟹AI couldn't restart to apply your messaging settings",
+    restartFailedManual: "螃蟹OPC couldn't restart to apply your messaging settings",
     restartFailedManualDetail: 'Try Restart again; if it still fails, open the logs and send diagnostics.',
     restartAgain: 'Restart again',
     openLogs: 'Open logs',
     telegramQr: {
       title: 'Choose how to connect your Telegram bot',
-      subtitle: 'Both options connect a bot you control and save its credentials only to this 螃蟹AI installation.',
+      subtitle: 'Both options connect a bot you control and save its credentials only to this 螃蟹OPC installation.',
       quickSetup: 'Quick setup',
       recommended: 'Recommended',
       quickHelp:
-        'Scan a QR code and confirm in Telegram. 螃蟹AI creates the bot and detects your Telegram user ID automatically.',
+        'Scan a QR code and confirm in Telegram. 螃蟹OPC creates the bot and detects your Telegram user ID automatically.',
       createWithQr: 'Create with QR',
       starting: 'Starting…',
       replaceWarning:
@@ -3264,14 +3265,14 @@ export const en: Translations = {
       onGateway: (name, gateway) => `${name} · ${gateway}`,
       switchTo: (name, gateway) => `Switch to ${name} on ${gateway}`,
       deleteOn: gateway => ` on ${gateway}`,
-      localDevice: 'This device (local backend — installs 螃蟹AI if missing, otherwise opens a fresh session)',
+      localDevice: 'This device (local backend — installs 螃蟹OPC if missing, otherwise opens a fresh session)',
       switchDeviceTitle: 'Switch to This device?',
       switchDeviceDesc:
         'This opens a fresh session on this computer. The conversation you are in stays on the other gateway.',
       switchDeviceConfirm: 'Switch',
       installDeviceTitle: 'Switch to This device?',
       installDeviceDesc:
-        'This will install 螃蟹AI locally, then open a fresh session on this computer. Nothing is installed until you confirm.',
+        'This will install 螃蟹OPC locally, then open a fresh session on this computer. Nothing is installed until you confirm.',
       installDeviceConfirm: 'Install locally',
       connectExistingInstead: 'Connect to existing instead'
     },
@@ -3285,7 +3286,7 @@ export const en: Translations = {
       menuItem: 'Connect to a remote host…',
       badge: (host: string) => `Runs on ${host}`,
       title: (profile: string) => `Connect ${profile} to a remote host`,
-      description: 'Sessions in this profile will run on the remote 螃蟹AI you point it at, instead of this computer.',
+      description: 'Sessions in this profile will run on the remote 螃蟹OPC you point it at, instead of this computer.',
       urlLabel: 'Remote address',
       urlPlaceholder: 'https://hermes.example.com',
       urlInvalid: 'Enter a full address starting with http:// or https://',
@@ -3320,7 +3321,7 @@ export const en: Translations = {
     setAsDefault: 'Set as default',
     defaultProfile: 'Default profile',
     defaultSet: name => `${name} is now the default`,
-    defaultDescription: 'Used when 螃蟹AI opens and for new chats. Existing sessions stay in their profiles.',
+    defaultDescription: 'Used when 螃蟹OPC opens and for new chats. Existing sessions stay in their profiles.',
     failedSetDefault: 'Could not set the default profile',
     setColor: color => `Set color ${color}`,
     autoColor: 'Auto',
@@ -3358,7 +3359,7 @@ export const en: Translations = {
     deleteDescMid: ' and remove its ',
     deleteDescSuffix: ' directory. This cannot be undone.',
     deleting: 'Deleting...',
-    createDesc: 'Profiles are independent 螃蟹AI environments: separate config, skills, and SOUL.md.',
+    createDesc: 'Profiles are independent 螃蟹OPC environments: separate config, skills, and SOUL.md.',
     nameLabel: 'Name',
     cloneFrom: 'Clone from',
     cloneFromNone: 'None (blank)',
@@ -3392,7 +3393,7 @@ export const en: Translations = {
   },
 
   modelAssignment: {
-    saveFailed: '螃蟹AI did not save that model change.',
+    saveFailed: '螃蟹OPC did not save that model change.',
     confirmTitle: 'Model Selection Warning',
     confirmDetail: 'Confirm only if you accept this trade-off.',
     confirmAction: 'Confirm',
@@ -3461,7 +3462,7 @@ export const en: Translations = {
     everyHourAt: minute => `Every hour at :${minute}`,
     newCron: 'New cron',
     emptyDescNew:
-      'Schedule a prompt to run on a cron expression. 螃蟹AI will run it and deliver results to the destination you pick.',
+      'Schedule a prompt to run on a cron expression. 螃蟹OPC will run it and deliver results to the destination you pick.',
     emptyDescSearch: 'Try a broader search query.',
     emptyTitleNew: 'No scheduled jobs yet',
     emptyTitleSearch: 'No matches',
@@ -3643,6 +3644,7 @@ export const en: Translations = {
     nav: {
       'new-session': 'New session',
       capabilities: 'Capabilities',
+      opc: 'OPC Agents',
       messaging: 'Messaging',
       artifacts: 'Artifacts',
       cron: 'Scheduled jobs'
@@ -3674,8 +3676,8 @@ export const en: Translations = {
     storageCorrupt: {
       title: 'Session database is damaged',
       body: (profiles: string) =>
-        `螃蟹AI can't read all of the session history for ${profiles}. Chats missing from this list were not deleted; the file they are stored in is damaged.`,
-      action: 'Quit 螃蟹AI on this profile, then inspect the file without changing it, or restore a snapshot:',
+        `螃蟹OPC can't read all of the session history for ${profiles}. Chats missing from this list were not deleted; the file they are stored in is damaged.`,
+      action: 'Quit 螃蟹OPC on this profile, then inspect the file without changing it, or restore a snapshot:',
       guide: 'Recovery guide'
     },
     noFilterMatches: 'No sessions match these filters',
@@ -3718,8 +3720,8 @@ export const en: Translations = {
       removeFromSidebar: 'Hide from sidebar',
       createFailed: 'Could not create project',
       staleBackend:
-        'Update the 螃蟹AI backend to create projects — your backend is older than this desktop app (Settings → Updates → Backend).',
-      deleteConfirm: 'This removes the saved project from 螃蟹AI. Files, git repos, and worktrees stay untouched.',
+        'Update the 螃蟹OPC backend to create projects — your backend is older than this desktop app (Settings → Updates → Backend).',
+      deleteConfirm: 'This removes the saved project from 螃蟹OPC. Files, git repos, and worktrees stay untouched.',
       startWork: 'New worktree',
       newWorktreeTitle: 'New worktree',
       newWorktreeDesc: 'Name the branch for this worktree.',
@@ -3729,7 +3731,7 @@ export const en: Translations = {
       baseBranchNone: 'No branches found',
       startWorkFailed: 'Could not create worktree',
       worktreeStaleBackend:
-        'Update the 螃蟹AI backend to create worktrees over this remote connection — it predates the git worktree API.',
+        'Update the 螃蟹OPC backend to create worktrees over this remote connection — it predates the git worktree API.',
       worktreeProjectLabel: 'Project',
       worktreeProjectPlaceholder: 'Search projects…',
       worktreeProjectNone: 'No projects with a folder',
@@ -3826,12 +3828,12 @@ export const en: Translations = {
   composer: {
     message: 'Message',
     wakingProfile: profile => `Waking up ${profile}…`,
-    placeholderStarting: 'Starting 螃蟹AI...',
-    placeholderReconnecting: 'Reconnecting to 螃蟹AI…',
+    placeholderStarting: 'Starting 螃蟹OPC...',
+    placeholderReconnecting: 'Reconnecting to 螃蟹OPC…',
     placeholderFollowUp: 'Send follow-up',
     newSessionPlaceholders: [
       'What are we building?',
-      'Give 螃蟹AI a task',
+      'Give 螃蟹OPC a task',
       "What's on your mind?",
       'Describe what you need',
       'What should we tackle?',
@@ -3868,8 +3870,8 @@ export const en: Translations = {
     transcribingDictation: 'Transcribing dictation',
     voiceControls: 'Voice',
     voiceEngine: 'Voice chat engine',
-    voiceEngineChained: 'Speech-to-text + 螃蟹AI voice',
-    voiceEngineLive: 'GPT-Live (full-duplex, delegates to 螃蟹AI)',
+    voiceEngineChained: 'Speech-to-text + 螃蟹OPC voice',
+    voiceEngineLive: 'GPT-Live (full-duplex, delegates to 螃蟹OPC)',
     voiceEngineLiveNeedsKey: 'Needs an OpenAI API key',
     voiceEngineChangeFailed: 'Could not change the voice chat engine',
     voiceEngineChainedShort: 'speech-to-text',
@@ -3918,7 +3920,7 @@ export const en: Translations = {
       '/journey': 'Open the memory graph — skills + memories over time',
       '/queue': 'Queue a prompt for the next turn, or list/edit/rm/move/clear queued prompts',
       '/steer': 'Inject a message after the next tool call without interrupting',
-      '/goal': 'Set a standing goal 螃蟹AI works on across turns until achieved',
+      '/goal': 'Set a standing goal 螃蟹OPC works on across turns until achieved',
       '/heartbeat': 'Set a recurring prompt that re-enters this session when idle',
       '/refine': 'Review this conversation now and save lessons to memory/skills',
       '/review': 'Spawn an independent subagent to review the work just discussed (PR, code, docs)',
@@ -3931,7 +3933,7 @@ export const en: Translations = {
       '/context':
         'Show detailed context window view with usage gauge, category breakdown, compression stats, and throughput',
       '/whoami': 'Show your slash command access (admin / user)',
-      '/profile': 'Switch the active 螃蟹AI profile',
+      '/profile': 'Switch the active 螃蟹OPC profile',
       '/codex-runtime': 'Toggle codex app-server runtime for OpenAI/Codex models',
       '/personality': 'Set a predefined personality',
       '/battery': 'Toggle a color-coded battery indicator in the status bar',
@@ -3958,7 +3960,7 @@ export const en: Translations = {
       '/subscription': 'View your Nous plan and change it in the browser',
       '/topup': 'Show your Nous balance and manage billing on the portal',
       '/platform': 'Pause, resume, or list a failing gateway platform',
-      '/version': 'Show 螃蟹AI Agent version',
+      '/version': 'Show 螃蟹OPC Agent version',
       '/debug': 'Upload debug report (system info + logs) and get shareable links',
       '/model': 'Switch the model for this session'
     },
@@ -3973,7 +3975,7 @@ export const en: Translations = {
       'composer.history': 'cycle popover / history'
     },
     attachUrlTitle: 'Attach a URL',
-    attachUrlDesc: '螃蟹AI will fetch the page and include it as context for this turn.',
+    attachUrlDesc: '螃蟹OPC will fetch the page and include it as context for this turn.',
     urlPlaceholder: 'https://example.com/post',
     urlHintPre: 'Include the full URL, e.g. ',
     attach: 'Attach',
@@ -4222,7 +4224,7 @@ export const en: Translations = {
       createPr: 'Create PR',
       openPr: 'Open PR',
       ghMissing: 'Install the GitHub CLI (gh) and sign in to open PRs',
-      agentShip: 'Ask 螃蟹AI to open PR',
+      agentShip: 'Ask 螃蟹OPC to open PR',
       agentShipUnavailable: "The chat that owns these changes isn't on screen.",
       agentShipPrompt:
         'Review the current changes, commit them with a clear conventional-commit message, push the branch, and open a pull request.',
@@ -4235,23 +4237,23 @@ export const en: Translations = {
   },
 
   updates: {
-    discontinuedTitle: 'This build of 螃蟹AI is no longer supported',
+    discontinuedTitle: 'This build of 螃蟹OPC is no longer supported',
     discontinuedBody:
-      'This build of 螃蟹AI is no longer supported and may break — uninstall it. Your data stays on disk.',
+      'This build of 螃蟹OPC is no longer supported and may break — uninstall it. Your data stays on disk.',
     channels: { stable: 'Stable', canary: 'Canary' },
     bundleSwapPending: 'Restart to finish the update',
     bundleSwapPendingDesc:
-      'The updated app is already installed — 螃蟹AI only needs to restart to load it. Chats and settings are untouched.',
-    bundleSwapPendingAction: 'Restart 螃蟹AI',
+      'The updated app is already installed — 螃蟹OPC only needs to restart to load it. Chats and settings are untouched.',
+    bundleSwapPendingAction: 'Restart 螃蟹OPC',
     stages: {
       idle: 'Getting ready…',
       prepare: 'Getting ready…',
       fetch: 'Downloading…',
       pull: 'Almost there…',
       pydeps: 'Finishing up…',
-      update: 'Updating 螃蟹AI…',
+      update: 'Updating 螃蟹OPC…',
       rebuild: 'Rebuilding the desktop app…',
-      restart: 'Restarting 螃蟹AI…',
+      restart: 'Restarting 螃蟹OPC…',
       done: 'Update complete',
       manual: 'Update from your terminal',
       guiSkew: 'Update the desktop app',
@@ -4261,58 +4263,58 @@ export const en: Translations = {
     checkFailedTitle: 'Couldn’t check for updates',
     tryAgain: 'Try again',
     notAvailableTitle: 'Update not available',
-    unsupportedMessage: 'This version of 螃蟹AI can’t update itself from inside the app.',
+    unsupportedMessage: 'This version of 螃蟹OPC can’t update itself from inside the app.',
     connectionRetry:
-      "螃蟹AI couldn't reach the update server. Check your internet connection and try again. If you use a remote 螃蟹AI, make sure it is online.",
-    gitUnusable: '螃蟹AI could not run Git on this computer, so it could not check for updates.',
+      "螃蟹OPC couldn't reach the update server. Check your internet connection and try again. If you use a remote 螃蟹OPC, make sure it is online.",
+    gitUnusable: '螃蟹OPC could not run Git on this computer, so it could not check for updates.',
     connectionSettings: 'Connection settings',
     openDownloadPage: 'Open download page',
     latestBody: 'You’re running the latest version.',
     latestBodyBackend: 'The backend is running the latest version.',
     allSetTitle: 'You’re all set',
     availableTitle: 'New update available',
-    availableBody: 'A new version of 螃蟹AI is ready to install.',
+    availableBody: 'A new version of 螃蟹OPC is ready to install.',
     availableTitleBackend: 'Backend update available',
-    availableBodyBackend: 'A newer version of the connected 螃蟹AI backend is ready to install.',
+    availableBodyBackend: 'A newer version of the connected 螃蟹OPC backend is ready to install.',
     availableBodyNoChangelog: 'A newer version is ready. Release notes aren’t available for this install type.',
     availableBodyAppInstaller:
-      'A new version of 螃蟹AI is ready. 螃蟹AI will close, Windows will finish the update, and 螃蟹AI will reopen on its own.',
+      'A new version of 螃蟹OPC is ready. 螃蟹OPC will close, Windows will finish the update, and 螃蟹OPC will reopen on its own.',
     updateNow: 'Update now',
     maybeLater: 'Maybe later',
     moreChanges: count => `+ ${count} more change${count === 1 ? '' : 's'} included.`,
     manualTitle: 'Update from your terminal',
     manualUnavailableTitle: "Can't update from here",
-    manualBody: 'You installed 螃蟹AI from the command line, so updates run there too. Paste this into your terminal:',
-    manualBodyBackend: 'The 螃蟹AI backend is managed outside this app. Run this on the server that hosts it:',
-    manualPickedUp: '螃蟹AI will pick up the new version next time you launch it.',
+    manualBody: 'You installed 螃蟹OPC from the command line, so updates run there too. Paste this into your terminal:',
+    manualBodyBackend: 'The 螃蟹OPC backend is managed outside this app. Run this on the server that hosts it:',
+    manualPickedUp: '螃蟹OPC will pick up the new version next time you launch it.',
     manualPickedUpBackend: 'The backend picks up the new version after the update completes.',
     guiSkewTitle: 'Update the desktop app',
     guiSkewBody:
-      'The backend was updated, but this desktop app package wasn’t changed. Update or reinstall the 螃蟹AI desktop app (your AppImage / .deb / .rpm) to match.',
+      'The backend was updated, but this desktop app package wasn’t changed. Update or reinstall the 螃蟹OPC desktop app (your AppImage / .deb / .rpm) to match.',
     copy: 'Copy',
     copied: 'Copied',
     done: 'Done',
     applyingBody:
-      'The 螃蟹AI updater takes over in its own window and reopens 螃蟹AI automatically when it’s done. Please don’t reopen 螃蟹AI yourself while it’s updating.',
+      'The 螃蟹OPC updater takes over in its own window and reopens 螃蟹OPC automatically when it’s done. Please don’t reopen 螃蟹OPC yourself while it’s updating.',
     applyingBodyBackend:
-      'The remote backend is applying the update and will restart. 螃蟹AI reconnects automatically when it’s back.',
-    applyingClose: 'This window will close while the update runs, then 螃蟹AI reopens on its own.',
+      'The remote backend is applying the update and will restart. 螃蟹OPC reconnects automatically when it’s back.',
+    applyingClose: 'This window will close while the update runs, then 螃蟹OPC reopens on its own.',
     applyingBodyAppInstaller:
-      '螃蟹AI will close and Windows will finish the update. 螃蟹AI will reopen when it’s done — you don’t need to do anything.',
-    applyingCloseAppInstaller: 'This window will close, Windows finishes the update, and 螃蟹AI reopens on its own.',
+      '螃蟹OPC will close and Windows will finish the update. 螃蟹OPC will reopen when it’s done — you don’t need to do anything.',
+    applyingCloseAppInstaller: 'This window will close, Windows finishes the update, and 螃蟹OPC reopens on its own.',
     checkUnknownTitleAppInstaller: 'Couldn’t check for updates',
     checkUnknownBodyAppInstaller:
-      'Windows couldn’t check for updates right now. Updates also install automatically when you restart 螃蟹AI.',
+      'Windows couldn’t check for updates right now. Updates also install automatically when you restart 螃蟹OPC.',
     errorTitle: 'Update didn’t finish',
     errorBody: 'No worries — nothing was lost. You can try again now.',
-    blockerTitle: 'Close local previews to update 螃蟹AI?',
+    blockerTitle: 'Close local previews to update 螃蟹OPC?',
     blockerBody:
-      '螃蟹AI needs to stop these local previews before updating. This will not modify or delete your files.',
-    foreignBlockerTitle: 'Close other processes to update 螃蟹AI',
+      '螃蟹OPC needs to stop these local previews before updating. This will not modify or delete your files.',
+    foreignBlockerTitle: 'Close other processes to update 螃蟹OPC',
     foreignBlockerBody:
-      '螃蟹AI can’t safely close these processes automatically. Close the app, terminal, or service that owns each one, then try the update again.',
+      '螃蟹OPC can’t safely close these processes automatically. Close the app, terminal, or service that owns each one, then try the update again.',
     mixedBlockerBody:
-      '螃蟹AI can close the local previews listed below. Other processes must be closed manually before the update can continue.',
+      '螃蟹OPC can close the local previews listed below. Other processes must be closed manually before the update can continue.',
     closePreviewsAndUpdate: 'Close previews and update',
     closePreviewsAndCheckAgain: 'Close previews and check again',
     localPreview: 'Local preview',
@@ -4344,7 +4346,7 @@ export const en: Translations = {
       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.'
     },
     // Update-status overlay + version-details (mechanism-aware update UI).
-    appName: '螃蟹AI',
+    appName: '螃蟹OPC',
     version: (value: string) => `Version ${value}`,
     versionUnavailable: 'Version unavailable',
     checkNow: 'Check now',
@@ -4366,7 +4368,7 @@ export const en: Translations = {
     justNowSuffix: ' · just now',
     bundleOutOfSync: 'App build out of date',
     bundleOutOfSyncDesc:
-      'The 螃蟹AI runtime was updated, but the desktop app itself is still an older build. Update it to pick up the latest fixes.',
+      'The 螃蟹OPC runtime was updated, but the desktop app itself is still an older build. Update it to pick up the latest fixes.',
     bundleOutOfSyncAction: 'Get the installer',
     checkingShort: 'Checking…',
     releaseAvailable: tag => `Version ${tag} is available.`,
@@ -4398,11 +4400,11 @@ export const en: Translations = {
     sessionsTitle: 'Each profile keeps its own sessions',
     sessionsText:
       'This list belongs to the default profile. New session starts one on whichever profile is selected. Switch profiles on the rail and the list changes with it.',
-    stayTitle: '螃蟹AI is one click away',
-    stayText: 'Switch to the setup profile and open Welcome to 螃蟹AI whenever you want a hand. It stays there.'
+    stayTitle: '螃蟹OPC is one click away',
+    stayText: 'Switch to the setup profile and open Welcome to 螃蟹OPC whenever you want a hand. It stays there.'
   },
   guidedGreeting: {
-    line: "Hey, come on in. I'm 螃蟹AI. Give me two minutes to set the place up around you, then we'll put me to work on something you actually want done.\n\nFirst though, what should I call you?",
+    line: "Hey, come on in. I'm 螃蟹OPC. Give me two minutes to set the place up around you, then we'll put me to work on something you actually want done.\n\nFirst though, what should I call you?",
     nameSuggestion: (name: string) => `(I can also just call you ${name}, if you prefer.)`
   },
   install: {
@@ -4413,7 +4415,7 @@ export const en: Translations = {
       skipped: 'Skipped',
       failed: 'Failed'
     },
-    oneTimeTitle: '螃蟹AI needs a one-time install',
+    oneTimeTitle: '螃蟹OPC needs a one-time install',
     unsupportedDesc: platform =>
       `Automated first-launch install isn’t available on ${platform} yet. Open Terminal and run the command below, then relaunch this app. Subsequent launches will skip this step.`,
     installCommand: 'Install command',
@@ -4421,27 +4423,27 @@ export const en: Translations = {
     viewDocs: 'View install docs',
     installTo: 'Will install to',
     retryAfterRun: 'I’ve run it -- retry',
-    setupChoiceTitle: 'Set up 螃蟹AI Desktop',
+    setupChoiceTitle: 'Set up 螃蟹OPC Desktop',
     setupChoiceDesc:
-      'Connect this app to a 螃蟹AI gateway you already run, or install 螃蟹AI locally on this computer.',
-    setupChoiceDescLocal: 'Install 螃蟹AI on this computer, or connect to a 螃蟹AI gateway you already run.',
-    connectExistingTitle: 'Connect to existing 螃蟹AI',
+      'Connect this app to a 螃蟹OPC gateway you already run, or install 螃蟹OPC locally on this computer.',
+    setupChoiceDescLocal: 'Install 螃蟹OPC on this computer, or connect to a 螃蟹OPC gateway you already run.',
+    connectExistingTitle: 'Connect to existing 螃蟹OPC',
     connectExistingShort: 'Connect existing',
     connectExistingDesc: 'Use a remote backend with a session token or browser sign-in. No local install will start.',
-    installLocalTitle: 'Install 螃蟹AI locally',
-    installLocalDesc: 'Download 螃蟹AI, create its Python environment, and run the backend on this computer.',
-    useLocalTitle: 'Use 螃蟹AI on this computer',
-    useLocalDesc: 'A 螃蟹AI runtime is already installed here — start it with one click. Nothing downloads.',
-    bundledLocalDesc: 'Use the 螃蟹AI runtime included with this app — the bundled backend is the local install.',
-    localStartUnavailable: 'Local installation could not start. Restart 螃蟹AI Desktop and try again.',
-    remoteSetupTitle: 'Connect to existing 螃蟹AI',
-    remoteSetupDesc: 'Enter your gateway URL. 螃蟹AI Desktop will detect whether it needs a token or browser sign-in.',
+    installLocalTitle: 'Install 螃蟹OPC locally',
+    installLocalDesc: 'Download 螃蟹OPC, create its Python environment, and run the backend on this computer.',
+    useLocalTitle: 'Use 螃蟹OPC on this computer',
+    useLocalDesc: 'A 螃蟹OPC runtime is already installed here — start it with one click. Nothing downloads.',
+    bundledLocalDesc: 'Use the 螃蟹OPC runtime included with this app — the bundled backend is the local install.',
+    localStartUnavailable: 'Local installation could not start. Restart 螃蟹OPC Desktop and try again.',
+    remoteSetupTitle: 'Connect to existing 螃蟹OPC',
+    remoteSetupDesc: 'Enter your gateway URL. 螃蟹OPC Desktop will detect whether it needs a token or browser sign-in.',
     remoteUrlTitle: 'Gateway URL',
-    remoteUrlDesc: 'Use the base URL of the 螃蟹AI gateway, including https:// when remote.',
+    remoteUrlDesc: 'Use the base URL of the 螃蟹OPC gateway, including https:// when remote.',
     remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
     probing: 'Detecting gateway authentication...',
     probeError:
-      "螃蟹AI can't reach that address. Check the URL and that the other computer is running 螃蟹AI — sign-in options appear once it answers.",
+      "螃蟹OPC can't reach that address. Check the URL and that the other computer is running 螃蟹OPC — sign-in options appear once it answers.",
     probeErrorDetails: 'Details',
     identityProvider: 'your identity provider',
     authTitle: 'Authentication',
@@ -4462,12 +4464,12 @@ export const en: Translations = {
     applyRemote: 'Apply and reconnect',
     backToSetup: 'Back',
     failedTitle: 'Installation failed',
-    settingUpTitle: 'Setting up 螃蟹AI Agent',
+    settingUpTitle: 'Setting up 螃蟹OPC Agent',
     finishingTitle: 'Finishing up',
     failedDesc:
-      'One of the setup steps did not finish. This can happen when another copy of 螃蟹AI is running, the internet connection dropped, or antivirus blocked the installer. Close other 螃蟹AI windows, then choose Reload and retry. If it fails again, open the logs and send them to support.',
+      'One of the setup steps did not finish. This can happen when another copy of 螃蟹OPC is running, the internet connection dropped, or antivirus blocked the installer. Close other 螃蟹OPC windows, then choose Reload and retry. If it fails again, open the logs and send them to support.',
     activeDesc:
-      'This is a one-time setup. The 螃蟹AI installer is downloading dependencies and configuring your machine. Subsequent launches will skip this step.',
+      'This is a one-time setup. The 螃蟹OPC installer is downloading dependencies and configuring your machine. Subsequent launches will skip this step.',
     progress: (completed, total) => `${completed} of ${total} steps complete`,
     currentStage: stage => ` -- now: ${stage}`,
     fetchingManifest: 'Fetching installer manifest...',
@@ -4486,10 +4488,10 @@ export const en: Translations = {
   },
 
   onboarding: {
-    headerTitle: "Let's get you setup with 螃蟹AI Agent",
+    headerTitle: "Let's get you setup with 螃蟹OPC Agent",
     headerDesc: 'Connect a model provider to start chatting. Most options take one click.',
-    preparingInstall: '螃蟹AI is finishing install. This usually takes under a minute on first run.',
-    starting: 'Starting 螃蟹AI…',
+    preparingInstall: '螃蟹OPC is finishing install. This usually takes under a minute on first run.',
+    starting: 'Starting 螃蟹OPC…',
     lookingUpProviders: 'Looking up providers...',
     collapse: 'Collapse',
     otherProviders: 'Other providers',
@@ -4497,7 +4499,7 @@ export const en: Translations = {
     chooseLater: "I'll choose a provider later",
     recommended: 'Recommended',
     connected: 'Connected',
-    featuredPitch: 'One subscription, 300+ frontier models — the recommended way to run 螃蟹AI',
+    featuredPitch: 'One subscription, 300+ frontier models — the recommended way to run 螃蟹OPC',
     fireworksPitch: 'Direct model API — Fireworks-hosted frontier models',
     localModelsTitle: 'Run models locally',
     localModelsPitch: 'No account needed — download a model and run it on this machine',
@@ -4522,7 +4524,7 @@ export const en: Translations = {
       xai: { short: 'Grok models', description: 'Direct access to xAI Grok models.' },
       local: {
         short: 'self-hosted',
-        description: 'Point 螃蟹AI at a local or self-hosted OpenAI-compatible endpoint (vLLM, llama.cpp, Ollama, etc).'
+        description: 'Point 螃蟹OPC at a local or self-hosted OpenAI-compatible endpoint (vLLM, llama.cpp, Ollama, etc).'
       }
     },
     backToSignIn: 'Back to sign in',
@@ -4536,7 +4538,7 @@ export const en: Translations = {
     update: 'Update',
     flowSubtitles: {
       pkce: 'Opens your browser to sign in, then continues here',
-      device_code: 'Opens a verification page in your browser — 螃蟹AI connects automatically',
+      device_code: 'Opens a verification page in your browser — 螃蟹OPC connects automatically',
       external: 'Sign in once in your terminal, then come back to chat'
     },
     startingSignIn: provider => `Starting sign-in for ${provider}...`,
@@ -4554,12 +4556,12 @@ export const en: Translations = {
     pickDifferentProvider: 'Pick a different provider',
     signInWith: provider => `Sign in with ${provider}`,
     openedBrowser: provider => `We opened ${provider} in your browser.`,
-    authorizeThere: 'Authorize 螃蟹AI there.',
+    authorizeThere: 'Authorize 螃蟹OPC there.',
     copyAuthCode: 'Copy the authorization code and paste it below.',
     pasteAuthCode: 'Paste authorization code',
     reopenAuthPage: 'Re-open authorization page',
     autoBrowser: provider =>
-      `We opened ${provider} in your browser. Authorize 螃蟹AI there and you'll be connected automatically — nothing to copy or paste.`,
+      `We opened ${provider} in your browser. Authorize 螃蟹OPC there and you'll be connected automatically — nothing to copy or paste.`,
     reopenSignInPage: 'Re-open sign-in page',
     waitingAuthorize: 'Waiting for you to authorize...',
     externalPending: provider =>
@@ -4581,7 +4583,7 @@ export const en: Translations = {
   freeTier: {
     providerRowTitle: 'Nous · free tier',
     providerRowPitch: 'Sign in with a Nous account to unlock more models and tools.',
-    readyTitle: '螃蟹AI is ready.',
+    readyTitle: '螃蟹OPC is ready.',
     readyCaption: 'Free · connectors included',
     begin: 'Begin',
     signInInstead: 'Sign in with a Nous account instead',
@@ -4616,30 +4618,30 @@ export const en: Translations = {
     timedOutHeading: 'That sign-in link has expired',
     timedOutBody: "Start again whenever you're ready. You're still on the free Nous service.",
     retiredBody:
-      "Your session ended before the sign-in finished. 螃蟹AI will start a new one; then sign in again whenever you're ready.",
+      "Your session ended before the sign-in finished. 螃蟹OPC will start a new one; then sign in again whenever you're ready.",
     errorBody: "Sign-in didn't finish. Try again whenever you're ready.",
     busyHeading: 'Almost there',
     busyBody: wait =>
-      `螃蟹AI couldn't finish signing you in because the Nous service is busy. Try again in ${wait}. Your session is still here in the meantime.`,
+      `螃蟹OPC couldn't finish signing you in because the Nous service is busy. Try again in ${wait}. Your session is still here in the meantime.`,
     unreachableBody:
-      "螃蟹AI couldn't reach the Nous service to finish signing you in. Check your internet connection and try again. Your session is still here.",
+      "螃蟹OPC couldn't reach the Nous service to finish signing you in. Check your internet connection and try again. Your session is still here.",
     alreadySignedInHeading: 'Already signed in.',
-    alreadySignedInBody: 'This 螃蟹AI is already signed in to a Nous account.',
+    alreadySignedInBody: 'This 螃蟹OPC is already signed in to a Nous account.',
     setupFailed: {
       gateClosed:
-        "This version of 螃蟹AI can't start without a Nous account. Sign in or create one, it's free and only takes a minute.",
+        "This version of 螃蟹OPC can't start without a Nous account. Sign in or create one, it's free and only takes a minute.",
       paused:
-        'Using 螃蟹AI without signing in is paused for a moment. 螃蟹AI will keep checking. Signing in is free and gets you going right now.',
+        'Using 螃蟹OPC without signing in is paused for a moment. 螃蟹OPC will keep checking. Signing in is free and gets you going right now.',
       rateLimited: wait =>
-        `Lots of people are getting started right now, so 螃蟹AI will try again in ${wait}. Signing in is free and skips the wait.`,
+        `Lots of people are getting started right now, so 螃蟹OPC will try again in ${wait}. Signing in is free and skips the wait.`,
       unreachable:
-        "螃蟹AI couldn't reach the Nous service. Check your internet connection, then tap Try again. Or connect another provider for now.",
+        "螃蟹OPC couldn't reach the Nous service. Check your internet connection, then tap Try again. Or connect another provider for now.",
       serverError: 'The Nous service had a hiccup. Tap Try again in a moment, or connect another provider for now.',
       powRequired:
         "The Nous server asked for a proof of work, but that isn't implemented in your Agent yet. Sign in or create a free Nous account to continue.",
       locked: "This session can't continue without signing in. Sign in or create a free Nous account to keep going.",
       generic:
-        "螃蟹AI couldn't set up free access without signing in. Signing in is free, or connect another provider.",
+        "螃蟹OPC couldn't set up free access without signing in. Signing in is free, or connect another provider.",
       signInBelow: 'Signing in is free. Pick Nous below.',
       tryAgain: 'Try again',
       retrying: 'Trying again…'
@@ -4740,13 +4742,13 @@ export const en: Translations = {
       updateInProgress: 'Update in progress',
       commitsBehind: (count, branch) => `${count} commit${count === 1 ? '' : 's'} behind ${branch}`,
       releaseAvailable: (tag: string) => `Version ${tag} is available.`,
-      desktopVersion: version => `螃蟹AI Desktop v${version}`,
+      desktopVersion: version => `螃蟹OPC Desktop v${version}`,
       backendVersion: version => `Backend v${version}`,
       clientLabel: version => `client v${version}`,
       connectionSsh: host => `SSH: ${host}`,
       connectionRemote: host => `Remote: ${host}`,
       connectionCloud: host => `Cloud: ${host}`,
-      connectionCloudTooltip: host => `螃蟹AI Cloud · ${host}`,
+      connectionCloudTooltip: host => `螃蟹OPC Cloud · ${host}`,
       connectionSshTooltip: host => `SSH · ${host}`,
       connectionRemoteTooltip: host => `Remote · ${host}`,
       backendLabel: version => `backend v${version}`,
@@ -4901,7 +4903,7 @@ export const en: Translations = {
     binaryTitle: 'This looks like a binary file',
     binaryBody: label => `Previewing ${label} may show unreadable text.`,
     largeTitle: 'This file is large',
-    largeBody: (label, size) => `${label} is ${size}. 螃蟹AI will only show the first 512 KB.`,
+    largeBody: (label, size) => `${label} is ${size}. 螃蟹OPC will only show the first 512 KB.`,
     previewAnyway: 'Preview anyway',
     truncated: 'Showing first 512 KB.',
     noInlineTitle: 'No inline preview',
@@ -4942,11 +4944,11 @@ export const en: Translations = {
         'This address points at the machine running your agent, not this one. The browser pane loads pages locally, so a remote dev server needs a port forward or a reachable hostname.',
       failedToLoad: 'Preview failed to load',
       tryAgain: 'Try again',
-      restarting: '螃蟹AI is restarting...',
-      askRestart: 'Ask 螃蟹AI to restart the server',
-      lookingRestart: taskId => `螃蟹AI is looking for a preview server to restart (${taskId})`,
+      restarting: '螃蟹OPC is restarting...',
+      askRestart: 'Ask 螃蟹OPC to restart the server',
+      lookingRestart: taskId => `螃蟹OPC is looking for a preview server to restart (${taskId})`,
       restartingTitle: 'Restarting preview server',
-      restartingMessage: '螃蟹AI is working in the background. Watch the preview console for progress.',
+      restartingMessage: '螃蟹OPC is working in the background. Watch the preview console for progress.',
       startRestartFailed: message => `Could not start server restart: ${message}`,
       restartFailed: 'Server restart failed',
       hideConsole: 'Hide preview console',
@@ -4958,16 +4960,16 @@ export const en: Translations = {
       reload: 'Reload page',
       address: 'Address',
       addressPlaceholder: 'Enter address',
-      blankPageBody: 'Type an address above to browse, or ask 螃蟹AI to open a page.',
-      finishedRestarting: message => `螃蟹AI finished restarting the preview server${message ? `: ${message}` : ''}`,
+      blankPageBody: 'Type an address above to browse, or ask 螃蟹OPC to open a page.',
+      finishedRestarting: message => `螃蟹OPC finished restarting the preview server${message ? `: ${message}` : ''}`,
       failedRestarting: message => `Server restart failed: ${message}`,
       unknownError: 'unknown error',
       restartedTitle: 'Preview server restarted',
       reloadingNow: 'Reloading the preview now.',
       restartFailedTitle: 'Preview restart failed',
-      restartFailedMessage: '螃蟹AI could not restart the server.',
+      restartFailedMessage: '螃蟹OPC could not restart the server.',
       stillWorking:
-        '螃蟹AI is still working, but no restart result has arrived yet. The server command may be running in the foreground.',
+        '螃蟹OPC is still working, but no restart result has arrived yet. The server command may be running in the foreground.',
       workspaceReloading: 'Workspace changed, reloading preview',
       fileChanged: url => `File changed, reloading preview: ${url}`,
       filesChanged: (count, url) => `${count} file changes, reloading preview: ${url}`,
@@ -4993,11 +4995,11 @@ export const en: Translations = {
 
   interfaceMode: {
     title: 'Interface mode',
-    hint: 'Changes what is shown, not what 螃蟹AI can do.',
+    hint: 'Changes what is shown, not what 螃蟹OPC can do.',
     sessionNote: 'Set by Simple mode. A change here lasts for this session; switch to Advanced to make it yours.',
     simple: {
       label: 'Simple',
-      description: 'For talking to 螃蟹AI. Sidebar and chat; no terminal, file or diff panes.'
+      description: 'For talking to 螃蟹OPC. Sidebar and chat; no terminal, file or diff panes.'
     },
     advanced: {
       label: 'Advanced',
@@ -5082,7 +5084,7 @@ export const en: Translations = {
     thread: {
       loadingSession: 'Loading session',
       showEarlier: 'Show earlier messages',
-      loadingResponse: '螃蟹AI is loading a response',
+      loadingResponse: '螃蟹OPC is loading a response',
       loadingLocalModel: model => `Loading ${model} into memory`,
       processingPrompt: 'Processing prompt',
       resumeWhenBackgroundDone: count =>
@@ -5107,24 +5109,24 @@ export const en: Translations = {
         billing: 'Out of credits',
         disk: 'Disk full',
         endpoint: "Can't reach your model server",
-        gateway: '螃蟹AI hit a problem',
-        generic: "螃蟹AI couldn't finish this reply",
+        gateway: '螃蟹OPC hit a problem',
+        generic: "螃蟹OPC couldn't finish this reply",
         provider: 'The AI service returned an error',
-        runtime: '螃蟹AI hit a problem',
+        runtime: '螃蟹OPC hit a problem',
         streaming: 'The reply was cut off'
       },
       errorLayerBodies: {
         auth: 'The AI service rejected your sign-in. Check the credentials for this provider, then send your message again.',
         billing: 'Your account has no credits left for this provider. Top up or switch provider, then send again.',
-        disk: 'Your disk is full, so 螃蟹AI could not save this conversation. Free some space, then retry.',
+        disk: 'Your disk is full, so 螃蟹OPC could not save this conversation. Free some space, then retry.',
         endpoint:
-          "螃蟹AI can't reach your custom model server. Check that it is running, then send your message again.",
+          "螃蟹OPC can't reach your custom model server. Check that it is running, then send your message again.",
         gateway:
-          '螃蟹AI hit an internal problem starting this reply. Send your message again; if it keeps happening, send diagnostics.',
-        generic: 'Something went wrong while 螃蟹AI was replying. Retry, or copy the details if it keeps happening.',
+          '螃蟹OPC hit an internal problem starting this reply. Send your message again; if it keeps happening, send diagnostics.',
+        generic: 'Something went wrong while 螃蟹OPC was replying. Retry, or copy the details if it keeps happening.',
         provider: 'The AI service could not complete this request. Retry in a moment or switch provider.',
         runtime:
-          '螃蟹AI hit an internal problem starting this reply. Send your message again; if it keeps happening, send diagnostics.',
+          '螃蟹OPC hit an internal problem starting this reply. Send your message again; if it keeps happening, send diagnostics.',
         streaming: 'The connection dropped before the reply finished. Retry to send it again.'
       },
       errorCodes: {
@@ -5175,7 +5177,7 @@ export const en: Translations = {
         ssl_cert_verification: {
           title: 'Secure connection failed',
           body: provider =>
-            `螃蟹AI could not verify the secure connection to ${provider}. Check your network or proxy settings, or switch provider, then send your message again.`
+            `螃蟹OPC could not verify the secure connection to ${provider}. Check your network or proxy settings, or switch provider, then send your message again.`
         },
         context_overflow: {
           title: 'This conversation is too long',
@@ -5210,28 +5212,28 @@ export const en: Translations = {
         },
         invalid_response: {
           title: 'The AI service sent an unreadable reply',
-          body: provider => `${provider} returned something 螃蟹AI could not read. Retry in a moment.`
+          body: provider => `${provider} returned something 螃蟹OPC could not read. Retry in a moment.`
         },
         empty_response: {
           title: 'The AI service sent an empty reply',
           body: provider => `${provider} returned nothing for this message. Retry in a moment.`
         },
         loop_error: {
-          title: '螃蟹AI got stuck in a loop',
-          body: 'The reply kept repeating the same steps, so 螃蟹AI stopped it. Retry, or start a new chat if it happens again.'
+          title: '螃蟹OPC got stuck in a loop',
+          body: 'The reply kept repeating the same steps, so 螃蟹OPC stopped it. Retry, or start a new chat if it happens again.'
         },
         SESSION_NOT_OWNED: {
           title: 'This chat is open somewhere else',
-          body: 'This chat is currently open in another 螃蟹AI window or terminal. Close it there and send your message again, or start a new chat here.'
+          body: 'This chat is currently open in another 螃蟹OPC window or terminal. Close it there and send your message again, or start a new chat here.'
         },
         disk_full: {
           title: 'Disk full',
-          body: 'Your disk is full, so 螃蟹AI could not save this conversation. Free some space, then retry.'
+          body: 'Your disk is full, so 螃蟹OPC could not save this conversation. Free some space, then retry.'
         },
         // Nous free tier. The body is normally the backend's own sentence (it names the wait
         // and the way forward); these bodies stand in for an older backend that sent none.
         free_tier_disabled: {
-          title: 'Using 螃蟹AI without signing in is switched off right now',
+          title: 'Using 螃蟹OPC without signing in is switched off right now',
           body: "Sign in with a Nous account to keep chatting, it's free."
         },
         free_tier_rate_limited: {
@@ -5244,10 +5246,10 @@ export const en: Translations = {
         },
         free_tier_model_not_free: {
           title: "That model isn't available without signing in",
-          body: "螃蟹AI uses the free model for now. Sign in with a Nous account for more models, it's free."
+          body: "螃蟹OPC uses the free model for now. Sign in with a Nous account for more models, it's free."
         },
         free_tier_route: {
-          title: "螃蟹AI couldn't reach the free model on this route",
+          title: "螃蟹OPC couldn't reach the free model on this route",
           body: "Sign in with a Nous account, it's free, or check the NOUS_INFERENCE_BASE_URL setting."
         },
         free_tier_outage: {
@@ -5255,7 +5257,7 @@ export const en: Translations = {
           body: 'Try sending your message again in a minute.'
         },
         free_tier_refused: {
-          title: "螃蟹AI couldn't send that without signing in",
+          title: "螃蟹OPC couldn't send that without signing in",
           body: 'Signing in with a Nous account is free.'
         }
       },
@@ -5270,7 +5272,7 @@ export const en: Translations = {
       },
       errorDetails: 'Details',
       errorGenericProvider: 'The AI service',
-      errorToastTitle: "螃蟹AI couldn't finish the reply",
+      errorToastTitle: "螃蟹OPC couldn't finish the reply",
       errorRetry: 'Retry',
       errorLimitResets: time => `Limit resets at ${time}`,
       errorRetryAtReset: time => `Retry when the limit resets (${time})`,
@@ -5281,8 +5283,8 @@ export const en: Translations = {
       errorChooseModel: 'Choose a model',
       errorCompressConversation: 'Compress conversation',
       errorCompressFailed: 'Could not compress the conversation',
-      errorOpenHermesFolder: 'Open 螃蟹AI folder',
-      errorOpenHermesFolderFailed: 'Could not open the 螃蟹AI folder',
+      errorOpenHermesFolder: 'Open 螃蟹OPC folder',
+      errorOpenHermesFolderFailed: 'Could not open the 螃蟹OPC folder',
       errorUpdateApiKey: 'Update API key',
       errorSignInAgain: provider => `Sign in to ${provider} again`,
       errorSignInFreeTier: 'Sign in with a Nous account',
@@ -5319,11 +5321,11 @@ export const en: Translations = {
     },
     approval: {
       gatewayDisconnected:
-        '螃蟹AI is offline right now. The command is still waiting for your answer (until the approval timeout). Reconnect, then send it again.',
+        '螃蟹OPC is offline right now. The command is still waiting for your answer (until the approval timeout). Reconnect, then send it again.',
       sendFailed: 'Could not send your answer',
       reconnect: 'Reconnect',
       timedOutSystemLine:
-        'Approval timed out — the command was not run. Ask 螃蟹AI to try again, or raise the limit in Settings → Safety → Approval timeout.',
+        'Approval timed out — the command was not run. Ask 螃蟹OPC to try again, or raise the limit in Settings → Safety → Approval timeout.',
       openSafetySettings: 'Open Safety settings',
       run: 'Run',
       command: 'Command',
@@ -5335,12 +5337,12 @@ export const en: Translations = {
       reject: 'Reject',
       alwaysTitle: 'Always allow this command?',
       alwaysDescription: pattern =>
-        `This adds the “${pattern}” pattern to your permanent allowlist (~/.hermes/config.yaml). 螃蟹AI won’t ask again for commands like this — in this session or any future one.`,
+        `This adds the “${pattern}” pattern to your permanent allowlist (~/.hermes/config.yaml). 螃蟹OPC won’t ask again for commands like this — in this session or any future one.`,
       alwaysAllow: 'Always allow'
     },
     clarify: {
       notReady: 'Clarify request is not ready yet',
-      gatewayDisconnected: '螃蟹AI is offline right now. Reconnect, then send it again.',
+      gatewayDisconnected: '螃蟹OPC is offline right now. Reconnect, then send it again.',
       sendFailed: 'Could not send clarify response',
       loadingQuestion: 'Loading question…',
       other: 'Other (type your answer)',
@@ -5395,7 +5397,7 @@ export const en: Translations = {
       envRequired: 'Fill in the required credentials first',
       sendFailed: 'Could not send MCP setup response',
       reloadFailed: 'Server saved, but reloading MCP tools failed — they load next session',
-      gatewayDisconnected: '螃蟹AI is offline right now. Reconnect, then send it again.'
+      gatewayDisconnected: '螃蟹OPC is offline right now. Reconnect, then send it again.'
     },
     tool: {
       copyCode: 'Copy code',
@@ -5501,7 +5503,7 @@ export const en: Translations = {
   },
 
   prompts: {
-    gatewayDisconnected: '螃蟹AI is offline right now. Reconnect, then send it again.',
+    gatewayDisconnected: '螃蟹OPC is offline right now. Reconnect, then send it again.',
     reconnect: 'Reconnect',
     sudoSendFailed: 'Could not send sudo password',
     secretSendFailed: 'Could not send secret',
@@ -5511,10 +5513,10 @@ export const en: Translations = {
     sudoCommandUnavailable:
       'This agent did not provide the command. Cancel if you cannot verify it in the conversation.',
     sudoInstallDesc:
-      '螃蟹AI needs your sudo password to install the Bot Screen packages (TigerVNC + Xfce) on the gateway host. It is sent only to that host.',
+      '螃蟹OPC needs your sudo password to install the Bot Screen packages (TigerVNC + Xfce) on the gateway host. It is sent only to that host.',
     sudoPlaceholder: 'sudo password',
     secretTitle: 'Secret required',
-    secretDesc: '螃蟹AI needs a credential to continue.',
+    secretDesc: '螃蟹OPC needs a credential to continue.',
     secretPlaceholder: 'secret value',
     vaultUnlockSendFailed: 'Could not send master password',
     vaultUnlockTitle: name => `Unlock ${name}`,
@@ -5526,7 +5528,7 @@ export const en: Translations = {
     vaultSaveSendFailed: 'Could not save the login',
     vaultSaveTitle: site => `Save your ${site} login?`,
     vaultSaveDesc: origin =>
-      `螃蟹AI reached a sign-in page at ${origin} and has no login for it. Enter it once here; it is encrypted on this machine and filled into the page without the model ever seeing the password.`,
+      `螃蟹OPC reached a sign-in page at ${origin} and has no login for it. Enter it once here; it is encrypted on this machine and filled into the page without the model ever seeing the password.`,
     vaultSaveIdentifierLabel: 'Email or username',
     vaultSaveIdentifierPlaceholder: 'you@example.com',
     vaultSavePasswordPlaceholder: 'Password',
@@ -5536,10 +5538,10 @@ export const en: Translations = {
     vaultCodeSendFailed: 'Could not send the code',
     vaultCodeTitle: site => `Verification code for ${site}`,
     vaultCodeDesc: site =>
-      `${site} is asking for a one-time code (text message, email or authenticator app). Enter it here and 螃蟹AI types it into the page; the model never sees it.`,
+      `${site} is asking for a one-time code (text message, email or authenticator app). Enter it here and 螃蟹OPC types it into the page; the model never sees it.`,
     vaultCodeLabel: 'Code',
     vaultCodeFootnote:
-      'Tip: save the authenticator key with this login in Settings → Passwords & Logins and 螃蟹AI enters codes for you.',
+      'Tip: save the authenticator key with this login in Settings → Passwords & Logins and 螃蟹OPC enters codes for you.',
     vaultCodeSkip: 'Skip',
     vaultCodeConfirm: 'Enter code'
   },
@@ -5612,8 +5614,8 @@ export const en: Translations = {
     sessionExportFailed: 'Could not export session',
     imageSaved: 'Image saved',
     downloadStarted: 'Download started',
-    restartToUseSaveImage: 'Restart 螃蟹AI Desktop to use Save Image.',
-    restartToSaveImages: 'Restart 螃蟹AI Desktop to save images',
+    restartToUseSaveImage: 'Restart 螃蟹OPC Desktop to use Save Image.',
+    restartToSaveImages: 'Restart 螃蟹OPC Desktop to save images',
     imageDownloadFailed: 'Image download failed',
     openImage: 'Open image',
     downloadImage: 'Download image',
@@ -5635,7 +5637,7 @@ export const en: Translations = {
       systemNote: platform => `↻ Handed off to ${platform} — resume here anytime.`,
       failed: error => `Handoff failed: ${error}`,
       timedOut:
-        "螃蟹AI couldn't reach your messaging connection. Start it from Settings → Messaging, then try the handoff again.",
+        "螃蟹OPC couldn't reach your messaging connection. Start it from Settings → Messaging, then try the handoff again.",
       startMessaging: 'Start messaging'
     }
   },
@@ -5649,14 +5651,14 @@ export const en: Translations = {
       },
       skills: {
         title: 'Teach it once',
-        text: 'Skills are folders of instructions 螃蟹AI loads when the work calls for them.'
+        text: 'Skills are folders of instructions 螃蟹OPC loads when the work calls for them.'
       },
       messaging: {
-        title: '螃蟹AI away from your desk',
+        title: '螃蟹OPC away from your desk',
         text: 'Connect Telegram, Discord, Slack and more — same agent, same memory.'
       },
       artifacts: {
-        title: 'Everything 螃蟹AI made',
+        title: 'Everything 螃蟹OPC made',
         text: 'Images, files and links from every session, indexed in one place.'
       },
       cron: {
@@ -5669,7 +5671,7 @@ export const en: Translations = {
       },
       profiles: {
         title: 'Profiles are separate',
-        text: 'Each one is its own 螃蟹AI — own keys, own memory, own sessions.'
+        text: 'Each one is its own 螃蟹OPC — own keys, own memory, own sessions.'
       },
       'composer-mentions': {
         title: 'Attach and command',

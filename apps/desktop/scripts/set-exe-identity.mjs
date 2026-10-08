@@ -90,7 +90,7 @@ async function stampExeIdentity(
   // brand.cjs 一处。CompanyName 保留 MIT 上游署名要求的最小诚实（MIT license
   // 文本随包分发不受影响）。
   const brand = createRequire(import.meta.url)('../electron/brand.cjs')
-  const brandName = brand.displayName || '螃蟹AI'
+  const brandName = brand.displayName || '螃蟹OPC'
   const options = {
     icon,
     'version-string': {

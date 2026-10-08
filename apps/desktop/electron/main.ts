@@ -2715,7 +2715,7 @@ async function waitForUpdateToFinish() {
       rememberLog(`[updates] detached update finished with manual action (branch ${result.branch}): ${result.message}`)
       dialog.showMessageBox({
         type: 'warning',
-        title: brandText('螃蟹AI 更新'),
+        title: brandText('螃蟹OPC 更新'),
         message: 'The update finished, but needs one more step',
         detail: result.message
       })
@@ -2731,7 +2731,7 @@ async function waitForUpdateToFinish() {
       void dialog
         .showMessageBox({
           type: 'error',
-          title: brandText('螃蟹AI 更新'),
+          title: brandText('螃蟹OPC 更新'),
           message: "Hermes couldn't finish updating",
           detail:
             "You're still on the previous version and can keep using it. Try the update again, or open the update log to report the problem.\n\n" +
@@ -15211,7 +15211,7 @@ function createWindow() {
         const exit = details?.exitCode === undefined ? '' : `, exit code ${String(details.exitCode)}`
         rememberLog(`[renderer:main] renderer terminated while live (reason=${reason}${exit}); surfacing recovery page`)
         void loadRendererLoadErrorPage(mainWindow, {
-          title: brandText('螃蟹AI 桌面界面已终止'),
+          title: brandText('螃蟹OPC 桌面界面已终止'),
           errorDescription:
             `The desktop UI process was terminated unexpectedly (reason: ${reason}${exit}). ` +
             'Your sessions and the background gateway are unaffected — reload to continue.',

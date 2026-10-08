@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import type { OverlayNavLink, OverlayNavGroup } from './overlay-split-layout'
 
 /**
- * qiji 螃蟹AI 设置页专用：左侧竖排导航 rail（全大写+宽字距+直角）。
+ * qiji 螃蟹OPC 设置页专用：左侧竖排导航 rail（全大写+宽字距+直角）。
  *
  * 风格对标 dashboard 侧栏：UPPERCASE 标签、宽字距、直角行框、
  * 激活行左侧粗描边——与 Hermes 原版的常规小写导航形成视觉区隔。

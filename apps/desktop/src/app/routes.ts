@@ -14,6 +14,7 @@ export const SETTINGS_ROUTE = '/settings'
 export const COMMAND_CENTER_ROUTE = '/command-center'
 export const SESSION_IMPORT_ROUTE = '/session-import'
 export const CAPABILITIES_ROUTE = '/capabilities'
+export const OPC_ROUTE = '/opc'
 export const MESSAGING_ROUTE = '/messaging'
 export const WEBHOOKS_ROUTE = '/webhooks'
 export const ARTIFACTS_ROUTE = '/artifacts'
@@ -36,6 +37,7 @@ export type AppView =
   // session-title dropdown while a plugin page was showing.
   | 'extension'
   | 'messaging'
+  | 'opc'
   | 'profiles'
   | 'settings'
   | 'starmap'
@@ -50,6 +52,7 @@ export type AppRouteId =
   | 'cron'
   | 'messaging'
   | 'new'
+  | 'opc'
   | 'profiles'
   | 'settings'
   | 'starmap'
@@ -67,6 +70,7 @@ export const APP_ROUTES = [
   { id: 'settings', path: SETTINGS_ROUTE, view: 'settings' },
   { id: 'command-center', path: COMMAND_CENTER_ROUTE, view: 'command-center' },
   { id: 'capabilities', path: CAPABILITIES_ROUTE, view: 'capabilities' },
+  { id: 'opc', path: OPC_ROUTE, view: 'opc' },
   { id: 'messaging', path: MESSAGING_ROUTE, view: 'messaging' },
   { id: 'webhooks', path: WEBHOOKS_ROUTE, view: 'webhooks' },
   { id: 'artifacts', path: ARTIFACTS_ROUTE, view: 'artifacts' },

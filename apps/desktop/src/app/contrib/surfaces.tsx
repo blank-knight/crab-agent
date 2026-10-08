@@ -39,6 +39,7 @@ import type { SidebarActions, WiringActions } from './types'
 const ArtifactsView = lazy(async () => ({ default: (await import('../artifacts')).ArtifactsView }))
 const MessagingView = lazy(async () => ({ default: (await import('../messaging')).MessagingView }))
 const CapabilitiesView = lazy(async () => ({ default: (await import('../capabilities')).CapabilitiesView }))
+const OpcView = lazy(async () => ({ default: (await import('../opc')).OpcView }))
 
 export function LegacySessionRedirect() {
   const { sessionId } = useParams()
@@ -187,6 +188,7 @@ export const ChatRoutesSurface = memo(function ChatRoutesSurface({
       <Route element={chatView} index />
       <Route element={chatView} path=":sessionId" />
       <Route element={page(<CapabilitiesView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="capabilities" />
+      <Route element={page(<OpcView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="opc" />
       <Route element={page(<MessagingView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="messaging" />
       <Route element={page(<ArtifactsView setStatusbarItemGroup={setStatusbarItemGroup} />)} path="artifacts" />
       <Route element={null} path="agents" />

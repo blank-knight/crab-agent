@@ -72,7 +72,7 @@ export function SectionHeading({
     return null
   }
 
-  // qiji 螃蟹AI: 分区标题条带化——左侧竖色条 + 上下留白，与 Hermes 原版的小灰标题拉开差异
+  // qiji 螃蟹OPC: 分区标题条带化——左侧竖色条 + 上下留白，与 Hermes 原版的小灰标题拉开差异
   return (
     <div className="mb-2 mt-1 flex items-center gap-2.5 border-l-2 border-l-(--ui-text-primary)/70 pl-2.5 text-[0.95rem] font-semibold tracking-wide">
       {showTitle && (
@@ -103,7 +103,7 @@ export function SettingsSection({
   meta?: string
   title: string
 }) {
-  // qiji 螃蟹AI: section 卡片化——带边框的直角卡片 + 卡片头（标题行与内容以分隔线隔开），
+  // qiji 螃蟹OPC: section 卡片化——带边框的直角卡片 + 卡片头（标题行与内容以分隔线隔开），
   // 对标 dashboard 的表单卡片风，与 Hermes 原版的平铺列表拉开差异。
   return (
     <section className="mb-5 overflow-hidden rounded-[calc(var(--radius-scalar)*0.25rem)] border border-(--ui-stroke-tertiary) bg-(--ui-bg-secondary)">
@@ -184,7 +184,7 @@ export function ListRow({
     <div className={cn('@container border-b border-(--ui-stroke-tertiary)/40 last:border-b-0', className)} data-tour={dataTour} id={id}>
       <div className={cn('grid gap-3 py-2.5', !wide && [LIST_ROW_COLUMNS, '@2xl:items-center'])}>
         <div className="min-w-0">
-          {/* qiji 螃蟹AI: 行标题独立分级（0.9375rem/600）——不跟聊天正文变量走 */}
+          {/* qiji 螃蟹OPC: 行标题独立分级（0.9375rem/600）——不跟聊天正文变量走 */}
           <div className="flex items-center justify-between gap-3 text-[0.9375rem] font-semibold text-foreground">
             <span className="min-w-0">{title}</span>
             {wide && action && <div className="flex shrink-0 items-center gap-2">{action}</div>}

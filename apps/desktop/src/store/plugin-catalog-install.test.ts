@@ -45,8 +45,8 @@ describe('requestPluginCatalogInstallFromDeepLink', () => {
   })
 
   it.each([
-    ['unknown', 'not in the 螃蟹AI plugin catalog'],
-    ['unavailable', 'Could not load the 螃蟹AI plugin catalog'],
+    ['unknown', 'not in the 螃蟹OPC plugin catalog'],
+    ['unavailable', 'Could not load the 螃蟹OPC plugin catalog'],
     ['invalid_name', 'missing or invalid']
   ] as const)('%s → error toast, no dialog, no git fallback', async (error, fragment) => {
     await requestPluginCatalogInstallFromDeepLink('not-a-real-plugin', lookupFor({ ok: false, error }))
@@ -69,7 +69,7 @@ describe('requestPluginCatalogInstallFromDeepLink', () => {
 
     expect(fetchSpy).toHaveBeenCalledWith(PLUGIN_CATALOG_URL, expect.anything())
     expect($pluginInstallRequest.get()).toBeNull()
-    expect($notifications.get()[0]?.message).toContain('\u201Cweather-evil\u201D is not in the 螃蟹AI plugin catalog')
+    expect($notifications.get()[0]?.message).toContain('\u201Cweather-evil\u201D is not in the 螃蟹OPC plugin catalog')
 
     await requestPluginCatalogInstallFromDeepLink('weather')
 

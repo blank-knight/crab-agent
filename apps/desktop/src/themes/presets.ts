@@ -766,7 +766,7 @@ export const roseDuskTheme: DesktopTheme = {
 }
 
 /**
- * 珊瑚螃蟹 Coral Crab — 螃蟹AI 自有品牌皮肤（design-preview/layout-preview.html 定稿）。
+ * 珊瑚螃蟹 Coral Crab — 螃蟹OPC 自有品牌皮肤（design-preview/layout-preview.html 定稿）。
  * 奶油白底 + 珊瑚橙品牌色 + 暖褐暗色；大圆角软糯风，与上游 Teal 彻底切割。
  * 暗色=暖褐黑（参考 Claude 暖暗色）；midground=珊瑚承担品牌描边/流式光标。
  */

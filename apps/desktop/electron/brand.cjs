@@ -4,8 +4,8 @@
 module.exports = {
   dataDirName: 'qiji',
   userDataDirName: 'Qiji',
-  displayName: '螃蟹AI',
-  defaultName: '螃蟹AI',
+  displayName: '螃蟹OPC',
+  defaultName: '螃蟹OPC',
   // exe 版本资源 CompanyName / LegalCopyright（set-exe-identity.mjs 消费）
   companyName: 'Qiji',
   // Windows AUMI（toast 通知 + 任务栏分组；须与 qiji-builder.config.cjs appId 一致）

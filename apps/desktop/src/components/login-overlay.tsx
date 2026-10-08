@@ -404,7 +404,7 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
       )}
     >
       <div className="w-full max-w-sm space-y-8 px-6">
-        {/* Logo + 标题（OEM：预查/持久化贴牌品牌优先，否则默认螃蟹AI） */}
+        {/* Logo + 标题（OEM：预查/持久化贴牌品牌优先，否则默认螃蟹OPC） */}
         <div className="flex flex-col items-center gap-4">
           <BrandMark className="size-20 rounded-lg border border-border/40 shadow-sm p-1" overrideLogo={activeBrand.logo} />
           <h1 className="text-3xl font-bold text-foreground">{activeName}</h1>

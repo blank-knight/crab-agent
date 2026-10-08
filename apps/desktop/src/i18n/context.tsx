@@ -1,19 +1,19 @@
 import { applyDocumentLocale, isRecord } from '@hermes/shared/i18n'
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '@nanostores/react'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getHermesConfigRecord, type HermesConfigRecord, retainConfigReadOrigin, saveHermesConfig } from '@/hermes'
+import { $oemBrand, DEFAULT_BRAND_NAME } from '@/store/oem-brand'
 
 import { TRANSLATIONS } from './catalog'
 import {
   DEFAULT_LOCALE,
-  QIJI_DEFAULT_LOCALE,
   isSupportedLocaleValue,
   localeConfigValue,
-  normalizeLocale
+  normalizeLocale,
+  QIJI_DEFAULT_LOCALE
 } from './languages'
 import { setRuntimeI18nLocale } from './runtime'
-import { $oemBrand, DEFAULT_BRAND_NAME } from '@/store/oem-brand'
 import type { Locale, Translations } from './types'
 
 export { LOCALE_META } from './languages'
@@ -70,36 +70,44 @@ function toError(error: unknown): Error {
 
 /**
  * OEM 品牌替换后的翻译目录（qiji-fork 同款）：按「当前品牌」缓存深拷贝，
- * 字符串/模板函数里的「奇计」/「Qiji」替换为生效品牌名（默认螃蟹AI）。
+ * 字符串/模板函数里的「奇计」/「Qiji」替换为生效品牌名（默认螃蟹OPC）。
  * 品牌变化（登录贴牌账号/登出）时 useMemo 依赖 brandName 触发重渲染。
  */
 const brandedCatalogCache = new Map<string, Translations>()
 
 function mapTranslationValue(value: unknown, replace: (s: string) => string): unknown {
-  if (typeof value === 'string') return replace(value)
+  if (typeof value === 'string') {return replace(value)}
+
   if (typeof value === 'function') {
     // qiji: 返回值可能为数组/对象（如 intro.custom(label) 返回 string[]）——逐元素替换，
     // 禁止 String() 整体强转（数组会被压成逗号串，调用方按下标取到单个字符）。
     return (...args: unknown[]) => mapTranslationValue((value as (...a: unknown[]) => unknown)(...args), replace)
   }
-  if (Array.isArray(value)) return value.map(v => mapTranslationValue(v, replace))
+
+  if (Array.isArray(value)) {return value.map(v => mapTranslationValue(v, replace))}
+
   if (typeof value === 'object' && value !== null) {
     const out: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(value)) out[k] = mapTranslationValue(v, replace)
+
+    for (const [k, v] of Object.entries(value)) {out[k] = mapTranslationValue(v, replace)}
+
     return out
   }
+
   return value
 }
 
 function getBrandedTranslations(locale: Locale, brandName: string): Translations {
   const cacheKey = `${locale}|${brandName}`
   const cached = brandedCatalogCache.get(cacheKey)
-  if (cached) return cached
+
+  if (cached) {return cached}
 
   const base = TRANSLATIONS[locale]
   const replace = (s: string) => s.split('奇计').join(brandName).replace(/\bQiji\b/g, brandName)
   const branded = mapTranslationValue(base, replace) as Translations
   brandedCatalogCache.set(cacheKey, branded)
+
   return branded
 }
 

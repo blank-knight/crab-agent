@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import type { OverlayNavGroup } from './overlay-split-layout'
 
 /**
- * qiji 螃蟹AI 设置页专用：顶部大类标签栏 + 左侧分组 rail 的两级导航。
+ * qiji 螃蟹OPC 设置页专用：顶部大类标签栏 + 左侧分组 rail 的两级导航。
  *
  * 信息架构对标 dashboard：顶部一行 6 个大类（永不溢出），左侧 rail 只显示
  * 当前大类下的分组（手风琴单开合）。与 Hermes 原版"左 rail 全量平铺 23 组"

@@ -168,7 +168,7 @@ export async function login(username: string, password: string): Promise<LoginRe
   persist(next)
   patch(next)
 
-  // OEM 品牌：登录响应下发（无贴牌=空=默认螃蟹AI）
+  // OEM 品牌：登录响应下发（无贴牌=空=默认螃蟹OPC）
   setOemBrand(data.brand)
 
   return data

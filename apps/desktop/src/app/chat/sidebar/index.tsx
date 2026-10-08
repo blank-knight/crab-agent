@@ -142,6 +142,7 @@ import {
   CAPABILITIES_ROUTE,
   CRON_ROUTE,
   MESSAGING_ROUTE,
+  OPC_ROUTE,
   SIDEBAR_NAV_AREA,
   type SidebarNavContribution
 } from '../../routes'
@@ -217,6 +218,13 @@ const SIDEBAR_NAV: SidebarNavItem[] = [
     icon: props => <Codicon name="symbol-misc" {...props} />,
     route: CAPABILITIES_ROUTE,
     keybindActionId: 'nav.capabilities'
+  },
+  {
+    id: 'opc',
+    label: '',
+    icon: props => <Codicon name="rocket" {...props} />,
+    route: OPC_ROUTE,
+    keybindActionId: 'nav.opc'
   },
   {
     id: 'messaging',
@@ -1601,6 +1609,7 @@ export function ChatSidebar({
 
                 const active =
                   (item.id === 'capabilities' && currentView === 'capabilities') ||
+                  (item.id === 'opc' && currentView === 'opc') ||
                   (item.id === 'messaging' && currentView === 'messaging') ||
                   (item.id === 'artifacts' && currentView === 'artifacts') ||
                   (item.id === 'cron' && currentView === 'cron') ||

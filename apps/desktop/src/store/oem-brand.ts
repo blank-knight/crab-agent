@@ -2,21 +2,21 @@ import { useStore } from '@nanostores/react'
 import { atom } from 'nanostores'
 
 /**
- * OEM 品牌中枢 —— 客户端通用名「螃蟹AI」，贴牌商用户登录后由后端下发
+ * OEM 品牌中枢 —— 客户端通用名「螃蟹OPC」，贴牌商用户登录后由后端下发
  * 覆盖品牌（brand.name / brand.logo），界面统一从这里取。
  *
  * 数据流：
  * 1. 登录前：输入手机号后调 /auth/brand 预查 → 登录界面即时换品牌
  * 2. 登录/注册响应携带 brand → 写入 store（localStorage 持久化，下次启动直接是贴牌品牌）
- * 3. 品牌为空（官方用户/未配贴牌）→ name 空 = 全界面显示默认「螃蟹AI」
+ * 3. 品牌为空（官方用户/未配贴牌）→ name 空 = 全界面显示默认「螃蟹OPC」
  */
 
-export const DEFAULT_BRAND_NAME = '螃蟹AI'
+export const DEFAULT_BRAND_NAME = '螃蟹OPC'
 
 const OEM_BRAND_KEY = 'qiji-oem-brand'
 
 export interface OemBrand {
-  /** 贴牌品牌名；空串 = 官方默认（螃蟹AI） */
+  /** 贴牌品牌名；空串 = 官方默认（螃蟹OPC） */
   name: string
   /** 贴牌 logo URL；空串 = 默认图标 */
   logo: string
@@ -89,7 +89,7 @@ export function useOemBrand(): { brand: OemBrand; displayName: string } {
 
 /**
  * 品牌文本替换：把文案里的通用名占位（「奇计」/「Qiji」）换成当前生效品牌名
- * （贴牌用户=贴牌名，官方=默认「螃蟹AI」）。i18n 出口与硬编码可见文案共用。
+ * （贴牌用户=贴牌名，官方=默认「螃蟹OPC」）。i18n 出口与硬编码可见文案共用。
  * 注意：小写 `qiji`（CLI 命令/路径/协议名）不替换。
  */
 export function brandText(text: string): string {

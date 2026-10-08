@@ -381,7 +381,7 @@ export function CommandCenterView({
   return (
     <OverlayView closeLabel={cc.close} onClose={onClose}>
       <OverlaySplitLayout>
-        {/* qiji 螃蟹AI: 统一设置页同款手风琴 rail */}
+        {/* qiji 螃蟹OPC: 统一设置页同款手风琴 rail */}
         <SettingsSideRail groups={navGroups} />
 
         <OverlayMain>

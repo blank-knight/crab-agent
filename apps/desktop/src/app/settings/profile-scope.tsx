@@ -70,7 +70,7 @@ export function SettingsProfileScope({ className }: { className?: string }) {
     return null
   }
 
-  // qiji 螃蟹AI: 默认收起为单行紧凑选择器（下拉展开），只有显式点开才见全量 chips
+  // qiji 螃蟹OPC: 默认收起为单行紧凑选择器（下拉展开），只有显式点开才见全量 chips
   // ——上游的常驻全量 chip 行在多身份场景下过于喧宾夺主。
   const [open, setOpen] = useState(false)
   const selectedChip = profiles.find(profile => normalizeProfileKey(profile.name) === selected)
