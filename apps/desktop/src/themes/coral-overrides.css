@@ -12,17 +12,19 @@ html[data-hermes-theme='coral'] .qiji-cardify {
   /* 占位：具体类在下方按组件落 */
 }
 
-/* 目录卡片（技能/插件 CatalogBrowser 的 article 卡） */
+/* 目录卡片（技能/插件 CatalogBrowser 的 article 卡，tailwind rounded-lg） */
+html[data-hermes-theme='coral'] article.rounded-lg,
 html[data-hermes-theme='coral'] article[class*='rounded'] {
-  border-radius: 1rem;
+  border-radius: 1rem !important;
   border-color: color-mix(in srgb, var(--ui-border) 70%, transparent);
-  box-shadow: 0 2px 12px rgba(45, 36, 32, 0.05);
+  box-shadow: 0 2px 12px rgba(45, 36, 32, 0.05) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+html[data-hermes-theme='coral'] article.rounded-lg:hover,
 html[data-hermes-theme='coral'] article[class*='rounded']:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(45, 36, 32, 0.1);
+  box-shadow: 0 8px 24px rgba(45, 36, 32, 0.1) !important;
 }
 
 /* 旧 ListRow / 设置行 → 圆角化 + 细分隔线弱化 */
