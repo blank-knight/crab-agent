@@ -224,12 +224,13 @@ const catalogQuery = (kind: CatalogKind) =>
     retry: false
   })
 
-export function useCatalog(kind: CatalogKind) {
+export function useCatalog(kind: CatalogKind, disabled = false) {
   return useQuery({
     ...catalogQuery(kind),
     // A failed catalog stays parked across remounts (tab switches) until the
     // user explicitly chooses Try again.
-    enabled: query => query.state.status !== 'error'
+    // qiji 0.20.4: disabled（hideCatalog）时完全不发请求。
+    enabled: query => !disabled && query.state.status !== 'error'
   })
 }
 

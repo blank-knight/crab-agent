@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 
 import { DetailColumn, ListColumn, MasterDetail } from '../../master-detail'
 import { PanelEmpty } from '../../overlays/panel'
+import { displayName, localizeCatalogEntries } from '../catalog-localize'
 
 import { CatalogAlert } from './catalog-alert'
 import { CatalogCard } from './catalog-card'
@@ -37,13 +38,10 @@ import {
   sortCatalog
 } from './catalog-query'
 import { $catalogCardView } from './store'
-import { displayName, localizeCatalogEntries } from '../catalog-localize'
 import { useCatalogFilters } from './use-catalog-filters'
 
 interface CatalogBrowserProps {
   kind: CatalogKind
-  query?: string
-  onQueryChange?: (value: string) => void
   isInstalled: (entry: CatalogEntry) => boolean
   onInstall: (entry: CatalogEntry) => void
   isInstalling?: (entry: CatalogEntry) => boolean
@@ -55,10 +53,15 @@ interface CatalogBrowserProps {
   notice?: ReactNode
   renderInstalledDetail?: (entry: CatalogEntry) => ReactNode
   renderInstalledAction?: (entry: CatalogEntry) => ReactNode
-  selectedEntryId?: string | null
+  selectedEntryId?: null | string
+  query?: string
+  onQueryChange?: (value: string) => void
+  /** qiji 0.20.4: 完全隐藏线上目录（不拉取、不渲染发现面板/筛选 rail），
+   * 只渲染 installedEntries——上游社区目录（数百英文插件）不对客户暴露。 */
+  hideCatalog?: boolean
 }
-
 const PAGE_SIZE = 60
+
 // The skills hub carries ~10k distinct tags; the rail is for browsing, search covers the tail.
 const TAG_LIMIT = 16
 // Discovery shelves preview a category; "See all" opens the full list. Every
@@ -122,12 +125,14 @@ export const CatalogBrowser = memo(function CatalogBrowser({
   renderInstalledAction,
   selectedEntryId,
   query,
-  onQueryChange
+  onQueryChange,
+  hideCatalog
 }: CatalogBrowserProps) {
   const { t } = useI18n()
   const c = t.catalog
   const cardView = useStore($catalogCardView)
-  const { data, isPending, error, refetch } = useCatalog(kind)
+  // qiji 0.20.4: hideCatalog 时不拉线上目录——entries 只剩 installedEntries。
+  const { data, isPending, error, refetch } = useCatalog(kind, hideCatalog)
   const deferredQuery = useDeferredValue((query ?? '').trim().toLowerCase())
   const [selectedId, setSelectedId] = useState<string | null>(selectedEntryId ?? null)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -280,6 +285,8 @@ export const CatalogBrowser = memo(function CatalogBrowser({
   return (
     <div className="@container/catalog flex h-full min-h-0 min-w-0" data-catalog={kind} ref={root}>
       <div className="flex min-h-0 min-w-0 flex-1 flex-col @[48rem]/catalog:flex-row">
+        {/* qiji 0.20.4: hideCatalog 时整个筛选 rail（发现/来源/分类）不渲染。 */}
+        {!hideCatalog && (
         <CatalogFilters
           categories={catalogCategories(entries, kind)}
           className="max-h-52 shrink-0 gap-0 pt-3 @[48rem]/catalog:max-h-none @[48rem]/catalog:w-48"
@@ -295,6 +302,7 @@ export const CatalogBrowser = memo(function CatalogBrowser({
           sources={catalogSources(entries)}
           tags={catalogTags(entries, facets.tags, TAG_LIMIT)}
         />
+        )}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-catalog-results>
           {/* Search owns the header; kind-specific setup actions and the view toggle share the end slot. */}
           <header
@@ -312,6 +320,8 @@ export const CatalogBrowser = memo(function CatalogBrowser({
               className="flex min-w-0 flex-wrap items-center justify-end gap-3 justify-self-end"
               data-catalog-actions
             >
+              {/* qiji 0.20.4: hideCatalog（筛选 rail 隐藏）时 actions 挪到这里可见。 */}
+              {hideCatalog && actions}
               {headerActions}
               <Tip label={viewToggleLabel}>
                 <Button

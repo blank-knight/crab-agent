@@ -553,7 +553,8 @@ export const PluginsTab = memo(function PluginsTab({
   scopeSelector,
   scopeLabel,
   query,
-  onQueryChange
+  onQueryChange,
+  showCatalog = false
 }: {
   profile: ProfileScope
   query?: string
@@ -562,6 +563,8 @@ export const PluginsTab = memo(function PluginsTab({
   scopeSelector?: ReactNode
   /** Display name of the selected profile for the Agent half label. */
   scopeLabel?: string
+  /** qiji 0.20.4: 上游社区目录默认不对客户暴露；安装管线回归测试传 true 打开。 */
+  showCatalog?: boolean
 }) {
   const { t } = useI18n()
   const p = t.skills.plugins
@@ -744,6 +747,7 @@ export const PluginsTab = memo(function PluginsTab({
   return (
     <CatalogBrowser
       headerActions={<PluginActions profile={profile} />}
+      hideCatalog={!showCatalog}
       installedEntries={installedEntries}
       installedPending={status !== 'ready'}
       isInstalled={isInstalled}

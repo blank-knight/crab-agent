@@ -321,7 +321,7 @@ describe('PluginsTab', () => {
       { ...weatherEntry, name: 'other-plugin', repo: 'https://github.com/example/other-plugin' },
       weatherEntry
     ])
-    renderPlugins({ profile: 'workbot' })
+    renderPlugins({ showCatalog: true, profile: 'workbot' })
     // qiji 0.20.4: 插件目录默认只看已安装——测试要选未装条目,先放开。
     fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
 
@@ -417,7 +417,7 @@ describe('PluginsTab', () => {
     }
 
     seedCatalog([entry])
-    renderPlugins({ profile: null })
+    renderPlugins({ showCatalog: true, profile: null })
     // qiji 0.20.4: 默认只看已安装——测试要未装目录条目,先放开。
     fireEvent.click(screen.getByRole('button', { name: 'Installed' }))
 
@@ -704,7 +704,7 @@ describe('PluginsTab catalog UX', () => {
 
     vi.stubGlobal('fetch', fetchCatalog)
     await act(async () => {
-      renderPlugins({ profile: null })
+      renderPlugins({ showCatalog: true, profile: null })
     })
 
     // qiji 0.20.4: 默认只看已安装——garden-plugin 未装,先放开筛选再选。
@@ -739,13 +739,13 @@ describe('PluginsTab catalog UX', () => {
       .mockResolvedValue({ ok: true, json: async () => [weatherEntry] })
 
     vi.stubGlobal('fetch', fetchCatalog)
-    const view = renderPlugins({ profile: null })
+    const view = renderPlugins({ showCatalog: true, profile: null })
 
     expect(await screen.findByText('Catalog HTTP 503')).toBeTruthy()
     expect(fetchCatalog).toHaveBeenCalledTimes(1)
     view.unmount()
     await act(async () => {
-      renderPlugins({ profile: null })
+      renderPlugins({ showCatalog: true, profile: null })
     })
     expect(fetchCatalog).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Catalog HTTP 503')).toBeTruthy()
