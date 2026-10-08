@@ -157,17 +157,29 @@ export interface OpcViewProps extends React.ComponentProps<'section'> {
 export function OpcView(_: OpcViewProps) {
   const navigate = useNavigate()
 
-  // 点击可用卡片：回聊天新会话，等 composer 挂载后把 /技能名 填进输入框。
-  // （离开 chat 路由时 composer 已卸载，立即派发事件会被丢掉——延时一拍。）
+  // 点击可用卡片：回聊天新会话，等路由提交后再把 /技能名 填进输入框。
+  // ⚠️ 两个坑（CDP 实测实锤）：
+  // 1) pane 架构下 composer 可能一直在 DOM 里（chat 被压在 workspace 页下面），
+  //    盲发事件 chip 会先插入、随后被路由提交时的重挂载冲掉；
+  // 2) 慢机器上 transition 提交可达数秒。
+  // 所以判定条件是 pathname 已落到 '/'（提交完成、新 composer 就绪）再派发。
   const onLaunch = useCallback(
     (agent: OpcAgent) => {
       navigate(NEW_CHAT_ROUTE)
 
-      window.setTimeout(() => {
-        window.dispatchEvent(
-          new CustomEvent('qiji:insert-skill', { detail: { command: `/${agent.name} `, label: agent.title } })
-        )
-      }, 250)
+      const tryInsert = (attempts: number) => {
+        if (window.location.pathname === '/' && document.querySelector('[contenteditable="true"]')) {
+          window.dispatchEvent(
+            new CustomEvent('qiji:insert-skill', {
+              detail: { command: `/${agent.name} `, label: agent.title, _v: 3 }
+            })
+          )
+        } else if (attempts > 0) {
+          window.setTimeout(() => tryInsert(attempts - 1), 200)
+        }
+      }
+
+      window.setTimeout(() => tryInsert(60), 150)
     },
     [navigate]
   )
