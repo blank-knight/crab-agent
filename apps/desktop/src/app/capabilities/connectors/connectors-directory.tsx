@@ -199,7 +199,7 @@ function Group({
         {group.id === 'off' ? <Note>{copy.offNote}</Note> : null}
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
         {group.cards.map(card => {
           const key = cardKey(card)
 

@@ -58,9 +58,9 @@
 }
 
 [data-catalog-card]:hover {
-  /* Matches the selected-option treatment (`border-primary ring-2 ring-primary/20`). */
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  /* qiji 0.20.5: OPC 卡片语言——hover 柔和上浮 + 品牌色描边（替换旧的 2px 光环） */
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--ui-stroke-tertiary));
+  box-shadow: 0 8px 24px rgba(45, 36, 32, 0.1);
 }
 
 /* Uniform alternative to Masonry: same column tracks, cards in a row share one

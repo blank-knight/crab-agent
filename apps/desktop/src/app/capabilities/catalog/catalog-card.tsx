@@ -87,21 +87,22 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
       data-entry-id={entry.id}
     >
       {entry.imageUrl && <CatalogImage className="aspect-[2/1]" key={entry.imageUrl} src={entry.imageUrl} />}
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-2 p-3">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-2 p-4">
         <div className="flex min-w-0 items-center gap-2.5">
           {/* Its ::after stretches over the whole card, so any empty spot opens the
               detail; real controls sit above it (`relative`). One focus stop per card. */}
-          {/* qiji 0.19.4: 技能图标（名→类别→兜底三级 + 语义彩色底），中文环境名称走翻译层 */}
-          <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg border', skillIconTone(resolveSkillIconName(entry.name, entry.category)))}>
+          {/* qiji 0.19.4→0.20.5: 技能图标（名→类别→兜底三级 + 语义彩色底），中文环境名称走翻译层。
+              0.20.5: 圆片升 size-9/rounded-xl，对齐 OPC 卡的图标位。 */}
+          <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-xl border', skillIconTone(resolveSkillIconName(entry.name, entry.category)))}>
             <SkillIcon category={entry.category} name={entry.name} />
           </span>
           <RowButton
             aria-haspopup="dialog"
             aria-label={displayName(entry)}
-            className="min-w-0 flex-1 cursor-pointer text-left font-semibold leading-snug after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary focus-visible:after:-outline-offset-2"
+            className="min-w-0 flex-1 cursor-pointer text-left font-bold leading-snug after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary focus-visible:after:-outline-offset-2"
             onClick={() => onOpen(entry)}
           >
-            <span className="line-clamp-2 min-w-0 break-words text-lg">{displayName(entry)}</span>
+            <span className="line-clamp-2 min-w-0 break-words text-[1.02rem]">{displayName(entry)}</span>
           </RowButton>
           {action && (
             <span className="relative shrink-0 opacity-[.66] transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -120,7 +121,7 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
           </span>
         </div>
       </div>
-      <div className="px-3 pb-3 [&_button]:relative">
+      <div className="px-4 pb-3 [&_button]:relative">
         <CatalogMetadata
           entry={entry}
           onCategory={onCategory}
@@ -129,7 +130,7 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
           onTag={onTag}
         />
       </div>
-      <div className="mt-auto px-3 pb-3">
+      <div className="mt-auto px-4 pb-4">
         <CatalogDates entry={entry} />
       </div>
     </article>
