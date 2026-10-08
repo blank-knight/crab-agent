@@ -348,6 +348,7 @@ const CategoryTab = memo(function CategoryTab({
 
 export function QijiCapabilitiesHub({
   activeCategory,
+  marketActive,
   onCategoryChange,
   skills,
   skillsPending,
@@ -357,6 +358,8 @@ export function QijiCapabilitiesHub({
   fallbackContent
 }: {
   activeCategory: HubCategory['id']
+  /** qiji: market 模式（技能市场面板全幅渲染，覆盖 skills 分支） */
+  marketActive?: boolean
   onCategoryChange: (id: HubCategory['id']) => void
   skills: SkillInfo[]
   skillsPending: boolean
@@ -386,7 +389,7 @@ export function QijiCapabilitiesHub({
         </div>
       </div>
       <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
-        {activeCategory === 'skills' ? (
+        {activeCategory === 'skills' && !marketActive ? (
           skillsPending ? (
             <div className="flex flex-1 items-center justify-center">
               <p className="text-[0.85rem] text-(--ui-text-tertiary)">正在加载能力…</p>

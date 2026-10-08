@@ -5,32 +5,31 @@ import { PageLoader } from '@/components/page-loader'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
 import { Sparkles } from '@/lib/icons'
-import { cn } from '@/lib/utils'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { useStoreSelector } from '@/lib/use-session-slice'
+import { cn } from '@/lib/utils'
 import { $gateway } from '@/store/gateway'
 import { OFFICIAL_SKILLS_KEY } from '@/store/hub-actions'
 
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
-import { PAGE_INSET_X } from '../layout-constants'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
+import { PAGE_INSET_X } from '../layout-constants'
 import { PanelEmpty } from '../overlays/panel'
-import { PageSearchShell } from '../page-search-shell'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
+import { MarketPanel } from '../skills/market-panel'
 
 import { prefetchCatalogWhenIdle } from './catalog/catalog-data'
 import { ConnectorsTab } from './connectors/connectors-tab'
-import { MarketPanel } from '../skills/market-panel'
 import { PluginsTab } from './plugins/plugins-tab'
+import type { HubCategory } from './qiji-hub/categories'
+// qiji 0.20.4: 自研「技能与工具」页（设置页同款两级导航）。旧 tab 视图保留可回退。
+import { QijiCapabilitiesHub } from './qiji-hub/hub-view'
 import { CapabilityScopeSelector, useCapabilityScope } from './scope-selector'
 import { SKILLS_QUERY_KEY, skillSearchTerms, useSkillsQuery } from './skills/skills-data'
 import { SkillsTab } from './skills/skills-tab'
-// qiji 0.20.4: 自研「技能与工具」页（设置页同款两级导航）。旧 tab 视图保留可回退。
-import { QijiCapabilitiesHub } from './qiji-hub/hub-view'
-import type { HubCategory } from './qiji-hub/categories'
 import { refreshToolCalls } from './toolsets/tool-calls'
-import { TOOLSETS_QUERY_KEY, toolsetSearchTerms, useToolsetsQuery, visibleToolsetCount } from './toolsets/toolsets-data'
+import { TOOLSETS_QUERY_KEY, toolsetSearchTerms, useToolsetsQuery } from './toolsets/toolsets-data'
 import { ToolsetsTab } from './toolsets/toolsets-tab'
 
 // Skills Hub browsing lives inside the Skills tab. Legacy `?tab=hub`
@@ -194,6 +193,7 @@ export function CapabilitiesView({
   // qiji 0.20.4: 自研骨架替换 PageSearchShell 壳——大类栏+左rail+内容区。
   // 搜索保留（skills/toolsets 大类内容区顶部），scope 选择器保留。
   const hubCategory = HUB_MODE_OF[mode]
+
   const fallbackContent =
     mode === 'connectors'
       ? tabContent.connectors()
@@ -223,6 +223,7 @@ export function CapabilitiesView({
       <QijiCapabilitiesHub
         activeCategory={hubCategory}
         fallbackContent={fallbackContent}
+        marketActive={mode === 'market'}
         marketEntry={
           <button
             className="row-hover flex h-8 w-full items-center gap-2 border border-transparent px-2.5 text-left text-[0.9rem] font-semibold text-foreground/85 transition-colors hover:bg-(--chrome-action-hover)"
