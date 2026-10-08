@@ -5,12 +5,11 @@ import { type ReactNode, useState } from 'react'
 import { RowButton } from '@/components/ui/row-button'
 import { cn } from '@/lib/utils'
 
+import { resolveSkillIconName, SkillIcon, skillIconTone } from '../../skills/skill-icon'
+import { displayDesc, displayName } from '../catalog-localize'
+
 import { type CatalogEntry, catalogLabel } from './catalog-data'
 import { CatalogDates, CatalogHeaderMeta, CatalogMetadata } from './catalog-metadata'
-import { resolveSkillIconName, SkillIcon, skillIconTone } from '../../skills/skill-icon'
-import { isZhLocale } from '@/i18n'
-import { displayName, displayDesc } from '../catalog-localize'
-import { translateSkillField } from '../../skills/translations'
 
 export function catalogIcon(category: string) {
   const icons: Record<string, string> = {
@@ -78,7 +77,10 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
   return (
     <article
       className={cn(
-        'group relative flex min-w-0 flex-col overflow-hidden rounded-lg border',
+        // qiji 0.20.5: OPC 同款卡片语言——大圆角 + 软阴影 + 悬浮上浮（coral-overrides
+        // 曾用 CSS 全局覆盖做同样的事；这里直接落到组件类，全皮肤生效）。
+        'group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border',
+        'shadow-[0_2px_12px_rgba(45,36,32,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(45,36,32,0.10)]',
         CARD_ACCENTS[accentIndex % CARD_ACCENTS.length]
       )}
       data-catalog-card

@@ -398,13 +398,14 @@ export function QijiCapabilitiesHub({
             <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} skills={skills} />
           )
         ) : (
-          // qiji 0.20.4: 连接器/插件沿用旧 tab 组件——外套同款视觉壳（大标题+
-          // 卡片容器），细粒度样式由 coral-overrides.css 全局接管。
+          // qiji 0.20.4→0.20.5: 连接器/插件沿用旧 tab 组件——外套同款视觉壳
+          // （大标题+卡片容器+计数，OPC 语言）；细粒度样式由 coral-overrides.css
+          // 全局接管。0.20.5: 标题按实际大类取（不再硬编码二选一）。
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <div className="mx-5 mb-3 mt-4 flex min-h-0 flex-1 flex-col rounded-2xl border border-(--ui-border)/60 bg-(--ui-card)/60 p-4 shadow-[0_2px_12px_rgba(45,36,32,0.04)]">
               <div className="mb-3 flex items-baseline gap-2.5">
                 <h2 className="text-[1.15rem] font-bold tracking-tight text-(--ui-text-primary)">
-                  {activeCategory === 'connectors' ? '连接器' : '插件'}
+                  {HUB_CATEGORIES.find(cat => cat.id === activeCategory)?.label ?? '工具'}
                 </h2>
               </div>
               <div className="flex min-h-0 flex-1 flex-col">{fallbackContent}</div>

@@ -186,18 +186,20 @@ function Group({
   const copy = t.connectorsPage.group
 
   return (
-    <section className="grid gap-2">
+    <section className="grid gap-2.5">
       <header className="flex items-center gap-2">
-        <h3 className="text-xs font-semibold text-(--ui-text-primary)">
+        <h3 className="text-[0.82rem] font-bold tracking-tight text-(--ui-text-primary)">
           {group.id === 'local' ? where : copy[group.id]}
         </h3>
-        <span className="tabular-nums text-xs text-(--ui-text-tertiary)">{group.cards.length}</span>
+        <span className="rounded-full bg-(--ui-muted) px-2 py-px text-[0.66rem] font-semibold tabular-nums text-(--ui-text-tertiary)">
+          {group.cards.length}
+        </span>
 
         {group.id === 'connected' && showsAttentionFirst(group) ? <Note>{copy.connectedNote}</Note> : null}
         {group.id === 'off' ? <Note>{copy.offNote}</Note> : null}
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {group.cards.map(card => {
           const key = cardKey(card)
 

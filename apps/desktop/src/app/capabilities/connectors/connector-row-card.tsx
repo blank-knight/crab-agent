@@ -83,10 +83,12 @@ export function ConnectorRowCard({
   return (
     <div
       className={cn(
-        'relative flex items-center gap-3 rounded-lg border p-3 transition-colors duration-100',
+        // qiji 0.20.5: OPC 同款卡片语言——rounded-2xl + 软阴影 + 悬浮上浮 + 品牌描边。
+        'relative flex items-center gap-3 rounded-2xl border p-3.5 transition-all duration-200',
+        'shadow-[0_2px_12px_rgba(45,36,32,0.05)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(45,36,32,0.10)]',
         selected
-          ? 'border-(--theme-primary) bg-(--ui-row-active-background)'
-          : 'border-(--ui-stroke-quaternary) bg-(--ui-bg-elevated) hover:bg-(--chrome-action-hover)'
+          ? 'border-(--ui-primary)/40 bg-(--ui-row-active-background)'
+          : 'border-(--ui-stroke-quaternary) bg-(--ui-bg-elevated) hover:border-(--ui-primary)/25'
       )}
       data-connector={card.slug}
       data-slot="connector-row-card"

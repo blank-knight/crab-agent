@@ -135,9 +135,8 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
   it('renders a switch for each toolset and toggles it off', async () => {
     await renderSkills()
 
-    // The switch names the action, so an enabled toolset offers to turn it off.
-    // qiji 0.20.4: toolset label 走中文映射(web→网页搜索与抓取),aria-label 随之中文化。
-    const sw = await screen.findByRole('switch', { name: 'Turn 网页搜索与抓取 toolset off' })
+    // qiji 0.20.5: 卡片墙布局——开关直接在卡片上，aria-label 仍是中文化的操作名。
+    const sw = await screen.findByRole('switch', { name: '网页搜索与抓取' })
     expect(sw.getAttribute('aria-checked')).toBe('true')
 
     await act(async () => {
@@ -373,6 +372,13 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     getToolsetConfig.mockResolvedValue({ has_category: false, active_provider: null, providers: [] })
 
     await renderSkills()
+
+    // qiji 0.20.5: 卡片墙——先点 vision 卡片打开右侧详情，再断言深链按钮。
+    // vision 有中文映射（视觉与图像分析），卡片标题走映射。
+    const card = await screen.findByText('视觉与图像分析')
+    await act(async () => {
+      fireEvent.click(card.closest('button')!)
+    })
 
     const link = await screen.findByRole('button', { name: /Choose vision model in Settings/ })
 
