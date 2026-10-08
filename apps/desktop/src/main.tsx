@@ -1,4 +1,6 @@
 import './styles.css'
+// qiji: 珊瑚螃蟹皮肤的全局视觉覆盖层（作用域 html[data-hermes-theme='coral']）。
+import './themes/coral-overrides.css'
 // Side-effect: reports in-flight turns to the main process for the quit guard.
 import './store/active-work'
 // Side-effect: mirrors the machine's AC/battery state for poll demotion.
