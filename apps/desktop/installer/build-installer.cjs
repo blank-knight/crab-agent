@@ -1,5 +1,5 @@
 /**
- * 螃蟹AI离线安装器构建脚本
+ * 螃蟹OPC离线安装器构建脚本
  * 
  * 用法（在 Windows PowerShell 中运行）：
  *   cd apps/desktop/installer
@@ -34,13 +34,13 @@ const INSTALLER = __dirname
 
 // Config
 const APP_NAME = 'Qiji'
-const VERSION = '0.19.4'
-const PRODUCT_NAME_ZH = '螃蟹AI'
+const VERSION = '0.20.5'
+const PRODUCT_NAME_ZH = '螃蟹OPC'
 // 品牌数据目录单一事实源 —— 与 electron/brand.cjs 同源。贴牌改名只改那里。
 const brand = require(path.join(ROOT, 'electron', 'brand.cjs'))
 const DATA_DIR_NAME = brand.dataDirName
 const USER_DATA_DIR_NAME = brand.userDataDirName
-const BRAND_DISPLAY_NAME = brand.displayName || '螃蟹AI'
+const BRAND_DISPLAY_NAME = brand.displayName || '螃蟹OPC'
 
 // Paths
 const winUnpacked = path.join(RELEASE, 'win-unpacked')
@@ -72,8 +72,20 @@ console.log('  7zr.exe: OK')
 
 // ---- Compress payload ----
 step(2, 'Compressing win-unpacked to qiji-portable.7z ...')
-if (fs.existsSync(payload)) fs.unlinkSync(payload)
-execSync(`"${sevenZip}" a -t7z -mx=5 -mmt=on "${payload}" "${winUnpacked}\\*"`, { stdio: 'inherit' })
+// 断点续跑: payload 比 win-unpacked 新 = 上轮压缩已完成(WSL 互操作下 node 可能卡在
+// 等待已退出的 7zr,杀掉重跑时跳过最贵的压缩步)。
+if (fs.existsSync(payload)) {
+  const payloadMtime = fs.statSync(payload).mtimeMs
+  const srcMtime = fs.statSync(winUnpacked).mtimeMs
+  if (payloadMtime > srcMtime) {
+    console.log('  Payload exists and is newer than win-unpacked; skip compression')
+  } else {
+    fs.unlinkSync(payload)
+    execSync(`"${sevenZip}" a -t7z -mx=5 -mmt=on "${payload}" "${winUnpacked}\\*"`, { stdio: 'inherit' })
+  }
+} else {
+  execSync(`"${sevenZip}" a -t7z -mx=5 -mmt=on "${payload}" "${winUnpacked}\\*"`, { stdio: 'inherit' })
+}
 const payloadSize = (fs.statSync(payload).size / 1024 / 1024).toFixed(1)
 console.log(`  Payload: ${payloadSize} MB`)
 
@@ -89,8 +101,9 @@ function injectBrandSrc(srcPath, outPath) {
   const injected = src
     .replace(/public const string DataDir = "[^"]*";/, `public const string DataDir = ${JSON.stringify(DATA_DIR_NAME)};`)
     .replace(/public const string UserDataDir = "[^"]*";/, `public const string UserDataDir = ${JSON.stringify(USER_DATA_DIR_NAME)};`)
-    // 0.19.8: 展示名注入——launcher3 的 APP_NAME/快捷方式/卸载面板用（通用名「螃蟹AI」）
-    .replace(/const string APP_NAME = "[^"]*";/, `const string APP_NAME = ${JSON.stringify(BRAND_DISPLAY_NAME)};`)
+    // 0.19.8: 展示名注入——launcher3 的 APP_NAME/快捷方式/卸载面板用（通用名「硅基Claw」）
+    // 0.20.5+: uninstall.cs 也接同源 APP_NAME（删开始菜单/桌面快捷方式），贴牌改名不漏
+    .replace(/const string APP_NAME = "[^"]*";/g, `const string APP_NAME = ${JSON.stringify(BRAND_DISPLAY_NAME)};`)
   // UTF-8 BOM：老 csc 无 BOM 时按系统 ANSI(GBK) 解码，中文注释/字符串有乱码风险
   fs.writeFileSync(outPath, '\ufeff' + injected, 'utf8')
   return outPath

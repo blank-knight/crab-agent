@@ -7,6 +7,10 @@ using Microsoft.Win32;
 
 class Uninstaller
 {
+    // 展示名 —— 由 build-installer.cjs 的 injectBrandSrc() 打包期注入（源
+    // apps/desktop/electron/brand.cjs）。与 launcher3 的 APP_NAME 注入点同源，
+    // 贴牌改名只改 brand.cjs 一处。兜底值与 injectBrandSrc 的替换目标保持一致。
+    const string APP_NAME = "奇计";
     // 品牌数据目录名 —— 由打包期生成 BrandInfo.cs 注入（源 apps/desktop/electron/brand.cjs）。
     // #if 兜底保证缺 BrandInfo.cs 时仍可独立编译（回落 'qiji'）。
 #if !BRAND_INFO
@@ -89,10 +93,10 @@ class Uninstaller
 
         Console.WriteLine();
         Console.WriteLine("  ============================================");
-        Console.WriteLine("            螃蟹AI - 卸载程序");
+        Console.WriteLine("            奇计 - 卸载程序");
         Console.WriteLine("  ============================================");
         Console.WriteLine();
-        Console.WriteLine("  正在卸载螃蟹AI...");
+        Console.WriteLine("  正在卸载奇计...");
 
         // 1. Kill running Qiji processes (by exe path, full family, retry)
         Console.Write("  停止运行中的进程...");
@@ -160,8 +164,11 @@ class Uninstaller
         Console.Write("  删除开始菜单快捷方式...");
         try
         {
+            // 用注入的品牌展示名删（与 launcher3 step6 建的位置同源）。
+            // 历史坑：这里曾硬编码"奇计"，贴牌成螃蟹OPC后目录名对不上，
+            // 卸载时开始菜单文件夹永远删不掉（2026-10-09 实案）。
             string startMenu = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Programs), "螃蟹AI");
+                Environment.GetFolderPath(Environment.SpecialFolder.Programs), APP_NAME);
             if (Directory.Exists(startMenu))
                 Directory.Delete(startMenu, true);
             Console.WriteLine(" 完成");
@@ -173,7 +180,7 @@ class Uninstaller
         try
         {
             string desktopLnk = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "螃蟹AI.lnk");
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop), APP_NAME + ".lnk");
             if (File.Exists(desktopLnk))
                 File.Delete(desktopLnk);
             Console.WriteLine(" 完成");
