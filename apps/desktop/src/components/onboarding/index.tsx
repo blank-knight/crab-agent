@@ -64,6 +64,7 @@ export {
 
 import { $gateway, activeGatewayConnectionId } from '@/store/gateway'
 import { captureOnboardingScope, requestOnboardingGateway } from '@/store/onboarding-scope'
+import { brandText } from '@/store/oem-brand'
 
 interface DesktopOnboardingOverlayProps {
   enabled: boolean
@@ -92,12 +93,12 @@ const API_KEY_OPTIONS: ApiKeyOption[] = [
   // qiji: 中转站置顶(推荐),国内直连五家预填地址,粘贴 Key 即用
   {
     id: 'qiji-relay',
-    name: '奇计中转站（推荐）',
-    description: '使用奇计官方中转站，开箱即用，无需翻墙',
+    name: brandText('奇计中转站（推荐）'),
+    description: brandText('使用奇计官方中转站，开箱即用，无需翻墙'),
     envKey: 'OPENAI_API_KEY',
     docsUrl: 'https://www.aicps.vip',
     placeholder: 'sk-...',
-    short: '奇计中转站'
+    short: brandText('奇计中转站')
   },
   {
     id: 'cn-deepseek',
