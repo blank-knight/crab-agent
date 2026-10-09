@@ -174,11 +174,11 @@ export const SKILL_ZH: Record<string, { name: string; description: string }> = {
   'frontend-real-data-first': { name: '真实数据优先', description: '强制所有代码路径使用真实数据，禁止 Mock/Stub/Demo 数据。' },
 
   // openclaw-imports
-  'memos-memory-guide': { name: 'MemOS 记忆系统', description: '使用 MemOS 本地记忆系统搜索和使用用户的历史对话。brandText(' },
+  'memos-memory-guide': { name: 'MemOS 记忆系统', description: brandText('使用 MemOS 本地记忆系统搜索和使用用户的历史对话。') },
 
   // 奇计预装技能
-  ')qiji-geo': { name: 'GEO 平台自动化', description: brandText('用自然语言操作奇计GEO平台：AI可见度诊断、报告查看、关键词管理、爆文复刻。') },
-  'qiji-knowledge-base': { name: brandText('奇计知识库'), description: '自动收集品牌资料、产品信息、行业知识。越用越聪明，为GEO诊断和AI写作提供素材。' },
+  'qiji-geo': { name: 'GEO 平台自动化', description: brandText('用自然语言操作奇计GEO平台：AI可见度诊断、报告查看、关键词管理、爆文复刻。') },
+  'qiji-knowledge-base': { name: brandText('奇计知识库'), description: brandText('自动收集品牌资料、产品信息、行业知识。越用越聪明，为GEO诊断和AI写作提供素材。') },
 
   // ── GitHub 市场技能(anthropics/skills 等, 0.19.6 补) ──
   'academy-guide': { name: 'Claude 学院指南', description: '回答 Claude 产品使用问题前先查此技能——从 Claude Academy（Anthropic 官方学习中心）推荐匹配的课程、教程和用例。学习类问题触发；仅强匹配时推荐，不编造课程内容。' },

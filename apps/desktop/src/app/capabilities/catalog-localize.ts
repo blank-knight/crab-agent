@@ -1,4 +1,5 @@
 import { SKILL_ZH } from '@/app/skills/translations'
+import { brandText } from '@/store/oem-brand'
 
 import type { CatalogEntry } from './catalog/catalog-data'
 import { PLUGIN_ZH } from './plugins-zh'
@@ -40,7 +41,7 @@ export function localizeCatalogEntry<T extends CatalogEntry>(entry: T): T & Loca
     nameZh,
     descZh,
     overview: descZh || entry.overview,
-    categoryLabel: CATEGORY_ZH[entry.category] ?? entry.categoryLabel,
+    categoryLabel: brandText(CATEGORY_ZH[entry.category] ?? entry.categoryLabel),
     search: `${entry.search} ${nameZh} ${descZh}`
   }
 }
