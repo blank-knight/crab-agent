@@ -1,6 +1,6 @@
 // qiji 0.20.0 打包配置 —— renderer-rebase 底座专用 overlay。
 // 不改上游 electron-builder.config.cjs(零污染),由 QIJI_BUILDER_CONFIG 指定本文件。
-// 差异点:品牌(Qiji/硅基Claw)、win target(dir+nsis)、icon、asar unpack(dist/** 渲染层
+// 差异点:品牌(brand.cjs 单一源)、win target(dir+nsis)、icon、asar unpack(dist/** 渲染层
 // 加密链需要)、vendor/install.ps1 extraResources、afterPack 加密钩子。
 // 用法: npx electron-builder --win --x64 --config qiji-builder.config.cjs --config.win.target=dir
 'use strict'
