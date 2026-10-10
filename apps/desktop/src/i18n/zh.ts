@@ -2780,7 +2780,32 @@ export const zh = defineLocale({
       deepLinkErrorTitle: '插件安装链接已拒绝',
       deepLinkCatalogInvalidName: '链接中的目录名称缺失或无效。',
       deepLinkCatalogUnknown: (name: string) => `“${name}”不在 螃蟹OPC 插件目录中。未安装任何内容。`,
-      deepLinkCatalogUnavailable: '无法加载 螃蟹OPC 插件目录。请检查网络连接后重新打开链接。'
+      deepLinkCatalogUnavailable: '无法加载 螃蟹OPC 插件目录。请检查网络连接后重新打开链接。',
+      toolsetOn: (name: string, profile: string) => `已为 ${profile} 启用 ${name} 智能体工具`,
+      toolsetOff: (name: string, profile: string) => `已为 ${profile} 禁用 ${name} 智能体工具`,
+      toolsetToggleFailed: (name: string) => `无法切换 ${name} 的智能体工具；桌面面板未改动`,
+      serverStates: {
+        connected: '已连接',
+        app_not_running: '应用未运行',
+        hermes_not_connected: 'MCP 连接缺失',
+        endpoint_unavailable: '端点不可用',
+        no_interactive_session: '无交互会话',
+        version_too_old: '版本过旧',
+        missing_app: '应用缺失',
+        unknown: '状态未知'
+      },
+      updateConsentTitle: (name: string) => `${name} 请求更多权限`,
+      updateConsentBody: (name: string, sha: string) => `新版 ${name}（${sha}）会带来已安装版本没有的界面。仅在你信任作者时应用：`,
+      updateConsentConfirm: '应用更新',
+      settingsToggle: (name: string) => `设置：${name}`,
+      settingsForm: {
+        save: '保存设置',
+        saved: (name: string) => `${name} 设置已保存。`,
+        saveFailed: (name: string) => `无法保存 ${name} 设置`,
+        optional: '（可选）',
+        secretSet: '••••••••（已设置）',
+        secretStoredAs: (env: string) => `存储在配置档案的 .env（${env}）中，绝不会写进 config.yaml；留空保持当前值。`
+      },
     },
     officialCatalog: '可安装',
     officialPill: '官方',
@@ -2834,7 +2859,11 @@ export const zh = defineLocale({
       loadFailed: '技能中心加载失败',
       previewFailed: '技能预览失败',
       scanFailed: '安全扫描失败',
-      searchFailed: '技能中心搜索失败'
+      searchFailed: '技能中心搜索失败',
+      installBlockedTitle: name => `无法安装 ${name}`,
+      installBlockedMessage: (findings, unverified) => `安全扫描标记了${findings > 0 ? ` ${findings} 项` : '风险模式'}需要你审阅${unverified ? '，且该技能来自未验证的来源' : ''}。请先阅读扫描结果，再决定是否信任作者。`,
+      viewScan: '查看扫描',
+      openLog: '打开日志',
     }
   },
 
