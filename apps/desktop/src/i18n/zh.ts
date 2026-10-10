@@ -390,7 +390,7 @@ export const zh = defineLocale({
     connect: '连接',
     connecting: '连接中',
     continue: '继续',
-    bots: '机器人',
+    bots: '专家系统',
     copied: '已复制',
     copy: '复制',
     copyFailed: '复制失败',
@@ -1555,14 +1555,14 @@ export const zh = defineLocale({
       }
     },
     poolLimits: {
-      warmBotBackendsAria: '预热机器人后端',
-      warmBotBackendsTitle: '预热机器人后端',
+      warmBotBackendsAria: '预热专家后端',
+      warmBotBackendsTitle: '预热专家后端',
       warmBotBackendsDesc:
-        '保持多少个机器人后端常驻运行以便瞬时切换。数值越高切换越快，但占用更多内存（每个后端约 60MB）。立即生效。',
+        '保持多少个专家后端常驻运行以便瞬时切换。数值越高切换越快，但占用更多内存（每个后端约 60MB）。立即生效。',
       backendIdleTimeoutAria: '后端空闲超时（毫秒）',
       backendIdleTimeoutTitle: '后端空闲超时（毫秒）',
       backendIdleTimeoutDesc:
-        '闲置的机器人后端在关闭前保持预热状态多久。如果你每隔几分钟就要回来用某个机器人，调高它可以避免每次冷启动。'
+        '闲置的专家后端在关闭前保持预热状态多久。如果你每隔几分钟就要回来用某个专家，调高它可以避免每次冷启动。'
     },
     memoryPanel: {
       loadFailed: '记忆提供方设置加载失败：',
@@ -3051,9 +3051,9 @@ export const zh = defineLocale({
     openBrowser: '打开浏览器',
     gatewayRestartFailed: '网关重启失败。',
     sharedGatewayRestartTitle: '重启共享网关？',
-    sharedGatewayRestartDescription: bots => `此设备上的所有机器人都会重新连接：${bots}`,
+    sharedGatewayRestartDescription: bots => `此设备上的所有专家都会重新连接：${bots}`,
     sharedGatewayRestartConfirm: '全部重启',
-    sharedGatewayRestarted: count => `共享网关已重启（${count} 个机器人）`,
+    sharedGatewayRestarted: count => `共享网关已重启（${count} 个专家）`,
     updateHermes: '更新 螃蟹OPC',
     reloadWindow: '重新载入窗口',
     actionRunning: '运行中',
