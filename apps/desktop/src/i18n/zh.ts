@@ -5333,6 +5333,15 @@ export const zh = defineLocale({
           body: '登录 Nous 账号完全免费。'
         }
       },
+      errorAuthKinds: {
+        api_key: {
+          title: (provider: string) => `${provider} 拒绝了你的 API 密钥`,
+          body: (provider: string) => `保存的 ${provider} 密钥无效或已被吊销。请更新后重试。`
+        },
+        oauth: {
+          title: (provider: string) => `你的 ${provider} 登录已过期`
+        }
+      },
       errorLayers: {
         auth: '认证错误',
         billing: '额度不足',
@@ -5343,6 +5352,7 @@ export const zh = defineLocale({
         provider: '模型服务商错误',
         runtime: '本地运行时错误',
         streaming: '流式连接错误'
+
       },
       errorRetry: '重试',
       errorLimitResets: time => `限额将于 ${time} 重置`,
