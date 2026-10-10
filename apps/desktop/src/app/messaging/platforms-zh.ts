@@ -32,7 +32,15 @@ export const PLATFORM_NAME_ZH: Readonly<Record<string, string>> = {
   api_server: 'API 服务器',
   webhook: 'Webhook',
   msgraph_webhook: '微软 Graph 通知',
-  relay: '中继（实验性）'
+  relay: '中继（实验性）',
+  // 捆绑平台插件（name 来自插件注册表，desc 来自 _PLATFORM_OVERRIDES；10-11 CDP 实测后补录）
+  teams: 'Microsoft Teams',
+  irc: 'IRC',
+  line: 'LINE',
+  ntfy: 'Ntfy 推送',
+  photon: 'Photon（iMessage）',
+  raft: 'Raft 工作区',
+  simplex: 'SimpleX'
 }
 
 export const PLATFORM_DESC_ZH: Readonly<Record<string, string>> = {
@@ -59,7 +67,14 @@ export const PLATFORM_DESC_ZH: Readonly<Record<string, string>> = {
   api_server: '把螃蟹OPC 暴露为 OpenAI 兼容的 HTTP API，供 Open WebUI 等工具调用。',
   webhook: '接收 GitHub、GitLab 等 Webhook 事件。',
   msgraph_webhook: '接收微软 Graph 变更通知（Teams 会议、Outlook 等）。',
-  relay: '通用中继适配器（实验性）。'
+  relay: '通用中继适配器（实验性）。',
+  teams: '通过 Bot Framework 接入 Microsoft Teams 聊天。',
+  irc: '在 IRC 频道（或私聊）与螃蟹OPC 之间收发消息。',
+  line: '通过 LINE Messaging API 接入 LINE。',
+  ntfy: '通过 ntfy 推送话题与螃蟹OPC 对话（ntfy.sh 或自建）。',
+  photon: '通过 Photon 托管的 Spectrum 平台使用 iMessage。',
+  raft: '以外部智能体身份加入 Raft 工作区。',
+  simplex: '通过本地 simplex-chat 守护进程使用 SimpleX Chat。'
 }
 
 /** 国内平台 id 集——分组依据是产品定位（主打国内），不是平台归属地事实。 */
