@@ -1326,8 +1326,17 @@ export const en: Translations = {
     poolLimits: {
       warmBotBackendsAria: 'Warm bot backends',
       warmBotBackendsTitle: 'Warm Bot Backends',
+      warmBotBackendsDesc:
+        'How many bot backends stay running for instant switching. Higher = faster switches, more memory (~60MB per backend). Applies immediately.',
       backendIdleTimeoutAria: 'Backend idle timeout in milliseconds',
-      backendIdleTimeoutTitle: 'Backend Idle Timeout'
+      backendIdleTimeoutTitle: 'Backend Idle Timeout',
+      backendIdleTimeoutDesc:
+        'How long an unused bot backend stays warm before it is shut down. Raise this so bots you revisit every few minutes never pay a cold start.'
+    },
+    memoryPanel: {
+      loadFailed: 'Memory provider settings failed to load:',
+      retry: 'Retry',
+      loading: 'Loading memory provider settings...'
     },
     customEndpoints: {
       active: 'Active',
@@ -1373,7 +1382,19 @@ export const en: Translations = {
     computerUse: {
       accessibility: 'Accessibility',
       screenRecording: 'Screen Recording',
-      driverHealth: 'Driver health'
+      driverHealth: 'Driver health',
+      recheck: 'Recheck',
+      statusReady: 'Ready',
+      statusNotReady: 'Not ready',
+      statusUnknown: 'Unknown',
+      granted: 'Granted',
+      notGranted: 'Not granted',
+      accessibilityHint: 'Lets cua-driver post clicks, keystrokes, and read the accessibility tree.',
+      screenRecordingHint: 'Lets cua-driver capture screenshots of app windows.',
+      macTccNote:
+        'Grants attach to CuaDriver&apos;s own identity (com.trycua.driver), not Hermes — so the dialog is attributed to the process that drives your Mac.',
+      linuxNote: 'Drives your desktop via the X11/XWayland accessibility stack — no permission prompt.',
+      win32Note: 'First run may trigger a Windows SmartScreen prompt for the cua-driver UIAccess worker — allow it.'
     },
     about: {
       heading: '奇计 Desktop',

@@ -1093,8 +1093,15 @@ export interface Translations {
     poolLimits: {
       warmBotBackendsAria: string
       warmBotBackendsTitle: string
+      warmBotBackendsDesc: string
       backendIdleTimeoutAria: string
       backendIdleTimeoutTitle: string
+      backendIdleTimeoutDesc: string
+    }
+    memoryPanel: {
+      loadFailed: string
+      retry: string
+      loading: string
     }
     customEndpoints: {
       active: string
@@ -1141,6 +1148,17 @@ export interface Translations {
       accessibility: string
       screenRecording: string
       driverHealth: string
+      recheck: string
+      statusReady: string
+      statusNotReady: string
+      statusUnknown: string
+      granted: string
+      notGranted: string
+      accessibilityHint: string
+      screenRecordingHint: string
+      macTccNote: string
+      linuxNote: string
+      win32Note: string
     }
     about: {
       heading: string

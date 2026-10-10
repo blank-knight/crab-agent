@@ -1273,8 +1273,17 @@ export const zh = defineLocale({
     poolLimits: {
       warmBotBackendsAria: '预热机器人后端',
       warmBotBackendsTitle: '预热机器人后端',
+      warmBotBackendsDesc:
+        '保持多少个机器人后端常驻运行以便瞬时切换。数值越高切换越快，但占用更多内存（每个后端约 60MB）。立即生效。',
       backendIdleTimeoutAria: '后端空闲超时（毫秒）',
-      backendIdleTimeoutTitle: '后端空闲超时（毫秒）'
+      backendIdleTimeoutTitle: '后端空闲超时（毫秒）',
+      backendIdleTimeoutDesc:
+        '闲置的机器人后端在关闭前保持预热状态多久。如果你每隔几分钟就要回来用某个机器人，调高它可以避免每次冷启动。'
+    },
+    memoryPanel: {
+      loadFailed: '记忆提供方设置加载失败：',
+      retry: '重试',
+      loading: '正在加载记忆提供方设置…'
     },
     customEndpoints: {
       active: '已启用',
@@ -1320,7 +1329,19 @@ export const zh = defineLocale({
     computerUse: {
       accessibility: '辅助功能',
       screenRecording: '屏幕录制',
-      driverHealth: '驱动健康状态'
+      driverHealth: '驱动健康状态',
+      recheck: '重新检测',
+      statusReady: '就绪',
+      statusNotReady: '未就绪',
+      statusUnknown: '未知',
+      granted: '已授权',
+      notGranted: '未授权',
+      accessibilityHint: '允许 cua-driver 模拟点击、按键，并读取辅助功能树。',
+      screenRecordingHint: '允许 cua-driver 截取应用窗口的屏幕画面。',
+      macTccNote:
+        '授权归属于 CuaDriver 自身的身份（com.trycua.driver）而非 螃蟹OPC——因此弹窗会以实际驱动你电脑的进程名义显示。',
+      linuxNote: '通过 X11/XWayland 辅助功能栈操控桌面——无需权限弹窗。',
+      win32Note: '首次运行可能触发 Windows SmartScreen 提示（cua-driver UIAccess 工作进程）——请允许。'
     },
     about: {
       heading: '螃蟹OPC Desktop',

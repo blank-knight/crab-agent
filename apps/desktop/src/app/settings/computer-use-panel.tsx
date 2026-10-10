@@ -16,12 +16,6 @@ interface ComputerUsePanelProps {
   onConfiguredChange?: () => void
 }
 
-// Per-OS one-liner shown when there's no TCC grant flow (Windows/Linux). macOS
-// drives the permission rows instead, so it has no entry here.
-const PLATFORM_NOTE: Record<string, string> = {
-  linux: 'Drives your desktop via the X11/XWayland accessibility stack — no permission prompt.',
-  win32: 'First run may trigger a Windows SmartScreen prompt for the cua-driver UIAccess worker — allow it.'
-}
 
 function tone(granted: boolean | null) {
   return granted === true ? 'primary' : 'muted'
@@ -33,7 +27,17 @@ function GrantIcon({ granted }: { granted: boolean | null }) {
   return <Icon className="size-3" />
 }
 
-function PermissionRow({ granted, label, hint }: { granted: boolean | null; label: string; hint: string }) {
+function PermissionRow({
+  copy,
+  granted,
+  label,
+  hint
+}: {
+  copy: { granted: string; notGranted: string; statusUnknown: string }
+  granted: boolean | null
+  label: string
+  hint: string
+}) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background/55 p-2.5">
       <div className="min-w-0">
@@ -42,7 +46,7 @@ function PermissionRow({ granted, label, hint }: { granted: boolean | null; labe
       </div>
       <Pill tone={tone(granted)}>
         <GrantIcon granted={granted} />
-        {granted === true ? 'Granted' : granted === false ? 'Not granted' : 'Unknown'}
+        {granted === true ? copy.granted : granted === false ? copy.notGranted : copy.statusUnknown}
       </Pill>
     </div>
   )
@@ -63,6 +67,7 @@ function PermissionRow({ granted, label, hint }: { granted: boolean | null; labe
  */
 export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) {
   const { t } = useI18n()
+  const cu = t.settings.computerUse
   const [status, setStatus] = useState<ComputerUseStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [granting, setGranting] = useState(false)
@@ -172,32 +177,35 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <div className="min-w-0">
           {status.can_grant ? (
-            <p className="text-[0.72rem] text-muted-foreground">
-              Grants attach to CuaDriver&apos;s own identity (com.trycua.driver), not Hermes — so the dialog is
-              attributed to the process that drives your Mac.
-            </p>
+            <p className="text-[0.72rem] text-muted-foreground">{t.settings.computerUse.macTccNote}</p>
           ) : (
-            <p className="text-[0.72rem] text-muted-foreground">{PLATFORM_NOTE[status.platform] ?? ''}</p>
+            <p className="text-[0.72rem] text-muted-foreground">{status.platform === 'linux'
+              ? t.settings.computerUse.linuxNote
+              : status.platform === 'win32'
+                ? t.settings.computerUse.win32Note
+                : ''}</p>
           )}
           {status.version && <p className="text-[0.68rem] text-muted-foreground/80">{status.version}</p>}
         </div>
         <Button onClick={() => void refresh()} size="sm" variant="text">
           <RefreshCw className="size-3.5" />
-          Recheck
+          {t.settings.computerUse.recheck}
         </Button>
       </div>
 
       {status.can_grant ? (
         <>
           <PermissionRow
+            copy={cu}
             granted={status.accessibility}
-            hint="Lets cua-driver post clicks, keystrokes, and read the accessibility tree."
-            label={t.settings.computerUse.accessibility}
+            hint={cu.accessibilityHint}
+            label={cu.accessibility}
           />
           <PermissionRow
+            copy={cu}
             granted={status.screen_recording}
-            hint="Lets cua-driver capture screenshots of app windows."
-            label={t.settings.computerUse.screenRecording}
+            hint={cu.screenRecordingHint}
+            label={cu.screenRecording}
           />
         </>
       ) : (
@@ -205,7 +213,7 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
           <span className="text-sm font-medium">{t.settings.computerUse.driverHealth}</span>
           <Pill tone={tone(status.ready)}>
             <GrantIcon granted={status.ready} />
-            {status.ready === true ? 'Ready' : status.ready === false ? 'Not ready' : 'Unknown'}
+            {status.ready === true ? cu.statusReady : status.ready === false ? cu.statusNotReady : cu.statusUnknown}
           </Pill>
         </div>
       )}
