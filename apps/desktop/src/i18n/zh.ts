@@ -459,9 +459,22 @@ export const zh = defineLocale({
       gatewayConnectionLostDetail:
         '仍在后台重试。你可以继续阅读和编辑——若持续失败请打开网关设置检查。',
       gatewaySignInRequired: '需要登录网关',
-      ipcBridgeUnavailable: '桌面 IPC 桥不可用。'
+      ipcBridgeUnavailable: '桌面 IPC 桥不可用。',
+      restartHermes: '重启 螃蟹OPC',
+      reconnectNow: '立即重连',
+      connectionSettings: '连接设置',
+      gatewaySignInRequiredDetail: '重新登录即可重连。你的对话和设置都完好。',
+      signInAgain: '重新登录',
     },
-    failure: {
+
+    causes: {
+      exitedEarly: '螃蟹OPC 的后台服务刚启动就停止了。',
+      timedOut: '螃蟹OPC 的后台服务没有及时响应。',
+      permission: '螃蟹OPC 无法写入数据文件夹（权限问题）。',
+      diskFull: '磁盘已满，螃蟹OPC 无法启动。',
+      portInUse: '其他程序占用了 螃蟹OPC 需要的网络端口。',
+      installMissing: '螃蟹OPC 的部分安装文件缺失。请选择「修复安装」补回。'
+    },    failure: {
       title: '螃蟹OPC 无法启动',
       description: '后台网关没有启动。请尝试下面的恢复步骤；这里不会删除你的对话或设置。',
       remoteTitle: '需要重新登录远程网关',
@@ -494,11 +507,13 @@ export const zh = defineLocale({
       signInFailed: '登录失败',
       signInToRemoteGateway: '登录远程网关',
       signInWithProvider: provider => `使用 ${provider} 登录`,
-      identityProvider: '你的身份提供方'
+      identityProvider: '你的身份提供方',
+      details: '详细信息'
     }
   },
 
   notifications: {
+    compressDeferredDone: '上下文压缩已完成',
     sharedProfileWarning:
       '另一个 螃蟹OPC安装实例正在使用此配置。两个实例共享此配置的设置和数据，因此更改可能发生冲突。你可以继续使用，也可以在更改前关闭另一个实例。',
     region: '通知',
@@ -542,7 +557,10 @@ export const zh = defineLocale({
       microphonePermission: '麦克风权限已被拒绝。',
       openaiRejectedApiKey: 'OpenAI 拒绝了该 API key。',
       openaiTtsNeedsKey: 'OpenAI TTS 需要 VOICE_TOOLS_OPENAI_KEY 或 OPENAI_API_KEY。',
-      codeSkewRestartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码。'
+      codeSkewRestartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码。',
+      storageFailure: '螃蟹OPC 无法写入数据文件夹。打开「维护」检查并修复。',
+      rpcOutOfSync: '应用与后端版本不一致。请两者都更新。',
+      restartHermesFailed: '无法重启 螃蟹OPC',
     },
     voice: {
       configureSpeechToText: '配置语音转文字后即可使用语音模式。',
@@ -584,6 +602,12 @@ export const zh = defineLocale({
       backgroundDoneTitle: '后台任务已完成',
       backgroundFailedTitle: '后台任务失败',
       creditsTitle: '额度'
+    },
+    actions: {
+      restartHermes: '重启 螃蟹OPC',
+      openKeys: '打开密钥',
+      openGateways: '打开网关',
+      openMaintenance: '打开维护'
     }
   },
 
@@ -645,6 +669,7 @@ export const zh = defineLocale({
   },
 
   keybinds: {
+    clear: '清除',
     title: '键盘快捷键',
     subtitle: open => `点击快捷键即可重新绑定 · ${open} 可重新打开此面板。`,
     search: '搜索快捷键…',
@@ -752,7 +777,23 @@ export const zh = defineLocale({
       'composer.slash': '斜杠命令面板',
       'composer.help': '快速帮助',
       'composer.history': '切换弹窗/历史',
-      'composer.cancel': '关闭弹窗·取消运行'
+      'composer.cancel': '关闭弹窗·取消运行',
+      'view.cycleSidebarGrouping': '切换会话分组',
+      'view.toggleHud': '切换 HUD 模式',
+      'hud.snapToPointer': '将 HUD 移到指针处（全局，HUD 开启时）',
+      'view.newTerminal': '新建终端',
+      'view.nextTerminal': '下一个终端',
+      'view.prevTerminal': '上一个终端',
+      'view.closeTerminal': '关闭终端',
+      'view.tabSlot.1': '切换到标签页 1',
+      'view.tabSlot.2': '切换到标签页 2',
+      'view.tabSlot.3': '切换到标签页 3',
+      'view.tabSlot.4': '切换到标签页 4',
+      'view.tabSlot.5': '切换到标签页 5',
+      'view.tabSlot.6': '切换到标签页 6',
+      'view.tabSlot.7': '切换到标签页 7',
+      'view.tabSlot.8': '切换到标签页 8',
+      'view.tabSlot.9': '切换到标签页 9'
     }
   },
 
@@ -3434,7 +3475,13 @@ export const zh = defineLocale({
     failedLoadSoul: '加载 SOUL.md 失败',
     failedSaveSoul: '保存 SOUL.md 失败',
     failedCreate: '创建配置档案失败',
-    failedRename: '重命名配置档案失败'
+    failedRename: '重命名配置档案失败',
+    status: {
+      unread: (count: number) => (count === 1 ? '1 个未读会话' : `${count} 个未读会话`),
+      needsInput: (count: number) => (count === 1 ? '1 个会话等你回复' : `${count} 个会话等你回复`),
+      working: (count: number) => (count === 1 ? '1 个会话运行中' : `${count} 个会话运行中`)
+    },
+
   },
 
   modelAssignment: {
@@ -3857,7 +3904,14 @@ export const zh = defineLocale({
       working: '进行中',
       done: '已完成'
     },
-    markAllRead: '全部标记为已读'
+    markAllRead: '全部标记为已读',
+    storageCorrupt: {
+      title: '会话数据库已损坏',
+      body: profiles => `螃蟹OPC 无法读取 ${profiles} 的全部会话历史。列表中缺失的对话并没有被删除；是存储它们的文件损坏了。`,
+      action: '请退出此配置档案上的 螃蟹OPC，然后在不改动文件的前提下检查它，或恢复快照：',
+      guide: '恢复指南'
+    },
+
   },
 
   composer: {
@@ -4266,6 +4320,15 @@ export const zh = defineLocale({
       switchFailed: branch => `无法切换到 ${branch}`,
       worktrees: '工作树'
     }
+  },
+
+  handoffTour: {
+    profileTitle: '你的第一个任务在默认配置档案上运行',
+    profileText: '这根栏切换配置档案。现在亮着的是默认档案，任务会话就在那里。另一个是设置档案，欢迎对话在那里。',
+    sessionsTitle: '每个配置档案有自己的会话',
+    sessionsText: '这个列表属于默认档案。新建会话会在当前选中的档案里开启。在栏上切换档案，列表也会跟着变。',
+    stayTitle: '螃蟹OPC 随时都在',
+    stayText: '切换到设置档案并打开「欢迎使用 螃蟹OPC」，需要帮助时随时回来。它一直在那里。'
   },
 
   updates: {
@@ -5467,7 +5530,8 @@ export const zh = defineLocale({
       success: platform => `已移交到 ${platform}。随时可在此处恢复。`,
       systemNote: platform => `↻ 已移交到 ${platform} — 随时可在此处恢复。`,
       failed: error => `移交失败：${error}`,
-      timedOut: '等待网关超时。`螃蟹OPC gateway` 是否正在运行？'
+      timedOut: '等待网关超时。`螃蟹OPC gateway` 是否正在运行？',
+      startMessaging: '开始聊天',
     }
   },
 
