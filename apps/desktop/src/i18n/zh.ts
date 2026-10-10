@@ -464,6 +464,7 @@ export const zh = defineLocale({
       reconnectNow: '立即重连',
       connectionSettings: '连接设置',
       gatewaySignInRequiredDetail: '重新登录即可重连。你的对话和设置都完好。',
+      openLogs: '打开日志',
       signInAgain: '重新登录',
     },
 
@@ -2148,7 +2149,9 @@ export const zh = defineLocale({
         kanban_decomposer: { label: '看板分解', hint: '任务拆解' },
         profile_describer: { label: '配置描述', hint: '自动生成配置描述' },
         curator: { label: '维护器', hint: '技能使用审查' }
-      }
+      },
+      mainAppliedTitle: '主模型已更新',
+      mainAppliedMessage: model => `新会话将使用 ${model}。`,
     },
     localModels: {
       connectionChanged: '本地模型连接已更改',
@@ -2263,7 +2266,12 @@ export const zh = defineLocale({
       deleteAction: '删除模型',
       deleteConfirm: model => `从磁盘删除 ${model}？`,
       deleted: model => `已删除 ${model}。`,
-      deleteFailed: '删除失败'
+      deleteFailed: '删除失败',
+      downloadEtaSeconds: count => `${count} 秒`,
+      downloadEtaMinutes: count => `${count} 分`,
+      downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 时 ${minutes} 分` : `${hours} 时`),
+      downloadPauseFailed: model => `无法暂停 ${model} 的下载`,
+      downloadResumeFailed: model => `无法恢复 ${model} 的下载`,
     },
     billing: {
       perMonth: amount => `${amount}/月`,
@@ -2618,6 +2626,11 @@ export const zh = defineLocale({
         needsSetup: '需要设置',
         unavailable: '不可用',
         inUse: '使用中',
+        unavailableTitle: '终端命令不可用',
+        unavailableMessage: backend => `螃蟹OPC 暂时无法运行 shell 命令：${backend} 未就绪。可切换到「本地」，或先完成 ${backend} 的配置再试。`,
+        openBackendSettings: '打开终端设置',
+        useLocal: '使用本地',
+        switchedToLocal: '终端命令现在在本机运行。对新会话生效。',
         selectedTitle: '已选择后端',
         selectedMessage: backend => `终端命令现在通过 ${backend} 运行。将应用于新会话。`,
         failedSelect: backend => `选择 ${backend} 失败`,
@@ -2647,7 +2660,11 @@ export const zh = defineLocale({
           notNow: '暂不',
           enable: '使用我的配置文件'
         }
-      }
+      },
+      nousAuthFailedMessage: '请重试。',
+      nousAuthTryAgain: '重试',
+      postSetupOpenLogs: '打开日志',
+      postSetupRunAgain: '重新运行',
     }
   },
 
