@@ -694,7 +694,7 @@ export function CronView({ onClose, onOpenSession, setStatusbarItemGroup: _setSt
                     key={item.key}
                     onSelect={() => setEditor({ blueprintKey: item.key, mode: 'create' })}
                     rowKey={`blueprint-${item.key}`}
-                    title={item.title}
+                    title={BLUEPRINT_ZH[item.key]?.title ?? item.title}
                   />
                 ))}
               </>

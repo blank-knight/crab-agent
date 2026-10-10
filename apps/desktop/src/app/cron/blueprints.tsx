@@ -2,6 +2,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { AutomationBlueprint, AutomationBlueprintField } from '@/hermes'
 
+import { SLOT_LABEL_ZH } from './blueprints-zh'
+
 // The blueprint catalog is shared with the dashboard, so its deliver slot
 // defaults to "origin" (the chat/home-channel a dashboard or gateway job was
 // created from). Desktop has no origin chat, so seed the deliver slot to the
@@ -83,7 +85,7 @@ export function BlueprintSlotControl({
     <Input
       id={id}
       onChange={event => onChange(event.target.value)}
-      placeholder={field.help || field.label}
+      placeholder={field.help || (SLOT_LABEL_ZH[field.name] ?? field.label)}
       type="text"
       value={value}
     />
