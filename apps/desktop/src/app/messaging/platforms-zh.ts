@@ -1,6 +1,13 @@
-// 消息平台中文表（qiji 0.20.5）——真源 hermes_cli/web_server_messaging.py _PLATFORM_OVERRIDES
+// 消息平台中文表 + 地域分组（qiji 0.20.5）——真源 hermes_cli/web_server_messaging.py _PLATFORM_OVERRIDES
 // key=platform.id（身份字段），显示时 `PLATFORM_ZH[id] ?? 原文` 回退。name/desc 一表两用。
 // zh.ts messaging.platformIntro 已有页面级长文案，这里是行级数据，别混。
+//
+// 地域分组（qiji：主打国内平台，国内组置顶）：未收录进任何组的新平台默认进「其他」组，
+// 与 name/desc 表一致——上游新增平台免疫，不会凭空消失。
+interface PlatformLike {
+  id: string
+}
+
 export const PLATFORM_NAME_ZH: Readonly<Record<string, string>> = {
   telegram: 'Telegram',
   discord: 'Discord',
@@ -53,4 +60,62 @@ export const PLATFORM_DESC_ZH: Readonly<Record<string, string>> = {
   webhook: '接收 GitHub、GitLab 等 Webhook 事件。',
   msgraph_webhook: '接收微软 Graph 变更通知（Teams 会议、Outlook 等）。',
   relay: '通用中继适配器（实验性）。'
+}
+
+/** 国内平台 id 集——分组依据是产品定位（主打国内），不是平台归属地事实。 */
+const CN_PLATFORM_IDS = new Set([
+  'weixin',
+  'wecom',
+  'wecom_callback',
+  'dingtalk',
+  'feishu',
+  'qqbot',
+  'yuanbao'
+])
+
+/** 海外平台 id 集——Telegram/Discord 等国际主流。 */
+const OVERSEAS_PLATFORM_IDS = new Set([
+  'telegram',
+  'discord',
+  'slack',
+  'whatsapp',
+  'whatsapp_cloud',
+  'signal',
+  'matrix',
+  'mattermost',
+  'google_chat',
+  'sms',
+  'email',
+  'bluebubbles'
+])
+
+export type PlatformRegion = 'cn' | 'overseas' | 'other'
+
+export interface PlatformRegionGroup<T extends PlatformLike = PlatformLike> {
+  id: PlatformRegion
+  label: string
+  platforms: T[]
+}
+
+export function platformRegion(id: string): PlatformRegion {
+  if (CN_PLATFORM_IDS.has(id)) {
+    return 'cn'
+  }
+
+  return OVERSEAS_PLATFORM_IDS.has(id) ? 'overseas' : 'other'
+}
+
+/** 按地域分组：国内置顶 → 海外 → 其他（工具/桥接类）。空组不出列。 */
+export function groupPlatformsByRegion<T extends PlatformLike>(platforms: readonly T[]): Array<PlatformRegionGroup<T>> {
+  const buckets: Record<PlatformRegion, T[]> = { cn: [], overseas: [], other: [] }
+
+  for (const platform of platforms) {
+    buckets[platformRegion(platform.id)].push(platform)
+  }
+
+  const labels: Record<PlatformRegion, string> = { cn: '国内平台', overseas: '海外平台', other: '其他接入' }
+
+  return (['cn', 'overseas', 'other'] as const)
+    .filter(id => buckets[id].length > 0)
+    .map(id => ({ id, label: labels[id], platforms: buckets[id] }))
 }

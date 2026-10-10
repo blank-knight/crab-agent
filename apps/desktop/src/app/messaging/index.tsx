@@ -44,7 +44,7 @@ import { SettingsProfileScope } from '../settings/profile-scope'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { PlatformAvatar } from './platform-icon'
-import { PLATFORM_DESC_ZH, PLATFORM_NAME_ZH } from './platforms-zh'
+import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH } from './platforms-zh'
 import { TelegramQrSetup } from './telegram-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
@@ -541,18 +541,27 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           <div className="min-h-0 flex-1">
             <MasterDetail>
               <ListColumn>
-                <ul className="space-y-1">
-                  {visiblePlatforms.map(platform => (
-                    <li key={platform.id}>
-                      <PlatformRow
-                        active={selected?.id === platform.id}
-                        onSelect={() => setSelectedId(platform.id)}
-                        pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
-                        platform={platform}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                {/* qiji 0.20.5: 地域分组——国内平台置顶（产品主打国内），海外其后，
+                    工具/桥接类归「其他」。搜索时空组自然收起，不打断查找。 */}
+                {groupPlatformsByRegion(visiblePlatforms).map(group => (
+                  <section key={group.id}>
+                    <h4 className="px-2 pb-1 pt-3 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-(--ui-text-tertiary) first:pt-1">
+                      {group.label}
+                    </h4>
+                    <ul className="space-y-1">
+                      {group.platforms.map(platform => (
+                        <li key={platform.id}>
+                          <PlatformRow
+                            active={selected?.id === platform.id}
+                            onSelect={() => setSelectedId(platform.id)}
+                            pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
+                            platform={platform}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
               </ListColumn>
 
               <DetailColumn
