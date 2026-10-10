@@ -6,17 +6,19 @@
  * 永续对话、独立记忆/例程）。两段机制独立，用户自选轻重——
  * 快活用技能，长期运营用专家。
  *
- * 桥接原则：hermes-bots 是 plugin（懒注册），静态 import 会把 plugin
- * 代码拉进主 bundle 并绕过其生命周期；动态 import 对齐懒加载语义。
- * useRoster 是 React hook，必须在组件体内无条件调用——所以由
- * ExpertsSection 内部先动态 import、成功后渲染内层 hook 组件，
- * 失败/停用时降级为空态提示，OPC 页本身不塌。
+ * 桥接原则（0.20.5a 修订）：hermes-bots 数据层（data.ts/canonical-chat.ts）
+ * 直接静态 import——plugin 发现本就是 eager glob（contrib/plugins.ts），
+ * 「动态 import 对齐懒加载」的旧设计在加密链（blob: 协议）下触发
+ * React #310（0.20.5 装机实锤，f_l 组件 hooks 计数漂移），已废弃。
  */
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
+
+import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
+import { useRoster } from '../../plugins/hermes-bots/data'
 
 export interface OpcExpertRow {
   /** roster 身份名（profile name）——openBotCanonicalChat 认它 */
@@ -44,6 +46,15 @@ export function expertHue(name: string): number {
 
 /** RosterRow 的松类型投影（plugin 边界，不引 plugin 内部类型） */
 type RosterSnapshotLike = { profiles?: Array<Record<string, unknown>> } | null | undefined
+
+/** 0.20.5a: 真 useRoster 返回强类型 RosterSnapshot——经此收窄到松类型再投影 */
+function asSnapshotLike(data: unknown): RosterSnapshotLike {
+  if (data && typeof data === 'object' && 'profiles' in data) {
+    return data as RosterSnapshotLike
+  }
+
+  return null
+}
 
 function toRow(row: Record<string, unknown>): OpcExpertRow | null {
   if (typeof row.name !== 'string' || row.name.length === 0) {
@@ -74,32 +85,14 @@ export function toOpcExpertRows(snapshot: RosterSnapshotLike): OpcExpertRow[] {
   return rows.map(toRow).filter((r): r is OpcExpertRow => r !== null)
 }
 
+/** qiji 0.20.5a: 静态 import——动态 import 在加密链(blob:)下不可靠
+ *  （React #310 装机实锤），且 plugin 本就是 eager glob 加载，
+ *  懒加载语义从未成立。数据层模块 import 无副作用。 */
 async function openOpcExpert(name: string): Promise<boolean> {
   try {
-    const chat = (await import('../../plugins/hermes-bots/canonical-chat')) as {
-      openBotCanonicalChat?: (owner: string) => Promise<unknown>
-    }
-
-    if (typeof chat.openBotCanonicalChat !== 'function') {
-      return false
-    }
-
-    return (await chat.openBotCanonicalChat(name)) != null
+    return (await openBotCanonicalChat(name)) != null
   } catch {
     return false
-  }
-}
-
-type UseRoster = () => { data?: RosterSnapshotLike; error?: unknown }
-
-/** 动态拿 useRoster（plugin 懒加载）；null = plugin 不可用 */
-async function loadUseRoster(): Promise<UseRoster | null> {
-  try {
-    const mod = (await import('../../plugins/hermes-bots/data')) as { useRoster?: UseRoster }
-
-    return typeof mod.useRoster === 'function' ? mod.useRoster : null
-  } catch {
-    return null
   }
 }
 
@@ -174,10 +167,10 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
   )
 }
 
-/** 内层：hook 组件——useRoster 无条件调用（React 规则） */
-function RosterGrid({ useRoster }: { useRoster: UseRoster }) {
+/** roster → 专家卡片墙（静态 useRoster，React 规则：无条件调用） */
+function RosterGrid() {
   const { data, error } = useRoster()
-  const experts = toOpcExpertRows(data)
+  const experts = toOpcExpertRows(asSnapshotLike(data))
 
   if (error && experts.length === 0) {
     return (
@@ -204,30 +197,11 @@ function RosterGrid({ useRoster }: { useRoster: UseRoster }) {
   )
 }
 
-/** 外层：专家段。动态 import 拿 hook，成功前渲染占位。 */
+/** 专家段。静态 useRoster（0.20.5a：动态 import 版在加密链下炸 #310）。 */
 export function OpcExpertsSection() {
-  const [useRoster, setUseRoster] = useState<UseRoster | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    void loadUseRoster().then(hook => {
-      if (alive) {
-        setUseRoster(hook)
-      }
-    })
-
-    return () => {
-      alive = false
-    }
-  }, [])
-
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-3.5 px-8 pb-8 pt-3">
-      {useRoster ? <RosterGrid useRoster={useRoster} /> : (
-        <p className="col-span-full px-1 py-8 text-center text-[0.85rem] text-(--ui-text-tertiary)">
-          正在加载专家…
-        </p>
-      )}
+      <RosterGrid />
     </div>
   )
 }
