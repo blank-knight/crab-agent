@@ -1,11 +1,14 @@
 import type * as React from 'react'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { NEW_CHAT_ROUTE } from '@/app/routes'
 import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
+import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
+
+import { OpcExpertsSection } from './experts'
 
 /**
  * qiji 0.20.5: OPC 智能体启动台（卖点入口）。
@@ -156,6 +159,8 @@ export interface OpcViewProps extends React.ComponentProps<'section'> {
 
 export function OpcView(_: OpcViewProps) {
   const navigate = useNavigate()
+  // qiji 0.20.5: 技能|专家 两段——自营技能墙 + hermes-bots roster 透传
+  const [tab, setTab] = useState<'experts' | 'skills'>('skills')
 
   // 点击可用卡片：回聊天新会话，等路由提交后再把 /技能名 填进输入框。
   // ⚠️ 两个坑（CDP 实测实锤）：
@@ -201,12 +206,31 @@ export function OpcView(_: OpcViewProps) {
         </div>
       </div>
 
-      {/* 卡片墙 */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-3.5 px-8 pb-8 pt-3">
-        {OPC_AGENTS.map(agent => (
-          <OpcAgentCard agent={agent} key={agent.name} onLaunch={onLaunch} />
-        ))}
+      {/* 段选：技能（自营卡片墙）| 专家（roster 透传） */}
+      <div className="flex items-center gap-3 px-8 pt-4">
+        <SegmentedControl
+          onChange={setTab}
+          options={[
+            { id: 'skills', label: '技能' },
+            { id: 'experts', label: '专家' }
+          ]}
+          value={tab}
+        />
+        <p className="text-[0.75rem] text-(--ui-text-tertiary)">
+          {tab === 'skills' ? '即点即用：预填指令，跑在当前会话' : '独立档案：自己的记忆与人设，永续对话'}
+        </p>
       </div>
+
+      {/* 卡片墙 / 专家墙 */}
+      {tab === 'skills' ? (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-3.5 px-8 pb-8 pt-3">
+          {OPC_AGENTS.map(agent => (
+            <OpcAgentCard agent={agent} key={agent.name} onLaunch={onLaunch} />
+          ))}
+        </div>
+      ) : (
+        <OpcExpertsSection />
+      )}
     </section>
   )
 }
