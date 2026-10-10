@@ -116,6 +116,9 @@ vi.mock('./i18n', async importOriginal => {
   return { ...actual, BOTS_LOCALES: {} }
 })
 const plugin = (await import('./plugin')).default
+// qiji: BOTS pane 默认隐藏；此文件验 Bot Chat 的 reclaim 语义，pane 打开不影响所测契约但保持与旧环境一致
+const { qijiBotsPaneVisibility } = await import('./plugin')
+qijiBotsPaneVisibility.hidden = false
 
 const { $openBotChat, $selectedRosterKey } = await import('./bot-state')
 const { $lastRoster } = await import('./data')

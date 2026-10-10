@@ -97,6 +97,8 @@ vi.mock('./routing', async importOriginal => {
 })
 
 const plugin = (await import('./plugin')).default
+// qiji: BOTS pane 可见性开关（默认隐藏，个别用例临时打开验 pane 契约）
+const { qijiBotsPaneVisibility } = await import('./plugin')
 
 interface Registration {
   area: string
@@ -162,6 +164,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mocks.botChatOwnsWorkspace.mockReturnValue(false)
   mocks.sessionOwnsWorkspace.mockReturnValue(false)
+  qijiBotsPaneVisibility.hidden = true
 })
 
 afterEach(() => {
@@ -169,7 +172,16 @@ afterEach(() => {
 })
 
 describe('the Bots pane dock', () => {
+  it('qiji: does NOT register the sidebar pane by default (入口归并 OPC)', () => {
+    const harness = recordingContext()
+    plugin.register(harness.ctx)
+    expect(harness.find('pane')).toBeUndefined()
+  })
+
   it('renders its tab label from the live locale, not the register-time string', () => {
+    // qiji: 默认隐藏；此用例验 pane 本身契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     paneStores()
 
     const harness = recordingContext()
@@ -196,6 +208,9 @@ describe('the Bots pane dock', () => {
 
 describe('the Scheduled jobs pane', () => {
   it('stays unregistered until a bot chat owns the workspace', async () => {
+    // qiji: 默认隐藏；此用例验 pane 生命周期契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const store = paneStores()
     const harness = recordingContext()
 
@@ -213,6 +228,9 @@ describe('the Scheduled jobs pane', () => {
   })
 
   it('unregisters when Bot Mode leaves the screen', async () => {
+    // qiji: 默认隐藏；此用例验 pane 生命周期契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const store = paneStores()
     const harness = recordingContext()
 
@@ -233,6 +251,9 @@ describe('the Scheduled jobs pane', () => {
   })
 
   it('keeps the tile alive while the tile itself holds focus', async () => {
+    // qiji: 默认隐藏；此用例验 pane 生命周期契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const store = paneStores()
     const harness = recordingContext()
 
@@ -253,6 +274,9 @@ describe('the Scheduled jobs pane', () => {
   })
 
   it('drops a remembered Close only on entering Bot Mode, not on every ownership regain', async () => {
+    // qiji: 默认隐藏；此用例验 pane 本身契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const store = paneStores()
     const harness = recordingContext()
 
@@ -307,6 +331,9 @@ describe('the Scheduled jobs pane', () => {
 
 describe('returning to Sessions', () => {
   it('drops a cold bot open still pending (#120277)', async () => {
+    // qiji: 默认隐藏；此用例验 pane 生命周期契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const store = paneStores()
     const harness = recordingContext()
     const { $pendingBotOpen } = await import('./shared')
@@ -327,6 +354,9 @@ describe('returning to Sessions', () => {
 
 describe('a desktop without host.paneVisibility', () => {
   it('keeps the always-registered pane', async () => {
+    // qiji: 默认隐藏；此用例验 pane 生命周期契约，临时打开
+    qijiBotsPaneVisibility.hidden = false
+
     const { host } = await import('@hermes/plugin-sdk')
     const restore = host.paneVisibility
 

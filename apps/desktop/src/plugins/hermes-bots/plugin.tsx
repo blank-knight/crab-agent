@@ -107,6 +107,11 @@ interface ComposerDraftPayload {
   text: string
 }
 
+/** qiji 0.20.5: 隐藏侧边栏 BOTS tab——专家入口归并 OPC。插件机制保留。
+ *  可变对象而非 const：plugin-panes 测试需要在本体行为（隐藏）与 pane
+ *  契约（注册→tab label/例程语义）之间切换验证，两者都要锁。 */
+export const qijiBotsPaneVisibility = { hidden: true }
+
 export default {
   id: ID,
   name: translateNow('common.bots'),
@@ -439,6 +444,16 @@ export default {
       area: SIDEBAR_PROFILE_GROUP_HEADER_AREA,
       data: { render: (route: ProfileGroupRoute) => <ProfileGroupScreenPortal route={route} /> }
     })
+
+    // qiji 0.20.5: 侧边栏 BOTS tab 不注册——专家入口已归并到 OPC 智能体
+    // （「技能|专家」双段，见 app/opc/experts.tsx）。插件本体保持启用：
+    // roster 数据、canonical chat、群聊、例程等机制全部继续工作，OPC
+    // 透传的就是它们。只是不再有自己的侧边栏 tab，普通用户从 OPC 进。
+    if (qijiBotsPaneVisibility.hidden) {
+      // 现存安装可能残留旧 tab 布局（SESSIONS|BOTS strip）——pane store
+      // 里已注册的 BOTS pane 会在窗口重载后自然消失（本注册不再发生），
+      // 这里不用迁移：enforceDockedPanes 的不变式只作用于已注册 pane。
+    } else {
     ctx.register({
       id: 'pane',
       area: 'panes',
@@ -487,6 +502,7 @@ export default {
     // (NOT the collapsible right sidebar; placement 'right' is that sidebar's
     // role and hides the pane until "Show Right Sidebar").
     //
+
     // Registered ONLY while Bot Mode is on screen: the pane exists while the
     // Bots pane is visible (its zone's active tab, or a lone pane in a
     // stacked pre-heal layout) and unregisters when the user tabs back to
@@ -721,6 +737,7 @@ export default {
     } else {
       registerRoutinesPane(true)
     }
+    } // qiji: else 闭合——pane 注册及其可见性/例程联动整体跳过（入口归并 OPC）
 
     // A bot's chat before it has spoken: core's splash is Hermes' wordmark and
     // stands down for any session that exists, so the bot titles its own.
