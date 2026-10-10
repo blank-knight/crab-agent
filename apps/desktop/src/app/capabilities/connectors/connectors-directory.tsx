@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import { type ReactNode } from 'react'
 
 import { PanelEmpty } from '@/app/overlays/panel'
@@ -6,6 +7,8 @@ import { ErrorBanner } from '@/components/ui/error-state'
 import { SearchField } from '@/components/ui/search-field'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { useI18n } from '@/i18n'
+import { isConnectorSlugVisible } from '@/lib/desktop-toolsets'
+import { $advancedFeatures } from '@/store/advanced-features'
 
 import { ConnectorRowCard } from './connector-row-card'
 import { cardKey, EMPTY_CONNECTORS_FILTER } from './derive'
@@ -52,7 +55,13 @@ export function ConnectorsDirectory({
   const segmentLabel = (id: ConnectorSegmentId) => (id === 'local' ? where : copy.segment[id])
   const set = (patch: Partial<ConnectorsFilter>) => onFilterChange({ ...filter, ...patch })
 
-  const { groups, hiddenMatches, segment, segments } = derivePage(cards, filter)
+  const advancedFeatures = useStore($advancedFeatures)
+
+  const visibleCards = advancedFeatures
+    ? cards
+    : cards.filter(card => isConnectorSlugVisible(card.slug, card.state))
+
+  const { groups, hiddenMatches, segment, segments } = derivePage(visibleCards, filter)
 
   const showSegments = segments.length > 2
   const segmentFellBack = segments.length > 0 && segment !== filter.segment

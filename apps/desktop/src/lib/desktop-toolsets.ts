@@ -42,6 +42,23 @@ export function isDesktopToolsetVisible(name: string, advancedFeatures = false):
   return advancedFeatures || !DEVELOPER_TOOLSETS.has(name)
 }
 
+/**
+ * qiji 0.20.5: 开发者向连接器（slug）——普通用户默认不见（「高级功能」开关放出）。
+ * 判例：已连接/已关闭状态不过滤——用户已经在用的不能凭空消失，只隐藏「可用」陈列。
+ */
+const DEVELOPER_CONNECTORS = new Set(['gitlab', 'jira', 'linear'])
+
+export type ConnectorVisibilityState = 'available' | 'broken' | 'connected' | 'connecting' | 'expired' | 'off' | 'unknown'
+
+export function isConnectorSlugVisible(slug: string, state: ConnectorVisibilityState, advancedFeatures = false): boolean {
+  if (advancedFeatures || !DEVELOPER_CONNECTORS.has(slug)) {
+    return true
+  }
+
+  // 已连接系（含异常/过期）一律保留；只藏从未用过的陈列（available/off/unknown）
+  return state === 'connected' || state === 'broken' || state === 'connecting' || state === 'expired'
+}
+
 /** Desktop plugin id → the agent toolset carrying the same feature's
  *  agent-side tools. The Plugins page's Desktop switch toggles this app's UI
  *  panel; for these entries it also flips the toolset opt-in through the same
