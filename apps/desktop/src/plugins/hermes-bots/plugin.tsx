@@ -450,9 +450,17 @@ export default {
     // roster 数据、canonical chat、群聊、例程等机制全部继续工作，OPC
     // 透传的就是它们。只是不再有自己的侧边栏 tab，普通用户从 OPC 进。
     if (qijiBotsPaneVisibility.hidden) {
-      // 现存安装可能残留旧 tab 布局（SESSIONS|BOTS strip）——pane store
-      // 里已注册的 BOTS pane 会在窗口重载后自然消失（本注册不再发生），
-      // 这里不用迁移：enforceDockedPanes 的不变式只作用于已注册 pane。
+      // 现存安装的持久化布局（hermes.desktop.layoutTree.v2）里可能残留
+      // 旧 BOTS tab——pane 不再注册，但树里的 id 会以「死 tab」形式活到
+      // 下一次结构性操作。自愈：注册期直接把残留 pane 从树里摘掉
+      // （removeTreePane 是 store 的正规手术入口，记住 share、走 commit）。
+      if (typeof host.removePane === 'function') {
+        try {
+          host.removePane(`${ID}:pane`)
+        } catch {
+          /* 树里没有残留——干净安装 */
+        }
+      }
     } else {
     ctx.register({
       id: 'pane',

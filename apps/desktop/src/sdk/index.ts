@@ -1424,6 +1424,22 @@ export const host = {
    *  (`typeof host.paneVisibility === 'function'`). */
   paneVisibility: (paneId: string): ReadableAtom<boolean> => $paneVisible(paneId),
 
+  /** Surgically remove a contributed pane's tab from the layout tree — for a
+   *  plugin whose pane registration is permanently retired (hidden entry
+   *  point): a persisted layout from an older install would otherwise keep a
+   *  dead tab alive until the next structural edit. Goes through the store's
+   *  regular commit path (share remembered), so it composes with normalize.
+   *  Feature-detect on older desktops; absent → no-op. */
+  removePane: (paneId: string): void => {
+    const id = (paneId ?? '').trim()
+
+    if (!id) {
+      return
+    }
+
+    removeTreePane(id)
+  },
+
   /** Forget a persisted Close for a contributed pane so adoption puts it back
    *  where its dock hint says — WITHOUT fronting it or un-collapsing its zone
    *  (that is `revealPane`, for an explicit user action). For a pane a plugin
