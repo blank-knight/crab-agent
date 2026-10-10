@@ -19,8 +19,27 @@ const DESKTOP_HIDDEN_TOOLSETS = new Set([
   'moa'
 ])
 
-export function isDesktopToolsetVisible(name: string): boolean {
-  return !DESKTOP_HIDDEN_TOOLSETS.has(name)
+/**
+ * qiji 0.20.5: 开发者向工具集——普通用户默认不见（「高级功能」开关放出）。
+ * 与 DESKTOP_HIDDEN_TOOLSETS 的区别：那些是任何桌面用户都不该见的（平台
+ * 耦合/内部管线），这些是合法能力但受众是开发者/极客。
+ */
+const DEVELOPER_TOOLSETS = new Set([
+  'api',
+  'editor',
+  'safe',
+  'debugging',
+  'homeassistant',
+  'spotify',
+  'browser-real-profile'
+])
+
+export function isDesktopToolsetVisible(name: string, advancedFeatures = false): boolean {
+  if (DESKTOP_HIDDEN_TOOLSETS.has(name)) {
+    return false
+  }
+
+  return advancedFeatures || !DEVELOPER_TOOLSETS.has(name)
 }
 
 /** Desktop plugin id → the agent toolset carrying the same feature's

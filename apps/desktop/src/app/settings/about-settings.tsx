@@ -3,10 +3,13 @@ import { type ReactElement, useEffect, useState } from 'react'
 
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { type Translations, useI18n } from '@/i18n'
-import { CheckCircle2, Download, Loader2, RefreshCw, Send, Sparkles } from '@/lib/icons'
+import { submitReport } from '@/lib/client-report'
+import { CheckCircle2, Download, Loader2, RefreshCw, Send, Sparkles, Wrench } from '@/lib/icons'
 import { cn } from '@/lib/utils'
-import { clearAuth, $auth } from '@/store/auth'
+import { $advancedFeatures, setAdvancedFeatures } from '@/store/advanced-features'
+import { $auth, clearAuth } from '@/store/auth'
 import {
   $clientUpdate,
   checkClientUpdate,
@@ -16,7 +19,6 @@ import {
   startClientUpdate
 } from '@/store/client-update'
 import { $desktopVersion, refreshDesktopVersion } from '@/store/updates'
-import { submitReport } from '@/lib/client-report'
 
 import { ListRow, SectionHeading, SettingsContent } from './primitives'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
@@ -33,17 +35,23 @@ function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
 
   async function submit() {
-    if (busy) return
+    if (busy) {return}
+
     if (newpwd.length < 6) {
       setError('新密码长度不能少于6位')
+
       return
     }
+
     if (newpwd !== confirm) {
       setError('两次输入的新密码不一致')
+
       return
     }
+
     setBusy(true)
     setError(null)
+
     try {
       const { backendPost } = await import('@/lib/backend')
       await backendPost('/api/client/v1/auth/changepwd', {
@@ -179,7 +187,7 @@ function QijiAboutSettings(): ReactElement {
 
   // 一键上报: 打包最近日志直接传平台后台(用户不用自己发文件)
   async function handleSubmitReport() {
-    if (reportBusy) return
+    if (reportBusy) {return}
     setReportBusy(true)
     setReportMsg(null)
     const r = await submitReport('manual', '用户手动上报(设置-关于页)')
@@ -192,16 +200,22 @@ function QijiAboutSettings(): ReactElement {
     if (diagBusy) {
       return
     }
+
     setDiagBusy(true)
     setDiagMsg(null)
+
     try {
       const api = window.hermesDesktop?.exportDiagnostics
+
       if (!api) {
         setDiagOk(false)
         setDiagMsg('当前版本不支持诊断导出，请手动拷贝 %LOCALAPPDATA%\\qiji\\logs 目录')
+
         return
       }
+
       const result = await api()
+
       if (result?.ok) {
         setDiagOk(true)
         setDiagMsg(`已导出到桌面：${result.path ?? 'qiji-diagnostics-*.txt'}`)
@@ -223,6 +237,8 @@ function QijiAboutSettings(): ReactElement {
   useEffect(() => {
     void refreshDesktopVersion()
   }, [])
+
+  const advancedFeatures = useStore($advancedFeatures)
 
   const checking = clientUpdate.status === 'checking'
   const available = clientUpdate.status === 'available' && clientUpdate.info
@@ -281,21 +297,21 @@ function QijiAboutSettings(): ReactElement {
           </div>
           <div className="mt-3 border-t border-border/50 pt-3">
             <Button
-              variant="ghost"
-              size="sm"
               className="w-full"
               onClick={() => setShowChangePwd(true)}
+              size="sm"
+              variant="ghost"
             >
               修改密码
             </Button>
             <Button
-              variant="ghost"
-              size="sm"
               className="mt-1 w-full text-destructive hover:text-destructive"
               onClick={() => {
                 clearAuth()
                 // 退出登录：needLogin 置位后登录层原地覆盖。
               }}
+              size="sm"
+              variant="ghost"
             >
               退出登录
             </Button>
@@ -306,13 +322,13 @@ function QijiAboutSettings(): ReactElement {
         <SectionHeading icon={RefreshCw} title={a.updates} />
 
         <div
-          id={settingElementId(SETTING_IDS.about.updates)}
           className={cn(
             'rounded-xl border px-4 py-3 text-sm',
             statusTone === 'available' && 'border-primary/30 bg-primary/5 text-foreground',
             statusTone === 'error' && 'border-destructive/35 bg-destructive/5 text-destructive',
             statusTone === 'idle' && 'border-border/70 bg-muted/20 text-foreground'
           )}
+          id={settingElementId(SETTING_IDS.about.updates)}
         >
           <div className="flex items-start gap-2">
             {statusTone === 'available' ? (
@@ -431,6 +447,33 @@ function QijiAboutSettings(): ReactElement {
             </p>
           ) : null}
         </div>
+
+        {/* qiji 0.20.5: 高级功能开关——砍可见性不砍功能。默认隐藏开发者向
+            界面（高级分区的运行时/终端/输出/子智能体子页、后端预热参数、
+            开发者工具集行）；打开即全量放出，后端功能与已存配置不受影响。 */}
+        <SectionHeading icon={Wrench} title="高级功能" />
+        <ListRow
+          action={
+            <Switch
+              checked={advancedFeatures}
+              onCheckedChange={setAdvancedFeatures}
+            />
+          }
+          description="显示面向开发者的设置与工具（高级子页、后端预热参数、开发者工具集）。普通用户无需开启。"
+          title="显示高级功能"
+        />
+
+        {/* qiji 0.20.5: 高级功能开关——砍可见性不砍功能。默认隐藏开发者向
+            界面（高级分区的运行时/终端/输出/子智能体子页、后端预热参数、
+            开发者工具集行）；打开即全量放出，后端功能与已存配置不受影响。 */}
+        <SectionHeading icon={Wrench} title="高级功能" />
+        <ListRow
+          action={
+            <Switch checked={advancedFeatures} onCheckedChange={setAdvancedFeatures} />
+          }
+          description="显示面向开发者的设置与工具（高级子页、后端预热参数、开发者工具集）。普通用户无需开启。"
+          title="显示高级功能"
+        />
 
         <UninstallSection />
       </div>

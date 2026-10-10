@@ -33,14 +33,15 @@ export function filteredToolsets(
   toolsets: ToolsetInfo[],
   query: string,
   toolCalls: Record<string, number>,
-  desc: boolean
+  desc: boolean,
+  advancedFeatures = false
 ): ToolsetInfo[] {
   const q = normalize(query)
   const sign = desc ? 1 : -1
 
   return toolsets
     .filter(toolset => {
-      if (!isDesktopToolsetVisible(toolset.name)) {
+      if (!isDesktopToolsetVisible(toolset.name, advancedFeatures)) {
         return false
       }
 

@@ -10,7 +10,6 @@ import { useI18n } from '@/i18n'
 import { triggerHaptic } from '@/lib/haptics'
 import {
   Archive,
-  BarChart3,
   Bell,
   Cpu,
   Download,
@@ -31,6 +30,7 @@ import {
 import { isEditableTarget } from '@/lib/keybinds/combo'
 import { typeToFocusChar } from '@/lib/keybinds/composer-focus-keys'
 import { cn } from '@/lib/utils'
+import { $advancedFeatures } from '@/store/advanced-features'
 import { $auth } from '@/store/auth'
 import { $commandPaletteOpen, openCommandPalettePage } from '@/store/command-palette'
 import { confirm } from '@/store/confirm'
@@ -43,9 +43,9 @@ import { $settingsScopeProfile } from '@/store/settings-scope'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { OverlayIconButton } from '../overlays/overlay-chrome'
 import { OverlayMain, type OverlayNavGroup } from '../overlays/overlay-split-layout'
-import { SettingsCategoryBar, categoryOfGroup } from '../overlays/settings-category-nav'
-import { SettingsNarrowNav, SettingsSideRail } from '../overlays/settings-side-rail'
 import { OverlayView } from '../overlays/overlay-view'
+import { categoryOfGroup, SettingsCategoryBar } from '../overlays/settings-category-nav'
+import { SettingsNarrowNav, SettingsSideRail } from '../overlays/settings-side-rail'
 
 import { AboutSettings } from './about-settings'
 import { AccountSettings } from './account-settings'
@@ -67,6 +67,9 @@ import { SettingsSubpageHeader } from './subpage-navigation'
 import { resolveSettingsSubpage, settingsSubpageIcon, settingsSubpages } from './subpages'
 import type { SettingsPageProps, SettingsView as SettingsViewId } from './types'
 import { vaultOwnerKey, VaultSettings } from './vault-settings'
+
+/** qiji 0.20.5: 「高级」分区里纯开发者向子页——默认不出现在导航（开关放出）。 */
+const ADVANCED_DEVELOPER_SUBPAGES = new Set(['runtime', 'tools', 'terminal', 'output', 'delegation'])
 
 const SETTINGS_VIEWS: readonly SettingsViewId[] = [
   ...SECTIONS.map(s => `config:${s.id}` as SettingsViewId),
@@ -108,6 +111,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   }, [navigate, search])
 
   const [activeView] = useRouteEnumParam('tab', SETTINGS_VIEWS, 'config:model' as SettingsViewId)
+  const advancedFeatures = useStore($advancedFeatures)
   const params = new URLSearchParams(search)
   const requestedSubpage = params.get('page')
   const subpage = resolveSettingsSubpage(activeView, params)
@@ -396,7 +400,14 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
         ] as OverlayNavGroup[]
       ).map(group => {
         const view = group.id as SettingsViewId
-        const children = settingsSubpages(view)
+        let children = settingsSubpages(view)
+
+        // qiji 0.20.5: 砍可见性不砍功能——「高级」分区里纯开发者向子页默认
+        // 隐藏，设置→关于 打开「高级功能」开关后放出（深链仍可直达，只是
+        // 不在导航里陈列；物理功能与已存配置不受影响）。
+        if (view === 'config:advanced' && !advancedFeatures) {
+          children = children.filter(page => !ADVANCED_DEVELOPER_SUBPAGES.has(page.id))
+        }
 
         return children.length
           ? {
@@ -413,6 +424,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
       }),
     [
       activeView,
+      advancedFeatures,
       authState.token,
       billingView,
       canViewPlans,
@@ -435,10 +447,12 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
       : 'general',
     [navGroups]
   )
+
   const visibleGroups = useMemo(
     () => navGroups.filter(group => categoryOfGroup(group.id) === activeCategory),
     [navGroups, activeCategory]
   )
+
   const onSelectCategory = useCallback(
     (categoryId: string) => {
       // 切大类 = 跳到该大类第一个分组

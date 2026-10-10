@@ -11,6 +11,7 @@ import { Codecs, persistentAtom } from '@/lib/persisted'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { cn } from '@/lib/utils'
+import { $advancedFeatures } from '@/store/advanced-features'
 import { notify, notifyError } from '@/store/notifications'
 import type { ToolsetInfo } from '@/types/hermes'
 
@@ -124,6 +125,7 @@ function ToolsetCard({
 
 /** THE Tools tab — qiji 0.20.5 视觉 v3: OPC 同款卡片墙 + 右侧详情抽屉。 */
 export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
+  const advancedFeatures = useStore($advancedFeatures)
   const { t } = useI18n()
   const toolsetsSortDesc = useStore($toolsetsSortDesc)
   const toolCalls = useToolCalls(profile)
@@ -143,14 +145,17 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
   }, [])
 
   const visibleToolsets = useMemo(
-    () => filteredToolsets(toolsets, query, toolCalls ?? {}, toolsetsSortDesc),
-    [query, toolCalls, toolsets, toolsetsSortDesc]
+    () => filteredToolsets(toolsets, query, toolCalls ?? {}, toolsetsSortDesc, advancedFeatures),
+    [advancedFeatures, query, toolCalls, toolsets, toolsetsSortDesc]
   )
 
   // Bulk actions and the master-switch state target the WHOLE tab, never the
   // search-filtered view — a tab-wide control that silently scoped to the
   // current query would be a lie.
-  const bulkToolsets = useMemo(() => toolsets.filter(ts => isDesktopToolsetVisible(ts.name)), [toolsets])
+  const bulkToolsets = useMemo(
+    () => toolsets.filter(ts => isDesktopToolsetVisible(ts.name, advancedFeatures)),
+    [advancedFeatures, toolsets]
+  )
 
   const activeToolset = useMemo(
     () => visibleToolsets.find(ts => ts.name === selectedToolset) ?? null,
