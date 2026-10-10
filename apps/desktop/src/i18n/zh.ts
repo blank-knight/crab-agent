@@ -5204,7 +5204,12 @@ export const zh = defineLocale({
         generic: '螃蟹OPC 回复时出现问题。请重试；若问题持续，请复制错误详情。',
         provider: 'AI 服务无法完成此请求。请稍后重试或切换服务商。',
         endpoint: '螃蟹OPC无法连接到你的自定义模型服务器。请确认它正在运行，然后重新发送消息。',
-        streaming: '回复完成前连接已断开。请重试以重新发送。'
+        streaming: '回复完成前连接已断开。请重试以重新发送。',
+        auth: 'AI 服务拒绝了你的登录。请检查此提供方的凭据，然后重新发送消息。',
+        billing: '此提供方的账号已没有余额。请充值或更换提供方，然后重新发送。',
+        disk: '磁盘已满，螃蟹OPC 无法保存此对话。请腾出空间后重试。',
+        gateway: '螃蟹OPC 在开始此回复时遇到内部问题。请重新发送；若反复出现，请发送诊断信息。',
+        runtime: '螃蟹OPC 在开始此回复时遇到内部问题。请重新发送；若反复出现，请发送诊断信息。'
       },
       errorCodes: {
         provider_policy_blocked: {
@@ -5250,6 +5255,82 @@ export const zh = defineLocale({
         ssl_cert_verification: {
           title: '安全连接失败',
           body: provider => `螃蟹OPC无法验证与 ${provider} 的安全连接。请检查网络或代理设置，或切换服务商后重新发送。`
+        },
+        auth: {
+          title: provider => `${provider} 拒绝了你的登录`,
+          body: provider => `保存的 ${provider} 凭据未被接受。请在设置中修复或更换提供方，然后重新发送消息。`
+        },
+        auth_permanent: {
+          title: provider => `${provider} 拒绝了你的登录`,
+          body: provider => `保存的 ${provider} 凭据无效或已被吊销。请更新凭据或更换提供方，然后重新发送消息。`
+        },
+        billing: {
+          title: '余额不足',
+          body: provider => `你的 ${provider} 账号已没有余额。请充值或更换提供方，然后重新发送。`
+        },
+        stream_drop: {
+          title: '回复被截断',
+          body: '连接在回复完成前中断。请重试以重新发送。'
+        },
+        upstream_blocked: {
+          title: '请求被防火墙拦截',
+          body: provider => `${provider} 前方的防火墙或 CDN 在请求到达模型前拦截了它——你的密钥多半没问题。请在设置的提供方 extra_headers 里配置 User-Agent，或更换提供方后重试。`
+        },
+        context_overflow: {
+          title: '此对话太长',
+          body: '对话已超出模型容量。请压缩对话或开启新对话，然后重新发送。'
+        },
+        payload_too_large: {
+          title: '此消息过大',
+          body: '请求超出了模型的上限。请压缩对话或开启新对话，然后重新发送。'
+        },
+        model_not_found: {
+          title: '此模型不可用',
+          body: provider => `${provider} 在你的账号下不提供此模型。请选择其他模型后重新发送。`
+        },
+        truncated: {
+          title: '回复提前结束',
+          body: '模型在完成前停止了。请重试以获取完整回复。'
+        },
+        loop_error: {
+          title: '螃蟹OPC 陷入了循环',
+          body: '回复不断重复相同步骤，螃蟹OPC 已将其停止。请重试；若再次发生请开启新对话。'
+        },
+        SESSION_NOT_OWNED: {
+          title: '此对话在其他地方打开',
+          body: '此对话正在另一个 螃蟹OPC 窗口或终端中打开。请在那边关闭后重新发送，或在此开启新对话。'
+        },
+        disk_full: {
+          title: '磁盘已满',
+          body: '磁盘已满，螃蟹OPC 无法保存此对话。请腾出空间后重试。'
+        },
+        free_tier_disabled: {
+          title: '未登录使用 螃蟹OPC 暂时被关闭',
+          body: '登录 Nous 账号即可继续聊天，完全免费。'
+        },
+        free_tier_rate_limited: {
+          title: '未登录聊天的额度已用完',
+          body: '额度稍后刷新。登录 Nous 账号可获得更大额度，完全免费。'
+        },
+        free_tier_at_capacity: {
+          title: '未登录聊天现在非常繁忙',
+          body: '登录即可跳过排队，完全免费；或稍后再试。'
+        },
+        free_tier_model_not_free: {
+          title: '此模型不支持未登录使用',
+          body: '螃蟹OPC 暂时使用免费模型。登录 Nous 账号可用更多模型，完全免费。'
+        },
+        free_tier_route: {
+          title: '螃蟹OPC 无法在此线路上连接免费模型',
+          body: '登录 Nous 账号（免费），或检查 NOUS_INFERENCE_BASE_URL 设置。'
+        },
+        free_tier_outage: {
+          title: '免费模型暂时无法响应',
+          body: '请稍等一分钟后重新发送消息。'
+        },
+        free_tier_refused: {
+          title: '螃蟹OPC 无法在未登录时发送此消息',
+          body: '登录 Nous 账号完全免费。'
         }
       },
       errorLayers: {
@@ -5298,7 +5379,16 @@ export const zh = defineLocale({
       restoreNext: '恢复下一个检查点',
       goForward: '前进',
       sendEdited: '发送编辑后的消息',
-      attachingFile: '正在附加…'
+      attachingFile: '正在附加…',
+      errorDetails: '详细信息',
+      errorToastTitle: '螃蟹OPC 无法完成回复',
+      errorChooseModel: '选择模型',
+      errorCompressConversation: '压缩对话',
+      errorCompressFailed: '无法压缩对话',
+      errorOpenHermesFolder: '打开 螃蟹OPC 文件夹',
+      errorOpenHermesFolderFailed: '无法打开 螃蟹OPC 文件夹',
+      errorUpdateApiKey: '更新 API 密钥',
+      errorSignInFreeTier: '登录 Nous 账号',
     },
     approval: {
       gatewayDisconnected: '螃蟹OPC 网关未连接',
@@ -5313,7 +5403,11 @@ export const zh = defineLocale({
       alwaysTitle: '始终允许此命令？',
       alwaysDescription: pattern =>
         `这会将“${pattern}”模式加入永久允许列表 (~/.螃蟹OPC/config.yaml)。螃蟹OPC 对类似命令将不再询问，包括当前会话和未来会话。`,
-      alwaysAllow: '始终允许'
+      alwaysAllow: '始终允许',
+      reconnect: '重新连接',
+      timedOutSystemLine: '审批已超时——命令未运行。可让 螃蟹OPC 重试，或在 设置→安全→审批超时 中调大时限。',
+      openSafetySettings: '打开安全设置',
+      commandDetails: '命令详情',
     },
     clarify: {
       notReady: '澄清请求尚未就绪',
