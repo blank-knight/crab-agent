@@ -33,6 +33,7 @@ import { notify, notifyError } from '@/store/notifications'
 import { $settingsRequestProfile } from '@/store/settings-scope'
 import { $gatewayRestarting, runGatewayRestart, watchGatewayRestartOutcome } from '@/store/system-actions'
 
+import { SegmentedControl, type SegmentedControlOption } from '../../components/ui/segmented-control'
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { DetailColumn, ListColumn, MasterDetail } from '../master-detail'
@@ -44,7 +45,7 @@ import { SettingsProfileScope } from '../settings/profile-scope'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { PlatformAvatar } from './platform-icon'
-import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH } from './platforms-zh'
+import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH, platformRegion, type PlatformRegion } from './platforms-zh'
 import { TelegramQrSetup } from './telegram-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
@@ -152,6 +153,8 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
   const [pendingRevoke, setPendingRevoke] = useState<null | PairingUser>(null)
   const [edits, setEdits] = useState<EditMap>({})
   const [query, setQuery] = useState('')
+  // qiji 0.20.5: 地域段选（国内默认）——列表形态与 hermes 原生平铺列表区分
+  const [region, setRegion] = useState<PlatformRegion>('cn')
   const [refreshing, setRefreshing] = useState(false)
   const [saving, setSaving] = useState<string | null>(null)
   const platformIds = useMemo(() => platforms?.map(p => p.id) ?? [], [platforms])
@@ -344,6 +347,24 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
         .some(value => String(value).toLowerCase().includes(q))
     )
   }, [platforms, query])
+
+  // qiji 0.20.5: 地域分组派生——段选数据源
+  const regionGroups = useMemo(() => groupPlatformsByRegion(visiblePlatforms), [visiblePlatforms])
+
+  const regionPlatformsByGroup = useMemo(() => {
+    const byGroup: Partial<Record<PlatformRegion, MessagingPlatformInfo[]>> = {}
+
+    for (const group of regionGroups) {
+      byGroup[group.id] = group.platforms
+    }
+
+    return byGroup
+  }, [regionGroups])
+
+  const otherRegionHits = useMemo(
+    () => visiblePlatforms.filter(p => platformRegion(p.id) !== region),
+    [visiblePlatforms, region]
+  )
 
   async function handleToggle(platform: MessagingPlatformInfo, enabled: boolean) {
     setSaving(`enabled:${platform.id}`)
@@ -541,27 +562,56 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
           <div className="min-h-0 flex-1">
             <MasterDetail>
               <ListColumn>
-                {/* qiji 0.20.5: 地域分组——国内平台置顶（产品主打国内），海外其后，
-                    工具/桥接类归「其他」。搜索时空组自然收起，不打断查找。 */}
-                {groupPlatformsByRegion(visiblePlatforms).map(group => (
-                  <section key={group.id}>
-                    <h4 className="px-2 pb-1 pt-3 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-(--ui-text-tertiary) first:pt-1">
-                      {group.label}
-                    </h4>
+                {/* qiji 0.20.5: 地域段选——顶部切换国内/海外/其他，默认国内（产品主打国内）。
+                    选中的组展开为平铺列表；搜索跨组命中时自动跳到命中项所在组，不打断查找。 */}
+                <div className="flex items-center justify-between gap-2 px-1 pb-2 pt-1">
+                  <SegmentedControl
+                    onChange={id => {
+                      setRegion(id)
+                      // 段切换后当前选中平台若不在新组，不强制清空——右侧详情保持，回切即回
+                    }}
+                    options={REGION_OPTIONS}
+                    value={region}
+                  />
+                  <span className="text-[0.7rem] tabular-nums text-(--ui-text-tertiary)">
+                    {regionGroups.find(g => g.id === region)?.platforms.length ?? 0}
+                  </span>
+                </div>
+                <ul className="space-y-1">
+                  {(regionPlatformsByGroup[region] ?? []).map(platform => (
+                    <li key={platform.id}>
+                      <PlatformRow
+                        active={selected?.id === platform.id}
+                        onSelect={() => setSelectedId(platform.id)}
+                        pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
+                        platform={platform}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {/* 搜索命中其他组时的回跳入口——保持「搜索永远有结果可达」 */}
+                {otherRegionHits.length > 0 && (
+                  <div className="mt-3 border-t border-(--ui-stroke-secondary) pt-2">
+                    <p className="px-2 pb-1 text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-(--ui-text-tertiary)">
+                      其他分组中的结果
+                    </p>
                     <ul className="space-y-1">
-                      {group.platforms.map(platform => (
+                      {otherRegionHits.map(platform => (
                         <li key={platform.id}>
                           <PlatformRow
                             active={selected?.id === platform.id}
-                            onSelect={() => setSelectedId(platform.id)}
+                            onSelect={() => {
+                              setRegion(platformRegion(platform.id))
+                              setSelectedId(platform.id)
+                            }}
                             pendingCount={pendingByPlatform[platform.id]?.length ?? 0}
                             platform={platform}
                           />
                         </li>
                       ))}
                     </ul>
-                  </section>
-                ))}
+                  </div>
+                )}
               </ListColumn>
 
               <DetailColumn
@@ -638,6 +688,12 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
     </PageSearchShell>
   )
 }
+
+const REGION_OPTIONS = [
+  { id: 'cn', label: '国内' },
+  { id: 'overseas', label: '海外' },
+  { id: 'other', label: '其他' }
+] as const satisfies readonly SegmentedControlOption<PlatformRegion>[]
 
 function PlatformRow({
   active,
