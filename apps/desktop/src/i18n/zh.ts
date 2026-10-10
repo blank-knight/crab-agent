@@ -4690,6 +4690,22 @@ export const zh = defineLocale({
   // Not yet translated — English fallbacks so the free-tier surfaces stay
   // readable until a zh pass lands.
   freeTier: {
+  busyHeading: '快好了',
+  busyBody: wait => `Nous 服务正忙，螃蟹OPC 暂时无法完成登录。请在 ${wait} 后重试。你的会话还在。`,
+  unreachableBody: '螃蟹OPC 无法连接 Nous 服务完成登录。请检查网络后重试。你的会话还在。',
+  setupFailed: {
+    gateClosed: '此版本的 螃蟹OPC 需要登录 Nous 账号才能使用。登录或注册一个都免费，只需一分钟。',
+    paused: '未登录使用 螃蟹OPC 暂时被暂停。螃蟹OPC 会持续重试。登录免费且立刻可用。',
+    rateLimited: wait => `现在开始使用的人很多，螃蟹OPC 将在 ${wait} 后重试。登录免费且可跳过等待。`,
+    unreachable: '螃蟹OPC 无法连接 Nous 服务。请检查网络后点「重试」，或先连接其他提供方。',
+    serverError: 'Nous 服务出了点小问题。稍后点「重试」，或先连接其他提供方。',
+    powRequired: 'Nous 服务器要求工作量证明，但此版本还不支持。请登录或注册免费的 Nous 账号继续。',
+    locked: '此会话需要登录才能继续。登录或注册免费的 Nous 账号。',
+    generic: '螃蟹OPC 无法在不登录的情况下设置免费访问。登录免费，或连接其他提供方。',
+    signInBelow: '登录免费。在下方选择 Nous。',
+    tryAgain: '重试',
+    retrying: '正在重试…'
+  },
     providerRowTitle: 'Nous · 免费层',
     providerRowPitch: '登录 Nous 账户以解锁更多模型和工具。',
     readyTitle: '螃蟹OPC已就绪。',
