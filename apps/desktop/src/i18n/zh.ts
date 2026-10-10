@@ -3286,7 +3286,55 @@ export const zh = defineLocale({
       SIGNAL_ALLOWED_USERS: { label: '允许的 Signal 用户', help: '推荐。逗号分隔的 Signal 标识符。' },
       WHATSAPP_ENABLED: { label: '启用 WhatsApp 桥接', help: '由下方开关自动设置。除非确知需要，否则请勿改动。' },
       WHATSAPP_MODE: { label: '桥接模式' },
-      WHATSAPP_ALLOWED_USERS: { label: '允许的 WhatsApp 用户', help: '推荐。逗号分隔的电话号码或 WhatsApp ID。' }
+      WHATSAPP_ALLOWED_USERS: { label: '允许的 WhatsApp 用户', help: '推荐。逗号分隔的电话号码或 WhatsApp ID。' },
+      WHATSAPP_DM_POLICY: { label: '私信策略', help: 'WhatsApp 私信的授权方式。' },
+      WEIXIN_ACCOUNT_ID: {
+        label: 'iLink 机器人账号 ID',
+        help: '通过扫码登录（gateway setup）获取的 iLink Bot 账号 ID，通常无需手动填写。'
+      },
+      WEIXIN_TOKEN: {
+        label: 'iLink 机器人令牌',
+        help: '通过扫码登录自动保存的 iLink Bot 令牌，通常无需手动填写。'
+      },
+      WEIXIN_BASE_URL: {
+        label: 'iLink API 地址',
+        help: '扫码登录自动保存的 iLink API 地址（默认 https://ilinkai.weixin.qq.com）。'
+      },
+      WECOM_BOT_ID: { label: '企业微信机器人 ID', help: '企业微信群机器人的 ID。' },
+      WECOM_SECRET: { label: '企业微信密钥', help: '企业微信群机器人的 secret。' },
+      WECOM_CALLBACK_CORP_ID: { label: '企业 ID（Corp ID）', help: '企业微信自建应用的企业 ID。' },
+      WECOM_CALLBACK_CORP_SECRET: { label: '应用密钥', help: '企业微信自建应用的 corp secret。' },
+      WECOM_CALLBACK_AGENT_ID: { label: '应用 Agent ID', help: '企业微信自建应用的 agent ID。' },
+      WECOM_CALLBACK_TOKEN: { label: '回调 Token', help: '企业微信回调验证 token。' },
+      WECOM_CALLBACK_ENCODING_AES_KEY: { label: '回调加密密钥（AES）', help: '企业微信回调消息的 AES 编码密钥。' },
+      FEISHU_APP_ID: { label: '应用 ID（App ID）', help: '飞书 / Lark 应用的 App ID。' },
+      FEISHU_APP_SECRET: { label: '应用密钥', help: '飞书 / Lark 应用的 App Secret。' },
+      FEISHU_ENCRYPT_KEY: { label: '加密密钥', help: '飞书 / Lark 事件订阅的加密密钥。' },
+      FEISHU_VERIFICATION_TOKEN: { label: '验证令牌', help: '飞书 / Lark 事件订阅的验证令牌。' },
+      DINGTALK_CLIENT_ID: { label: 'Client ID（App Key）', help: '钉钉应用的 Client ID（即 App Key）。' },
+      DINGTALK_CLIENT_SECRET: { label: 'Client Secret', help: '钉钉应用的 Client Secret（即 App Secret）。' },
+      QQ_APP_ID: { label: 'App ID', help: 'QQ 开放平台应用的 App ID。' },
+      QQ_CLIENT_SECRET: { label: 'App Secret', help: 'QQ 开放平台应用的 Client Secret。' },
+      QQ_ALLOWED_USERS: { label: '允许的 QQ 用户', help: '推荐。逗号分隔的 QQ 号。' },
+      EMAIL_ADDRESS: { label: '邮箱地址', help: '用于收发的邮箱地址。' },
+      EMAIL_PASSWORD: { label: '邮箱密码', help: '邮箱密码或应用专用密码。' },
+      EMAIL_IMAP_HOST: { label: 'IMAP 服务器', help: 'IMAP 服务器地址（例如 imap.gmail.com）。' },
+      EMAIL_SMTP_HOST: { label: 'SMTP 服务器', help: 'SMTP 服务器地址（例如 smtp.gmail.com）。' },
+      TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: 'Twilio 控制台的 Account SID。' },
+      TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: 'Twilio 控制台的 Auth Token。' },
+      HASS_URL: { label: 'Home Assistant 地址', help: 'Home Assistant 的访问地址（例如 https://homeassistant.local:8123）。' },
+      HASS_TOKEN: { label: 'Home Assistant 访问令牌', help: 'Home Assistant 的长期访问令牌（个人资料 → 安全）。' },
+      BLUEBUBBLES_SERVER_URL: { label: 'BlueBubbles 服务器地址' },
+      BLUEBUBBLES_PASSWORD: { label: '服务器密码' },
+      BLUEBUBBLES_ALLOWED_USERS: { label: '允许的 iMessage 用户' },
+      API_SERVER_ENABLED: { label: '启用 API 服务', help: '把 螃蟹OPC 暴露为兼容 OpenAI 的 API 服务。' },
+      API_SERVER_HOST: { label: '监听地址', help: 'API 服务监听的地址。' },
+      API_SERVER_PORT: { label: '端口', help: 'API 服务监听的端口。' },
+      API_SERVER_KEY: { label: '鉴权密钥', help: 'API 请求的鉴权密钥，防止未授权访问。' },
+      API_SERVER_MODEL_NAME: { label: '模型名称', help: '对外暴露的模型名称。' },
+      WEBHOOK_ENABLED: { label: '启用 Webhook 接收器', help: '接受传入的 HTTP 事件。' },
+      WEBHOOK_PORT: { label: '端口', help: 'Webhook 接收器监听的端口。' },
+      WEBHOOK_SECRET: { label: '签名密钥', help: '用于验证 Webhook 请求签名的密钥。' }
     },
     platformIntro: {
       telegram:
