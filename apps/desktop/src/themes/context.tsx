@@ -72,6 +72,29 @@ const normalizeSkin = (name: string | null): string =>
 const normalizeMode = (value: string | null): ThemeMode =>
   value === 'light' || value === 'dark' || value === 'system' ? value : 'system'
 
+// ─── qiji: 主题本体色优先（0.20.5b）────────────────────────────────────────
+// 「选纸白就是要纸白」：mode 无偏好时对齐皮肤本体色，而不是让系统
+// prefers-color-scheme 劫持（暗色系统用户装完打开=碳黑纸白，看不清）。
+// 本体色判定：seed 带 darkColors ⇒ 亮色是本体；不带 ⇒ 暗色是本体
+// （亮色只是合成的衍生品）。显式表态（light/dark/system）永不被覆盖。
+// 注意与上游注释的分歧：上游让 fresh profile 跟随 OS，qiji 皮肤语义更强。
+const skinHomeMode = (skinName: string): 'light' | 'dark' => {
+  const seed = resolveTheme(skinName) ?? nousTheme
+
+  return seed.darkColors ? 'light' : 'dark'
+}
+
+/** qiji: mode 偏好解析——null（从未表态）落在皮肤本体色上。 */
+const resolveModePref = (profile: string): ThemeMode => {
+  const stored = modePref.stored(profile)
+
+  if (stored === 'light' || stored === 'dark' || stored === 'system') {
+    return stored
+  }
+
+  return skinHomeMode(storedSkin(profile))
+}
+
 // ─── Per-profile appearance persistence ─────────────────────────────────────
 // Skin and mode are each stored per profile. "default" isn't a real profile —
 // it *is* the legacy global slot, so it reads/writes the global directly. Named
@@ -418,7 +441,7 @@ const syncNativeTheme = (pref: ThemeMode, rendered: 'light' | 'dark') =>
 // skin + light/dark mode.
 if (typeof window !== 'undefined') {
   const profile = BOOT_PROFILE_KEY
-  const pref = modePref.resolve(profile)
+  const pref = resolveModePref(profile)
   const resolved = resolveMode(pref)
   const theme = deriveTheme(normalizeSkin(storedSkin(profile)), resolved)
   applyTheme(theme, resolved)
@@ -502,7 +525,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   )
 
   const [mode, setModeState] = useState<ThemeMode>(() =>
-    typeof window === 'undefined' ? 'system' : modePref.resolve(BOOT_PROFILE_KEY)
+    typeof window === 'undefined' ? 'system' : resolveModePref(BOOT_PROFILE_KEY)
   )
 
   // Follow profile switches: paint the profile's assigned skin + mode and
@@ -510,7 +533,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     rememberActiveProfileKey(profileKey)
     setThemeNameState(storedSkin(profileKey))
-    setModeState(modePref.resolve(profileKey))
+    setModeState(resolveModePref(profileKey))
   }, [profileKey])
 
   // Appearance is per-profile localStorage, and every desktop window is another
@@ -526,7 +549,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const live = normalizeProfileKey($activeGatewayProfile.get())
 
       setThemeNameState(storedSkin(live))
-      setModeState(modePref.resolve(live))
+      setModeState(resolveModePref(live))
     }
 
     window.addEventListener('storage', onStorage)
@@ -604,11 +627,32 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // stay stable across profile switches).
   const liveProfile = () => normalizeProfileKey($activeGatewayProfile.get())
 
+  // ─── qiji: 主题本体色优先（0.20.5b）────────────────────────────────────
+  // 「选纸白就是要纸白」：切皮肤时把 light/dark 对齐主题本体色，而不是让
+  // 系统 prefers-color-scheme 继续劫持（暗色系统的用户选纸白皮肤，打开
+  // 仍是碳黑——看不清）。本体色判定：seed 带 darkColors ⇒ 亮色是本体；
+  // 不带 ⇒ 暗色是本体（亮色只是合成的衍生品）。用户随后手动切换
+  // light/dark 仍自由（setMode 不受影响，只改偏好）。
+  const homeModeFor = (skinName: string): 'light' | 'dark' => {
+    const seed = resolveTheme(skinName) ?? nousTheme
+
+    return seed.darkColors ? 'light' : 'dark'
+  }
+
   const setTheme = useCallback((name: string) => {
     const next = normalizeSkin(name)
     setPreview(null)
     setThemeNameState(next)
     skinPref.assign(liveProfile(), next)
+    // qiji 0.20.5b: 当前偏好是 system（跟随系统）时，切皮肤对齐本体色。
+    // 已显式选了 light/dark 的用户不动——那是明确表态，别覆盖。
+    const live = liveProfile()
+
+    if (modePref.stored(live) === 'system') {
+      const home = homeModeFor(next)
+      setModeState(home)
+      modePref.assign(live, home)
+    }
   }, [])
 
   const setMode = useCallback((next: ThemeMode) => {
