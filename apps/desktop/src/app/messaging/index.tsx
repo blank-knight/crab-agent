@@ -361,9 +361,11 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
     return byGroup
   }, [regionGroups])
 
+  // 跨组结果只在搜索时出现——平时切到哪组就只看哪组（列表形态干净），
+  // 搜索时全量命中可达，点跨组项自动切组。
   const otherRegionHits = useMemo(
-    () => visiblePlatforms.filter(p => platformRegion(p.id) !== region),
-    [visiblePlatforms, region]
+    () => (query.trim() ? visiblePlatforms.filter(p => platformRegion(p.id) !== region) : []),
+    [visiblePlatforms, region, query]
   )
 
   async function handleToggle(platform: MessagingPlatformInfo, enabled: boolean) {
