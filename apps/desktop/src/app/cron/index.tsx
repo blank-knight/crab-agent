@@ -74,6 +74,7 @@ import {
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { BlueprintSlotControl, blueprintSlotHelp, cleanBlueprintFieldError, initialBlueprintValues } from './blueprints'
+import { BLUEPRINT_ZH, SLOT_LABEL_ZH } from './blueprints-zh'
 import { mutateAndRefreshCronJobs, refreshCronJobs, triggerAndRefreshCronJobs } from './cron-actions'
 import {
   cronEditorUpdates,
@@ -1270,12 +1271,12 @@ function CronEditorDialog({
                 <SelectItem value={CUSTOM_TEMPLATE}>{c.blueprints.custom}</SelectItem>
                 {blueprintList.map(item => (
                   <SelectItem key={item.key} value={item.key}>
-                    {item.title}
+                    {BLUEPRINT_ZH[item.key]?.title ?? item.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {blueprint?.description && <FieldHint>{blueprint.description}</FieldHint>}
+            {blueprint?.description && <FieldHint>{BLUEPRINT_ZH[blueprint.key]?.description ?? blueprint.description}</FieldHint>}
           </Field>
         )}
 
@@ -1286,7 +1287,7 @@ function CronEditorDialog({
               const help = blueprintSlotHelp(field)
 
               return (
-                <Field htmlFor={fieldId} key={field.name} label={field.label}>
+                <Field htmlFor={fieldId} key={field.name} label={SLOT_LABEL_ZH[field.name] ?? field.label}>
                   {field.name === 'deliver' ? (
                     // Use the shared, backend-sourced delivery targets (same as the
                     // manual editor) rather than the blueprint's static field.options,

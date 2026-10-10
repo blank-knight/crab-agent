@@ -44,6 +44,7 @@ import { SettingsProfileScope } from '../settings/profile-scope'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { PlatformAvatar } from './platform-icon'
+import { PLATFORM_DESC_ZH, PLATFORM_NAME_ZH } from './platforms-zh'
 import { TelegramQrSetup } from './telegram-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
@@ -653,7 +654,7 @@ function PlatformRow({
     >
       <PlatformAvatar platformId={platform.id} platformName={platform.name} />
       <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-        <span className="truncate text-[length:var(--conversation-text-font-size)] font-normal">{platform.name}</span>
+        <span className="truncate text-[length:var(--conversation-text-font-size)] font-normal">{PLATFORM_NAME_ZH[platform.id] ?? platform.name}</span>
         <span className="flex shrink-0 items-center gap-1.5">
           {/* Someone is waiting to be let in — the only way this page tells
               you so before you open the platform. */}
@@ -717,7 +718,7 @@ function PlatformDetail({
         <PlatformAvatar platformId={platform.id} platformName={platform.name} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">{platform.name}</h3>
+            <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">{PLATFORM_NAME_ZH[platform.id] ?? platform.name}</h3>
             <StatePill tone={stateTone(platform)}>{stateLabel(platform.state, m)}</StatePill>
             {/* Resting states earn no pill — only actionable ones. */}
             {!platform.configured && <SetupPill active={false}>{m.needsSetup}</SetupPill>}
@@ -728,7 +729,7 @@ function PlatformDetail({
             )}
           </div>
           <p className="mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
-            {platform.description}
+            {PLATFORM_DESC_ZH[platform.id] ?? platform.description}
           </p>
           <PlatformHint platform={platform} />
         </div>

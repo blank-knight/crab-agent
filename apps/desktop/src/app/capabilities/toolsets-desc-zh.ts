@@ -1,0 +1,42 @@
+// 工具集描述中文表（qiji 0.20.5）——真源 hermes_cli/tools_config.py CONFIGURABLE_TOOLSETS 第三列
+// 身份字段不动：key=toolset.name（安装身份），显示时 `TOOLSET_DESC_ZH[name] ?? 原文` 回退。
+// 新增/改名工具集免疫（回退英文）。label 已有 settings/helpers.ts TOOLSET_ZH_LABELS，别重复翻。
+export const TOOLSET_DESC_ZH: Readonly<Record<string, string>> = {
+  web: '网页搜索与网页内容抓取',
+  browser: '打开页面、点击、输入、滚动',
+  terminal: '终端命令与进程管理',
+  file: '读取、写入、修补、搜索文件',
+  code_execution: '运行代码并取回结果',
+  vision: '识别与分析图片',
+  video: '分析视频内容（需要支持视频的模型）',
+  image_gen: '按描述生成图片',
+  video_gen: '生成视频（文字/图片/参考素材）',
+  x_search: '搜索 X（推特）内容（需要 xAI 授权或 API 密钥）',
+  tts: '把文字转成语音',
+  stt: '语音转文字（网关语音消息与语音模式）',
+  skills: '查看、管理可用技能',
+  todo: '任务清单与进度规划',
+  kanban: '本平台可选的任务看板',
+  memory: '跨会话记住重要信息',
+  context_engine: '当前上下文引擎提供的运行时工具',
+  session_search: '搜索过往对话',
+  connections: '远程连接器工具与账号授权',
+  clarify: '在信息不足时向你提问',
+  delegation: '把子任务分派给其他智能体',
+  cronjob: '定时任务的创建与管理，可挂载技能',
+  homeassistant: '智能家居设备控制',
+  spotify: '播放、搜索、歌单、音乐库',
+  discord: '读取频道消息、搜索成员、创建话题',
+  discord_admin: '查看频道/身份组、置顶、分配身份组',
+  yuanbao: '群信息、成员查询、私聊',
+  computer_use: '通过 cua-driver 在后台操控桌面（Win/macOS/Linux）',
+  // 桌面端自造条目（不在 CONFIGURABLE_TOOLSETS，gateway 另行下发）
+  api: '内置 API 服务器',
+  editor: '编辑器集成',
+  safe: '安全沙箱执行',
+  debugging: '调试与诊断工具',
+  messaging: '微信、Telegram 等消息平台接入',
+  browser_use: '浏览器自动化（桌面端）',
+  mcp: 'MCP 协议外部工具',
+  'browser-real-profile': '使用真实浏览器配置文件运行'
+}

@@ -17,6 +17,7 @@ import type { ToolsetInfo } from '@/types/hermes'
 
 import { asText, toolsetDisplayLabel } from '../../settings/helpers'
 import { CapabilityEmpty } from '../primitives'
+import { TOOLSET_DESC_ZH } from '../toolsets-desc-zh'
 
 import { useToolCalls } from './tool-calls'
 import { ToolsetDetail } from './toolset-detail'
@@ -60,7 +61,7 @@ function ToolsetCard({
   toolset: ToolsetInfo
 }) {
   const label = toolsetDisplayLabel(toolset)
-  const desc = asText(toolset.description)
+  const desc = TOOLSET_DESC_ZH[toolset.name] ?? asText(toolset.description)
   const tools = toolset ? toolset.tools?.length ?? 0 : 0
 
   return (

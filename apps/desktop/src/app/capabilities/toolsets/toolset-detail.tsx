@@ -15,6 +15,7 @@ import { asText, toolNames, toolsetDisplayLabel } from '../../settings/helpers'
 import { TerminalBackendPanel } from '../../settings/terminal-backend-panel'
 import { ToolsetConfigPanel } from '../../settings/toolset-config-panel'
 import { DetailHeader } from '../primitives'
+import { TOOLSET_DESC_ZH } from '../toolsets-desc-zh'
 
 export function ToolsetDetail({
   toolset,
@@ -36,7 +37,7 @@ export function ToolsetDetail({
     <>
       {/* "Configured" as a resting state is noise — only the warn state earns a pill. */}
       <DetailHeader
-        description={asText(toolset.description) || t.skills.noDescription}
+        description={TOOLSET_DESC_ZH[toolset.name] ?? (asText(toolset.description) || t.skills.noDescription)}
         pills={!toolset.configured && <PanelPill tone="warn">{t.skills.needsKeys}</PanelPill>}
         title={label}
       />

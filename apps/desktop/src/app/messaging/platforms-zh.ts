@@ -1,0 +1,56 @@
+// 消息平台中文表（qiji 0.20.5）——真源 hermes_cli/web_server_messaging.py _PLATFORM_OVERRIDES
+// key=platform.id（身份字段），显示时 `PLATFORM_ZH[id] ?? 原文` 回退。name/desc 一表两用。
+// zh.ts messaging.platformIntro 已有页面级长文案，这里是行级数据，别混。
+export const PLATFORM_NAME_ZH: Readonly<Record<string, string>> = {
+  telegram: 'Telegram',
+  discord: 'Discord',
+  slack: 'Slack',
+  mattermost: 'Mattermost',
+  matrix: 'Matrix',
+  signal: 'Signal',
+  whatsapp: 'WhatsApp',
+  whatsapp_cloud: 'WhatsApp 云端 API',
+  weixin: '微信（个人号）',
+  wecom: '企业微信群机器人',
+  wecom_callback: '企业微信（应用）',
+  dingtalk: '钉钉',
+  feishu: '飞书 / Lark',
+  email: '邮件',
+  sms: '短信（Twilio）',
+  google_chat: 'Google Chat',
+  qqbot: 'QQ 机器人',
+  yuanbao: '元宝',
+  homeassistant: 'Home Assistant',
+  bluebubbles: 'BlueBubbles（iMessage）',
+  api_server: 'API 服务器',
+  webhook: 'Webhook',
+  msgraph_webhook: '微软 Graph 通知',
+  relay: '中继（实验性）'
+}
+
+export const PLATFORM_DESC_ZH: Readonly<Record<string, string>> = {
+  telegram: '在 Telegram 私聊、群组和话题中使用。',
+  discord: '接入 Discord 私聊、频道和话题。',
+  slack: '通过 Socket Mode 接入 Slack。可添加允许的成员 ID，控制机器人响应范围。',
+  mattermost: '接入 Mattermost 频道与私聊。',
+  matrix: '在 Matrix 房间与私聊中使用。',
+  signal: '通过 signal-cli REST 桥接接入。',
+  whatsapp: '使用内置 WhatsApp 桥接，扫码登录。',
+  whatsapp_cloud: '使用 Meta 托管的 WhatsApp 云端 API（无需本地桥接）。',
+  weixin: '通过腾讯 iLink 机器人接口接入个人微信。',
+  wecom: '通过 webhook 接入企业微信群机器人（仅发送）。',
+  wecom_callback: '通过回调应用接入企业微信（双向）。',
+  dingtalk: '接入钉钉群。',
+  feishu: '在飞书中使用。',
+  email: '通过 IMAP/SMTP 邮箱收发对话。',
+  sms: '通过 Twilio 收发短信。',
+  google_chat: '通过 Cloud Pub/Sub 接入 Google Chat。',
+  qqbot: '接入 QQ 开放平台的 QQ 机器人。',
+  yuanbao: '接入腾讯元宝。',
+  homeassistant: '通过 Home Assistant 控制智能家居。',
+  bluebubbles: '通过 BlueBubbles 服务器使用 iMessage。',
+  api_server: '把螃蟹OPC 暴露为 OpenAI 兼容的 HTTP API，供 Open WebUI 等工具调用。',
+  webhook: '接收 GitHub、GitLab 等 Webhook 事件。',
+  msgraph_webhook: '接收微软 Graph 变更通知（Teams 会议、Outlook 等）。',
+  relay: '通用中继适配器（实验性）。'
+}
