@@ -11,7 +11,7 @@ import { Tip } from '@/components/ui/tooltip'
 import { $pluginRecords, type PluginRecord, setPluginEnabled } from '@/contrib/plugins-store'
 import { discoverRuntimePlugins, uninstallDiskPlugin } from '@/contrib/runtime-loader'
 import type { ProfileScope } from '@/hermes'
-import { useI18n } from '@/i18n'
+import { isZhLocale, useI18n } from '@/i18n'
 import { DESKTOP_PLUGIN_TOOLSETS } from '@/lib/desktop-toolsets'
 import { triggerHaptic } from '@/lib/haptics'
 import { FolderOpen, Loader2, Monitor, Package, RefreshCw, Trash2 } from '@/lib/icons'
@@ -43,7 +43,7 @@ import { Pill } from '../../settings/primitives'
 import { useDeepLinkHighlight } from '../../settings/use-deep-link-highlight'
 import { CatalogAlert } from '../catalog/catalog-alert'
 import { CatalogBrowser } from '../catalog/catalog-browser'
-import { type CatalogEntry, parseCatalog } from '../catalog/catalog-data'
+import { type CatalogEntry, catalogLabel, parseCatalog } from '../catalog/catalog-data'
 // qiji 0.20.4: 插件名/描述中文化（未收录回退英文）。
 import { pluginDescZh, pluginNameZh } from '../plugins-zh'
 import { TOOLSETS_QUERY_KEY } from '../toolsets/toolsets-data'
@@ -170,7 +170,9 @@ function ProvenancePill({ pkg }: { pkg: PluginPackage }) {
   }
 
   if (pkg.agent) {
-    return <Pill>{pkg.agent.source}</Pill>
+    // qiji 0.20.5d: 原样吐 source（bundled/user/git/project/entrypoint）在中文
+    // 环境露英文——走目录值中文映射（catalogLabel），未收录回退原文。
+    return <Pill>{isZhLocale() ? catalogLabel(pkg.agent.source) : pkg.agent.source}</Pill>
   }
 
   if (pkg.desktop) {

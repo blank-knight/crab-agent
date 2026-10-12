@@ -77,12 +77,19 @@ const ADVANCED_DEVELOPER_SUBPAGES = new Set(['runtime', 'tools', 'terminal', 'ou
  * - 模型：fallbacks（主备/fallback_providers）、auxiliary（辅助模型）、
  *   moa（多模型混合路由）——普通用户只关心主模型。
  * - 记忆：context（上下文窗口/压缩参数）——调参向。
+ * - 0.20.5d（r6 盘点拍板）：语音 transcription/speech（TTS/STT 供应商 77 字段
+ *   调参向，普通用户只碰 voiceConversation 开关）；工作区 shell/files
+ *   （persistent_shell/env_passthrough/code_execution.mode 等开发者项）；
+ *   安全 checkpoints（max_snapshots 调参向）。
  * 深链仍可直达，只是不在导航陈列；物理功能与已存配置不受影响。
  */
 const ADVANCED_GATED_SUBPAGES_BY_VIEW: Record<string, Set<string>> = {
   'config:advanced': ADVANCED_DEVELOPER_SUBPAGES,
   'config:model': new Set(['fallbacks', 'auxiliary', 'moa']),
-  'config:memory': new Set(['context'])
+  'config:memory': new Set(['context']),
+  'config:voice': new Set(['transcription', 'speech']),
+  'config:workspace': new Set(['shell', 'files']),
+  'config:safety': new Set(['checkpoints'])
 }
 
 const SETTINGS_VIEWS: readonly SettingsViewId[] = [
@@ -354,29 +361,37 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
             label: t.settings.nav.keybinds,
             onSelect: () => setActiveView('keybinds')
           },
-          {
-            active: activeView === 'keys',
-            children: [
-              {
-                active: activeView === 'keys' && keysView === 'tools',
-                icon: Wrench,
-                id: 'kview:tools',
-                label: t.settings.nav.keysTools,
-                onSelect: () => openKeysView('tools')
-              },
-              {
-                active: activeView === 'keys' && keysView === 'settings',
-                icon: Settings2,
-                id: 'kview:settings',
-                label: t.settings.nav.keysSettings,
-                onSelect: () => openKeysView('settings')
-              }
-            ],
-            icon: KeyRound,
-            id: 'keys',
-            label: t.settings.nav.apiKeys,
-            onSelect: () => setActiveView('keys')
-          },
+          // qiji 0.20.5d: 「工具与密钥」整页挂高级开关（r6 盘点拍板）——平台侧
+          // API key / .env 管理对平台账号用户无意义（key 由服务端托管），
+          // 默认不陈列；对齐 providers local models 的条件展开模式（深链仍可
+          // 直达，页面本体不渲染受影响面）。
+          ...(advancedFeatures
+            ? [
+                {
+                  active: activeView === 'keys',
+                  children: [
+                    {
+                      active: activeView === 'keys' && keysView === 'tools',
+                      icon: Wrench,
+                      id: 'kview:tools',
+                      label: t.settings.nav.keysTools,
+                      onSelect: () => openKeysView('tools')
+                    },
+                    {
+                      active: activeView === 'keys' && keysView === 'settings',
+                      icon: Settings2,
+                      id: 'kview:settings',
+                      label: t.settings.nav.keysSettings,
+                      onSelect: () => openKeysView('settings')
+                    }
+                  ],
+                  icon: KeyRound,
+                  id: 'keys',
+                  label: t.settings.nav.apiKeys,
+                  onSelect: () => setActiveView('keys')
+                }
+              ]
+            : []),
           {
             active: activeView === 'market',
             icon: Palette,

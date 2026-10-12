@@ -408,7 +408,11 @@ export const CatalogBrowser = memo(function CatalogBrowser({
                       </div>
                     ) : (
                       <div className="py-2">
-                        {CATALOG_MASONRY ? (
+                        {/* qiji 0.20.5d: 插件页（hideCatalog，只看已装）走统一行高网格——
+                            masonry 各列独立排布，尾卡不拉伸，6 张卡会明显大小不一
+                            （用户实锤"最后一个要小一点"）。线上技能目录保留 masonry
+                            （头图高度天然参差，瀑布流密度更好）。 */}
+                        {CATALOG_MASONRY && !hideCatalog ? (
                           <Masonry data-catalog-hover-group>{filtered.slice(0, limit).map(card)}</Masonry>
                         ) : (
                           <div className="catalog-grid" data-catalog-hover-group>
