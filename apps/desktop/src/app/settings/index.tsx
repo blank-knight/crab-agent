@@ -71,6 +71,20 @@ import { vaultOwnerKey, VaultSettings } from './vault-settings'
 /** qiji 0.20.5: 「高级」分区里纯开发者向子页——默认不出现在导航（开关放出）。 */
 const ADVANCED_DEVELOPER_SUBPAGES = new Set(['runtime', 'tools', 'terminal', 'output', 'delegation'])
 
+/**
+ * qiji 0.20.5c: 各分区按「高级功能」开关过滤的子页（装机二轮用户反馈：
+ * 主备模型/多 agent 协作这类开发者向配置对普通用户是噪音）。
+ * - 模型：fallbacks（主备/fallback_providers）、auxiliary（辅助模型）、
+ *   moa（多模型混合路由）——普通用户只关心主模型。
+ * - 记忆：context（上下文窗口/压缩参数）——调参向。
+ * 深链仍可直达，只是不在导航陈列；物理功能与已存配置不受影响。
+ */
+const ADVANCED_GATED_SUBPAGES_BY_VIEW: Record<string, Set<string>> = {
+  'config:advanced': ADVANCED_DEVELOPER_SUBPAGES,
+  'config:model': new Set(['fallbacks', 'auxiliary', 'moa']),
+  'config:memory': new Set(['context'])
+}
+
 const SETTINGS_VIEWS: readonly SettingsViewId[] = [
   ...SECTIONS.map(s => `config:${s.id}` as SettingsViewId),
   'providers',
@@ -402,11 +416,14 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
         const view = group.id as SettingsViewId
         let children = settingsSubpages(view)
 
-        // qiji 0.20.5: 砍可见性不砍功能——「高级」分区里纯开发者向子页默认
-        // 隐藏，设置→关于 打开「高级功能」开关后放出（深链仍可直达，只是
-        // 不在导航里陈列；物理功能与已存配置不受影响）。
-        if (view === 'config:advanced' && !advancedFeatures) {
-          children = children.filter(page => !ADVANCED_DEVELOPER_SUBPAGES.has(page.id))
+        // qiji 0.20.5: 砍可见性不砍功能——纯开发者向子页默认隐藏，设置→关于
+        // 打开「高级功能」开关后放出（深链仍可直达，只是不在导航里陈列；
+        // 物理功能与已存配置不受影响）。0.20.5c 起扩到模型/记忆分区的
+        // 调参子页（ADVANCED_GATED_SUBPAGES_BY_VIEW）。
+        const gated = ADVANCED_GATED_SUBPAGES_BY_VIEW[view]
+
+        if (gated && !advancedFeatures) {
+          children = children.filter(page => !gated.has(page.id))
         }
 
         return children.length

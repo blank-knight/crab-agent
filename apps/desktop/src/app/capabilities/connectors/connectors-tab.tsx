@@ -8,6 +8,8 @@ import type { HermesGateway, ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { $freeTierStatus } from '@/store/free-tier'
 import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
+// qiji 0.20.5c: 自定义 MCP 入口挂高级开关（见 addYourOwn）。
+import { $advancedFeatures } from '@/store/advanced-features'
 import { notifyError, readableError } from '@/store/notifications'
 
 import { installBundledEntry } from '../mcp/install-catalog-entry'
@@ -51,6 +53,8 @@ export function ConnectorsTab({ gateway, profile }: ConnectorsTabProps) {
   const operations = useStore($accountOperations)
   const abandoned = useStore($abandonedConnects)
   const freeTier = useStore($freeTierStatus)
+  // qiji 0.20.5c: 自定义 MCP 入口挂高级开关。
+  const advancedFeatures = useStore($advancedFeatures)
 
   const connector = useConnectConnector(profile)
   const switcher = useConnectorSwitch(profile)
@@ -230,9 +234,13 @@ export function ConnectorsTab({ gateway, profile }: ConnectorsTabProps) {
     <div className="flex h-full min-h-0 flex-col gap-3 px-4 pb-2">
       <ConnectorsDirectory
         addYourOwn={
-          <Button disabled={mcp.profilePending} onClick={() => setAddOpen(true)} size="xs" variant="outline">
-            {copy.add.action}
-          </Button>
+          // qiji 0.20.5c: 「添加自定义 MCP 服务器」是开发者向入口（stdio 命令
+          // /URL+头），挂高级开关——普通用户只看目录，不提供自建通道。
+          advancedFeatures ? (
+            <Button disabled={mcp.profilePending} onClick={() => setAddOpen(true)} size="xs" variant="outline">
+              {copy.add.action}
+            </Button>
+          ) : null
         }
         busyKey={busyKey}
         cards={cards}
