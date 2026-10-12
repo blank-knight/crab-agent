@@ -218,11 +218,6 @@ const INTRO_QUICK_SKILLS: QuickSkill[] = [
   { name: 'img-toolkit', title: '🖼️ 图片处理', desc: '转格式/压缩/水印' }
 ]
 
-// OPC 专属技能（奇计自营；星标条，后续专属技能都进这里）
-const INTRO_OPC_SKILLS: QuickSkill[] = [
-  { name: 'qiji-geo', title: '⭐ GEO 平台自动化', desc: 'AI可见度诊断、关键词管理、爆文复刻' }
-]
-
 // 最佳实践案例（点击直接发送）
 const INTRO_EXAMPLES: { title: string; prompt: string }[] = [
   {
@@ -766,7 +761,6 @@ const ChatViewContent = memo(function ChatViewContent({
             skills: INTRO_QUICK_SKILLS
           }
         : undefined,
-      introOpc: showIntro ? INTRO_OPC_SKILLS : undefined,
       onSkillPick: (name: string, title?: string) => {
         window.dispatchEvent(new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: title } }))
       },

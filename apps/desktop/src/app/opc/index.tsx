@@ -9,6 +9,9 @@ import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
 
 import { OpcExpertsSection } from './experts'
+import { AddAgentCard, notifyUserAgentsChanged, UserAgentCard, UserAgentDialog } from './user-agent-cards'
+import { useUserAgents } from './user-agent-cards'
+import type { UserAgent } from './user-agents'
 
 /**
  * qiji 0.20.5: OPC 智能体启动台（卖点入口）。
@@ -161,6 +164,10 @@ export function OpcView(_: OpcViewProps) {
   const navigate = useNavigate()
   // qiji 0.20.5: 技能|专家 两段——自营技能墙 + hermes-bots roster 透传
   const [tab, setTab] = useState<'experts' | 'skills'>('skills')
+  // qiji 0.20.5b: 用户自定义智能体（方案A 本地启动器条目）
+  const userAgents = useUserAgents()
+  const [agentDialogOpen, setAgentDialogOpen] = useState(false)
+  const [editingAgent, setEditingAgent] = useState<UserAgent | null>(null)
 
   // 点击可用卡片：回聊天新会话，等路由提交后再把 /技能名 填进输入框。
   // ⚠️ 两个坑（CDP 实测实锤）：
@@ -177,6 +184,30 @@ export function OpcView(_: OpcViewProps) {
           window.dispatchEvent(
             new CustomEvent('qiji:insert-skill', {
               detail: { command: `/${agent.name} `, label: agent.title, _v: 3 }
+            })
+          )
+        } else if (attempts > 0) {
+          window.setTimeout(() => tryInsert(attempts - 1), 200)
+        }
+      }
+
+      window.setTimeout(() => tryInsert(60), 150)
+    },
+    [navigate]
+  )
+
+  // qiji 0.20.5b: 用户自定义智能体（方案A 本地启动器）——技能型同 /技能名 预填，
+  // 提示词型直接预填全文。与 onLaunch 同一时序协议（navigate → 等 composer → 派发）。
+  const onLaunchUser = useCallback(
+    (agent: UserAgent) => {
+      navigate(NEW_CHAT_ROUTE)
+      const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
+
+      const tryInsert = (attempts: number) => {
+        if (window.location.pathname === '/' && document.querySelector('[contenteditable="true"]')) {
+          window.dispatchEvent(
+            new CustomEvent('qiji:insert-skill', {
+              detail: { command, label: agent.title, _v: 3 }
             })
           )
         } else if (attempts > 0) {
@@ -227,10 +258,26 @@ export function OpcView(_: OpcViewProps) {
           {OPC_AGENTS.map(agent => (
             <OpcAgentCard agent={agent} key={agent.name} onLaunch={onLaunch} />
           ))}
+          {userAgents.map(agent => (
+            <UserAgentCard agent={agent} key={agent.id} onEdit={setEditingAgent} onLaunch={onLaunchUser} />
+          ))}
+          <AddAgentCard onClick={() => setAgentDialogOpen(true)} />
         </div>
       ) : (
         <OpcExpertsSection />
       )}
+
+      {/* 新增/编辑智能体弹层（方案A） */}
+      {agentDialogOpen ? (
+        <UserAgentDialog
+          editing={editingAgent}
+          onClose={() => {
+            setAgentDialogOpen(false)
+            setEditingAgent(null)
+          }}
+          onSaved={notifyUserAgentsChanged}
+        />
+      ) : null}
     </section>
   )
 }

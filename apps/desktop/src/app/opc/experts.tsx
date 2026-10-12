@@ -12,13 +12,18 @@
  * React #310（0.20.5 装机实锤，f_l 组件 hooks 计数漂移），已废弃。
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { setWorkspaceOwnerLabel } from '@/components/pane-shell/workspace-scope'
 import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
 
 import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
 import { useRoster } from '../../plugins/hermes-bots/data'
+import { displayName } from '../../plugins/hermes-bots/labels'
+import { botWorkspaceOwnerKey } from '../../plugins/hermes-bots/routing'
+import type { RosterRow } from '../../plugins/hermes-bots/types'
+import { CreateExpertDialog } from './create-expert'
 
 export interface OpcExpertRow {
   /** roster 身份名（profile name）——openBotCanonicalChat 认它 */
@@ -172,6 +177,22 @@ function RosterGrid() {
   const { data, error } = useRoster()
   const experts = toOpcExpertRows(asSnapshotLike(data))
 
+  // qiji 0.20.5b: 发布 owner label——OPC 打开专家的 tab 标题显示专家名而非
+  // 存档名 "Bot Chat"（workspaceOwnerTitle 机制，BotsPane 同款 roster-pane-lifecycle:39）。
+  // OPC 路径原来漏发，openBotCanonicalChat 后 tab 一直回退 CANONICAL_CHAT_TITLE。
+  // 渲染时机写入（对齐 BotsPane 的"settle after render"纪律：atom 写在 render 外）。
+  useEffect(() => {
+    const rows = Array.isArray(data?.profiles) ? (data!.profiles as RosterRow[]) : []
+    rows.forEach(bot => {
+      if (!bot?.name || bot.ghost) {return}
+      try {
+        setWorkspaceOwnerLabel(botWorkspaceOwnerKey(bot), displayName(bot))
+      } catch {
+        // 无 route 的孤儿行（botWorkspaceOwnerKey 内部有 degrade 路径，这里兜底静默）
+      }
+    })
+  }, [data])
+
   if (error && experts.length === 0) {
     return (
       <p className="col-span-full px-1 py-8 text-center text-[0.85rem] text-(--ui-text-tertiary)">
@@ -199,9 +220,21 @@ function RosterGrid() {
 
 /** 专家段。静态 useRoster（0.20.5a：动态 import 版在加密链下炸 #310）。 */
 export function OpcExpertsSection() {
+  // qiji 0.20.5b: 「＋新建专家」尾卡 + 表单
+  const [creating, setCreating] = useState(false)
+
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-3.5 px-8 pb-8 pt-3">
       <RosterGrid />
+      <button
+        className="flex min-h-40 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-(--ui-stroke-tertiary) bg-transparent text-(--ui-text-tertiary) transition-all duration-150 hover:border-(--ui-primary)/50 hover:text-(--ui-primary)"
+        onClick={() => setCreating(true)}
+        type="button"
+      >
+        <Codicon name="plus" size="1.4rem" />
+        <span className="text-[0.85rem] font-medium">新建专家</span>
+      </button>
+      {creating ? <CreateExpertDialog onClose={() => setCreating(false)} /> : null}
     </div>
   )
 }

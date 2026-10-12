@@ -579,8 +579,6 @@ export function ChatBar({
   // 外部注入技能芯片（主页快捷胶囊/技能页「使用」→ 输入框），显示中文标签。
   // insertSkillChip 每次渲染重建，直接进依赖会反复增删监听——经 ref 转发保持
   // 单次挂载，同时让 lint 看到真实依赖。
-  // qiji: OPC 技能弹层开合(空态顶部区星标条)
-  const [opcOpen, setOpcOpen] = useState(false)
   const insertSkillChipRef = useRef(insertSkillChip)
   insertSkillChipRef.current = insertSkillChip
 
@@ -1465,39 +1463,6 @@ export function ChatBar({
                       <span className="text-[0.75rem] font-medium text-foreground">{sk.title}</span>
                     </button>
                   ))}
-                  {state.introOpc && state.introOpc.length > 0 ? (
-                    <Popover open={opcOpen} onOpenChange={setOpcOpen}>
-                      <PopoverTrigger asChild>
-                        <button
-                          className="shrink-0 rounded-lg border border-primary/40 bg-primary/10 px-2.5 py-1 text-center transition-colors hover:border-primary/70 hover:bg-primary/20"
-                          type="button"
-                        >
-                          <span className="text-[0.75rem] font-semibold text-foreground">
-                            ⭐ OPC 技能 <Codicon className="inline-block align-[-0.125em]" name="chevron-down" size="0.625rem" />
-                          </span>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent align="center" className="w-64 max-h-72 overflow-y-auto p-1" side="bottom" sideOffset={6}>
-                        {state.introOpc.map(sk => (
-                          <button
-                            className="flex w-full items-start gap-2 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-muted/50"
-                            key={sk.name}
-                            onClick={() => {
-                              state.onSkillPick?.(sk.name, sk.title)
-                              setOpcOpen(false)
-                            }}
-                            aria-label={sk.desc}
-                            type="button"
-                          >
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[0.8rem] font-medium text-foreground">{sk.title}</span>
-                              <span className="block truncate text-[0.7rem] text-muted-foreground">{sk.desc}</span>
-                            </span>
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  ) : null}
                 </div>
               </div>
             </div>
