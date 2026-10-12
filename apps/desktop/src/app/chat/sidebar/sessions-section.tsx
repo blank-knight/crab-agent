@@ -1,7 +1,7 @@
 import type { useSensors } from '@dnd-kit/core'
 import { useStore } from '@nanostores/react'
 import type * as React from 'react'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { type NewSessionSplitHandler, startNewSessionDrag } from '@/app/chat/new-session-drag'
 import { SidebarPanelLabel } from '@/app/shell/sidebar-label'
@@ -48,6 +48,8 @@ import { SidebarSessionRow } from './session-row'
 import { VirtualSessionList } from './virtual-session-list'
 
 export const VIRTUALIZE_THRESHOLD = 25
+/** qiji 0.20.5c: virtualization exit boundary (hysteresis floor, see flatVirtualized). */
+export const VIRTUALIZE_EXIT_THRESHOLD = 20
 
 interface SidebarSectionHeaderProps {
   label: string
@@ -469,13 +471,26 @@ export function SidebarSessionsSection({
   // Pinned never virtualizes. Virtualization needs a bounded viewport to
   // measure against, and Pinned deliberately has none — however many chats you
   // pin, all of them render and the sidebar's own scroll carries the length.
-  const flatVirtualized =
-    !pinned &&
-    !showEmptyState &&
-    !groups?.length &&
-    !projectOverview?.length &&
-    !projectContent &&
-    sessions.length >= VIRTUALIZE_THRESHOLD
+  // qiji 0.20.5c: hysteresis around the boundary — a session count oscillating
+  // across VIRTUALIZE_THRESHOLD (a keep-set survivor landing on one refresh
+  // and not the next, a failed-profile carry-forward row) swapped the flat
+  // renderer and the virtualized renderer on consecutive refreshes, remounting
+  // EVERY row each way — visible as sidebar flicker (0.20.5b acceptance
+  // report). Enter at the threshold, but only exit clearly below it.
+  const virtualizedRef = useRef(false)
+  const flatVirtualized = useMemo(() => {
+    const eligible =
+      !pinned && !showEmptyState && !groups?.length && !projectOverview?.length && !projectContent
+    const next = virtualizedRef.current
+      ? eligible && sessions.length >= VIRTUALIZE_EXIT_THRESHOLD
+      : eligible && sessions.length >= VIRTUALIZE_THRESHOLD
+
+    virtualizedRef.current = next
+
+    return next
+    // Length + eligibility only; the ref carries the hysteresis state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinned, showEmptyState, groups, projectOverview, projectContent, sessions.length])
 
   // First paint into the grouped view (e.g. the app restoring the Projects tab)
   // has flat recents in `sessions` but no tree yet. Show skeletons rather than

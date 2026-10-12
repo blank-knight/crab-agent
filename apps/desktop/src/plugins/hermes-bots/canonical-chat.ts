@@ -314,6 +314,15 @@ interface OpenCanonicalChatOptions {
    *  open degrades to the old navigating shape. */
   background?: boolean
   openingStillCurrent?: (() => boolean) | null
+  /** qiji 0.20.5c: submit the intro turn when this open MINTS the forever
+   *  chat. The upstream roster click-path never passes it (ScottFive guard:
+   *  a resolution miss must not re-fire the intro on every click). The OPC
+   *  experts tab DOES: its profiles are born via profiles.configure and
+   *  never pass through the New Agent creation flow, so without this the
+   *  first click on a fresh expert opens a minted, zero-message chat —
+   *  "空对话". Mint-only semantics keep the guard intact: an EXISTING chat
+   *  opens without any kickoff, exactly as before. */
+  kickoffOnCreate?: boolean
 }
 
 /** The self-introduction a brand-new bot is born with (#91827).
@@ -568,7 +577,7 @@ export function createCanonicalChat(
  *  bot's chat opens without re-homing Desktop's chrome. */
 export async function openBotCanonicalChat(
   owner: RosterRow | string,
-  { background = false, openingStillCurrent = null }: OpenCanonicalChatOptions = {}
+  { background = false, openingStillCurrent = null, kickoffOnCreate = false }: OpenCanonicalChatOptions = {}
 ): Promise<{ openedId: string; registryId: string } | null> {
   const existing = await findExistingCanonicalChat(owner)
 
@@ -598,6 +607,7 @@ export async function openBotCanonicalChat(
   }
 
   const created = await createCanonicalChat(owner, {
+    kickoff: kickoffOnCreate,
     openingStillCurrent
   })
 

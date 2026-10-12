@@ -92,10 +92,13 @@ export function toOpcExpertRows(snapshot: RosterSnapshotLike): OpcExpertRow[] {
 
 /** qiji 0.20.5a: 静态 import——动态 import 在加密链(blob:)下不可靠
  *  （React #310 装机实锤），且 plugin 本就是 eager glob 加载，
- *  懒加载语义从未成立。数据层模块 import 无副作用。 */
+ *  懒加载语义从未成立。数据层模块 import 无副作用。
+ *  0.20.5c: kickoffOnCreate——OPC 专家经 profiles.configure 出生、从未走过
+ *  New Agent 创建流，首点 mint 的空会话就是「空对话」报障根因；mint 时
+ *  补一发 intro（上游 BotsPane 路径不传，ScottFive 守卫不受影响）。 */
 async function openOpcExpert(name: string): Promise<boolean> {
   try {
-    return (await openBotCanonicalChat(name)) != null
+    return (await openBotCanonicalChat(name, { kickoffOnCreate: true })) != null
   } catch {
     return false
   }

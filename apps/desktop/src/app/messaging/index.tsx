@@ -126,7 +126,9 @@ function fieldCopy(field: MessagingEnvVarInfo, m: Translations['messaging']) {
   return {
     label: localized.label || field.prompt || field.key,
     help: localized.help || field.description,
-    placeholder: localized.placeholder || field.prompt,
+    // qiji 0.20.5c: 有中文文案时 placeholder 不再回退后端英文 prompt——
+    // 此前「中文标签 + 输入框英文提示」双显（0.20.5b 验收反馈）。
+    placeholder: localized.placeholder || localized.label || field.prompt,
     advanced: Boolean(copy.advanced || field.advanced)
   }
 }

@@ -102,6 +102,51 @@ export const takeVoiceConversationStart = (current: number): boolean => {
 }
 
 // ---------------------------------------------------------------------------
+// qiji 0.20.5c: Pending skill inserts — a latch queue for cross-view composer
+// prefill (OPC launcher cards → new chat). The OLD path dispatched a
+// `qiji:insert-skill` window event after polling `window.location.pathname === '/'`,
+// which only ever held in dev (http origin): the app runs a HashRouter and the
+// packaged build loads from file://, where pathname is the document path and
+// never '/'. Model this on $voiceConversationStartRequest — the same
+// remount-race problem (navigate away → composer unmounts → new composer
+// mounts later). The producer queues; the MAIN composer claims the queue once
+// it is mounted AND the workspace is back on the chat route ($workspaceIsPage
+// false), so a pane architecture that keeps the composer mounted under a page
+// view can't swallow the chip into a hidden editor.
+// ---------------------------------------------------------------------------
+
+export interface PendingSkillInsert {
+  /** Slash command with leading '/', trailing space handled by the chip. */
+  command: string
+  /** Chip display label (Chinese title); falls back to the command. */
+  label?: string
+}
+
+const $pendingSkillInserts = atom<PendingSkillInsert[]>([])
+export { $pendingSkillInserts }
+
+/** Queue a skill-chip prefill for the next main-composer claim. */
+export const queueSkillInsert = (insert: PendingSkillInsert): void => {
+  $pendingSkillInserts.set([...$pendingSkillInserts.get(), insert])
+}
+
+/**
+ * Claim every pending insert at once. Returns [] when nothing is queued —
+ * callers poll this on mount/route-settle, not per keystroke.
+ */
+export const takeSkillInserts = (): PendingSkillInsert[] => {
+  const pending = $pendingSkillInserts.get()
+
+  if (pending.length === 0) {
+    return []
+  }
+
+  $pendingSkillInserts.set([])
+
+  return pending
+}
+
+// ---------------------------------------------------------------------------
 // Composer scopes — one live attachment set PER MOUNTED COMPOSER. The main
 // chat's scope wraps the module-level atom above (all existing readers keep
 // working); each session tile creates its own so two composers on screen

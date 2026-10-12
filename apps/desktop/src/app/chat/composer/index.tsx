@@ -34,6 +34,8 @@ import { sessionCompacting } from '@/store/compaction'
 import { browseBackward, browseForward, deriveUserHistory, isBrowsingHistory } from '@/store/composer-input-history'
 import { POPOUT_WIDTH_REM } from '@/store/composer-popout'
 import { parkQueuedPrompts, removeQueuedPrompt, unparkQueuedPrompts } from '@/store/composer-queue'
+import { $pendingSkillInserts, takeSkillInserts } from '@/store/composer'
+import { $workspaceIsPage } from '@/app/routes'
 import { $hudMode } from '@/store/hud'
 import { $showsAdvancedChrome } from '@/store/interface-mode'
 import { sessionBlockingPrompt } from '@/store/prompts'
@@ -581,6 +583,28 @@ export function ChatBar({
   // 单次挂载，同时让 lint 看到真实依赖。
   const insertSkillChipRef = useRef(insertSkillChip)
   insertSkillChipRef.current = insertSkillChip
+
+  // qiji 0.20.5c: OPC 启动卡 → 新会话预填（闩锁队列消费端）。此前 OPC 页用
+  // 「navigate 后轮询 pathname===/'/' 再派发事件」，打包版跑在 file:// + HashRouter
+  // 上 pathname 永远不是 '/'，轮询 12s 后静默丢弃——dev 正常、真机必失。改由
+  // OPC 侧 queueSkillInsert 入队（见 store/composer.ts），主 composer 在挂载且
+  // workspace 已回聊天态（$workspaceIsPage=false）后领取；rAF 等编辑器 DOM 就绪，
+  // 连发两张卡时按队首顺序逐个追加（insertSkillChip 本身支持同行多 chip）。
+  const workspaceIsPage = useStore($workspaceIsPage)
+  const pendingSkillInsertsTick = useStore($pendingSkillInserts)
+  useEffect(() => {
+    if (scope.target !== 'main' || workspaceIsPage || pendingSkillInsertsTick.length === 0) {
+      return
+    }
+
+    const raf = window.requestAnimationFrame(() => {
+      for (const pending of takeSkillInserts()) {
+        insertSkillChipRef.current(pending.command, pending.label || pending.command)
+      }
+    })
+
+    return () => window.cancelAnimationFrame(raf)
+  }, [pendingSkillInsertsTick, scope.target, workspaceIsPage])
 
   useEffect(() => {
     const handler = (e: Event) => {

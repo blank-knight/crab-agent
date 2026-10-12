@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { NEW_CHAT_ROUTE } from '@/app/routes'
+import { queueSkillInsert } from '@/store/composer'
 import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -169,53 +170,28 @@ export function OpcView(_: OpcViewProps) {
   const [agentDialogOpen, setAgentDialogOpen] = useState(false)
   const [editingAgent, setEditingAgent] = useState<UserAgent | null>(null)
 
-  // 点击可用卡片：回聊天新会话，等路由提交后再把 /技能名 填进输入框。
-  // ⚠️ 两个坑（CDP 实测实锤）：
-  // 1) pane 架构下 composer 可能一直在 DOM 里（chat 被压在 workspace 页下面），
-  //    盲发事件 chip 会先插入、随后被路由提交时的重挂载冲掉；
-  // 2) 慢机器上 transition 提交可达数秒。
-  // 所以判定条件是 pathname 已落到 '/'（提交完成、新 composer 就绪）再派发。
+  // 点击可用卡片：回聊天新会话，等主 composer 挂载后领取预填队列。
+  // ⚠️ 别用「navigate 后轮询 window.location.pathname==='/' 再派发事件」——
+  // 应用是 HashRouter，打包版跑 file:// 下 pathname 是文档路径永远不是 '/'，
+  // dev(http) 下碰巧通过、真机必失（0.20.5b 装机实锤）。改为闩锁队列：
+  // queueSkillInsert 入队（store/composer.ts），主 composer 挂载且 workspace
+  // 回聊天态（$workspaceIsPage=false）后 rAF 领取——不依赖 URL、不怕重挂载、
+  // 不怕 pane 架构 composer 常驻被路由提交冲掉。
   const onLaunch = useCallback(
     (agent: OpcAgent) => {
       navigate(NEW_CHAT_ROUTE)
-
-      const tryInsert = (attempts: number) => {
-        if (window.location.pathname === '/' && document.querySelector('[contenteditable="true"]')) {
-          window.dispatchEvent(
-            new CustomEvent('qiji:insert-skill', {
-              detail: { command: `/${agent.name} `, label: agent.title, _v: 3 }
-            })
-          )
-        } else if (attempts > 0) {
-          window.setTimeout(() => tryInsert(attempts - 1), 200)
-        }
-      }
-
-      window.setTimeout(() => tryInsert(60), 150)
+      queueSkillInsert({ command: `/${agent.name} `, label: agent.title })
     },
     [navigate]
   )
 
   // qiji 0.20.5b: 用户自定义智能体（方案A 本地启动器）——技能型同 /技能名 预填，
-  // 提示词型直接预填全文。与 onLaunch 同一时序协议（navigate → 等 composer → 派发）。
+  // 提示词型直接预填全文。与 onLaunch 同一闩锁队列协议。
   const onLaunchUser = useCallback(
     (agent: UserAgent) => {
       navigate(NEW_CHAT_ROUTE)
       const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
-
-      const tryInsert = (attempts: number) => {
-        if (window.location.pathname === '/' && document.querySelector('[contenteditable="true"]')) {
-          window.dispatchEvent(
-            new CustomEvent('qiji:insert-skill', {
-              detail: { command, label: agent.title, _v: 3 }
-            })
-          )
-        } else if (attempts > 0) {
-          window.setTimeout(() => tryInsert(attempts - 1), 200)
-        }
-      }
-
-      window.setTimeout(() => tryInsert(60), 150)
+      queueSkillInsert({ command, label: agent.title })
     },
     [navigate]
   )
