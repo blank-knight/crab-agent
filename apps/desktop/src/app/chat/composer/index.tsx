@@ -584,6 +584,11 @@ export function ChatBar({
   const insertSkillChipRef = useRef(insertSkillChip)
   insertSkillChipRef.current = insertSkillChip
 
+  // qiji 0.20.5c: OPC 自动发送需要稳定拿到 submitDraft（useComposerSubmit 的
+  // 返回值，每次渲染重建）——同款 ref 转发。
+  const submitDraftRef = useRef(submitDraft)
+  submitDraftRef.current = submitDraft
+
   // qiji 0.20.5c: OPC 启动卡 → 新会话预填（闩锁队列消费端）。此前 OPC 页用
   // 「navigate 后轮询 pathname===/'/' 再派发事件」，打包版跑在 file:// + HashRouter
   // 上 pathname 永远不是 '/'，轮询 12s 后静默丢弃——dev 正常、真机必失。改由
@@ -598,8 +603,17 @@ export function ChatBar({
     }
 
     const raf = window.requestAnimationFrame(() => {
-      for (const pending of takeSkillInserts()) {
+      const claimed = takeSkillInserts()
+
+      for (const pending of claimed) {
         insertSkillChipRef.current(pending.command, pending.label || pending.command)
+      }
+
+      // qiji 0.20.5c: OPC「立即使用」=填入即发送（用户装机反馈：切页回来
+      // 看到 /qiji-geo 芯片躺在输入框，像没发出去）。芯片已进 DOM 编辑器，
+      // submitDraft 从 DOM 读文本（见 use-composer-submit），无需再同步状态。
+      if (claimed.some(pending => pending.autoSend)) {
+        submitDraftRef.current()
       }
     })
 

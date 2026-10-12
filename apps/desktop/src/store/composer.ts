@@ -120,6 +120,8 @@ export interface PendingSkillInsert {
   command: string
   /** Chip display label (Chinese title); falls back to the command. */
   label?: string
+  /** qiji 0.20.5c: OPC「立即使用」语义 = 填入后直接发送，不等用户回车。 */
+  autoSend?: boolean
 }
 
 const $pendingSkillInserts = atom<PendingSkillInsert[]>([])

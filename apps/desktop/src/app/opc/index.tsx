@@ -180,7 +180,9 @@ export function OpcView(_: OpcViewProps) {
   const onLaunch = useCallback(
     (agent: OpcAgent) => {
       navigate(NEW_CHAT_ROUTE)
-      queueSkillInsert({ command: `/${agent.name} `, label: agent.title })
+      // 0.20.5c: 「立即使用」= 点击即发送（用户反馈：填入不发送，切页回来
+      // 芯片躺在输入框像没生效）。autoSend 让主 composer 领取后直接提交。
+      queueSkillInsert({ command: `/${agent.name} `, label: agent.title, autoSend: true })
     },
     [navigate]
   )
@@ -191,7 +193,7 @@ export function OpcView(_: OpcViewProps) {
     (agent: UserAgent) => {
       navigate(NEW_CHAT_ROUTE)
       const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
-      queueSkillInsert({ command, label: agent.title })
+      queueSkillInsert({ command, label: agent.title, autoSend: true })
     },
     [navigate]
   )

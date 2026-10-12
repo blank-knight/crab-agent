@@ -35,6 +35,9 @@ import { OTHER_SUBPAGES } from './other-subpages'
 import { settingDefinition } from './settings-manifest'
 import type { SettingsView } from './types'
 
+// qiji 0.20.5c: 屏幕捕获子页的 macOS 门（见 settingsSubpages 内注释）。
+import { isMacPlatform } from '@/lib/platform'
+
 export interface SettingsSubpage {
   id: string
   labelKey: string
@@ -101,7 +104,11 @@ export function settingsSubpages(view: SettingsView): readonly SettingsSubpage[]
     return CONFIG_SUBPAGES[view.slice('config:'.length)] ?? []
   }
 
-  return OTHER_SUBPAGES[view] ?? []
+  const subpages = OTHER_SUBPAGES[view] ?? []
+
+  // qiji 0.20.5c: 屏幕捕获走 macOS 原生截图手势（preload screenshot 桥仅
+  // darwin 存在），Windows/Linux 上子页是空白死门——非 macOS 直接不列。
+  return isMacPlatform() ? subpages : subpages.filter(page => page.id !== 'screen-capture')
 }
 
 /** Shared by search serialization and saved links that predate subpages. */
