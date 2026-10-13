@@ -8,13 +8,13 @@ import {
   attachmentId,
   coalesceToolOnlyAssistants,
   coerceThinkingText,
-  localizeSkillPlaceholder,
-  sessionTitle,
   createClientSessionState,
   createToolMergeCache,
+  localizeSkillPlaceholder,
   messageCreatedAt,
   optimisticAttachmentRef,
   personalityNamesFromConfig,
+  sessionTitle,
   toRuntimeMessage
 } from './chat-runtime'
 
