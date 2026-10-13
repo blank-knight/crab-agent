@@ -7,7 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 //
 // 上游同步注意：qiji 隔离区组件；接线点在 capabilities/index.tsx 的 qiji 标记块。
 import { memo, useCallback, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 
+import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { getSkillContent, type ProfileScope, profileScopeKey, setSkillEnabled } from '@/hermes'
 import { useI18n } from '@/i18n'
@@ -161,11 +163,6 @@ function SkillCard({
             <p className="text-[0.74rem] leading-relaxed text-(--ui-text-secondary)">
               {zhDesc || '暂无描述。'}
             </p>
-            {zhDesc !== (skill.description || '') && (
-              <p className="mt-1.5 text-[0.68rem] leading-relaxed text-(--ui-text-quaternary)">
-                原文：{skill.description}
-              </p>
-            )}
           </div>
           <SkillFullBody name={skill.name} profile={profile} />
         </div>
@@ -174,33 +171,56 @@ function SkillCard({
   )
 }
 
-/** 详情展开区：完整 SKILL.md 正文（frontmatter 剥离）。 */
+/** 详情展开区：qiji 0.20.5f — 不再展示英文 SKILL.md 原文（它是给模型的操作
+ * 手册，不是给用户的）。只留中文摘要 + 技能名/版本元数据 + 「使用」按钮
+ * （预填 /技能名 到聊天输入框，用户补一句需求即可调用）。
+ * getSkillContent 仅用于取 frontmatter 的版本号，正文丢弃。 */
 function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope }) {
   const { t } = useI18n()
+  const navigate = useNavigate()
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['skill-content', name, profileScopeKey(profile)],
     queryFn: () => getSkillContent(name, profile),
     staleTime: 60_000
   })
 
   const parsed = useMemo(() => (data ? parseFrontmatter(data.content) : null), [data])
+  const version = parsed?.meta.find(([k]) => k === 'version')?.[1]
 
-  if (isLoading) {
-    return <p className="mt-2 px-1 text-[0.7rem] text-(--ui-text-tertiary)">{t.skills.loading}</p>
-  }
-
-  if (!parsed?.body) {
-    return null
+  const onUse = () => {
+    navigate('/')
+    window.dispatchEvent(
+      new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: skillNameZh(name, name) } })
+    )
   }
 
   return (
-    <pre
-      className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap wrap-break-word rounded-xl bg-(--ui-muted)/40 px-3 py-2 font-mono text-[0.66rem] leading-relaxed text-(--ui-text-secondary)"
-      data-selectable-text="true"
-    >
-      {parsed.body}
-    </pre>
+    <div className="mt-2.5 space-y-2">
+      <div className="flex items-center justify-between gap-3 rounded-xl bg-(--ui-muted)/60 px-3 py-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-[0.7rem] text-(--ui-text-tertiary)">
+          <span>
+            {t.skills.skillMetaName}：<code className="font-mono">{name}</code>
+          </span>
+          {version ? (
+            <span>
+              {t.skills.skillMetaVersion}：{version}
+            </span>
+          ) : null}
+        </div>
+        <Button
+          className="h-7 shrink-0 rounded-lg px-3 text-[0.74rem]"
+          onClick={onUse}
+          size="sm"
+          type="button"
+        >
+          {t.skills.useSkill}
+        </Button>
+      </div>
+      <p className="px-1 text-[0.68rem] leading-relaxed text-(--ui-text-quaternary)">
+        {t.skills.useSkillHint.replace('{name}', name)}
+      </p>
+    </div>
   )
 }
 

@@ -238,7 +238,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     await waitFor(() => expect(setSkillEnabled).toHaveBeenCalledWith('web-research', false, 'researcher'))
   })
 
-  it('shows the FULL skill body in the detail pane, not just the description or raw frontmatter', async () => {
+  it('qiji 0.20.5f: hides the raw SKILL.md body, shows metadata + Use button instead', async () => {
     $catalogCardView.set(false)
     getSkills.mockResolvedValue([
       {
@@ -261,15 +261,16 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       )
     })
 
-    // qiji 0.20.4: 新骨架——先点行展开详情，内容才拉取。
+    // qiji 0.20.5f: 展开详情不再渲染英文正文（Deep research steps 必须缺席），
+    // 改为元数据行（技能名 web-research）+「使用」按钮。
     const row = await screen.findByRole('button', { name: /web-research/ })
     await act(async () => {
       fireEvent.click(row)
     })
     await waitFor(() => expect(getSkillContent).toHaveBeenCalled())
     expect(getSkillContent.mock.calls[0][0]).toBe('web-research')
-    expect(await screen.findByText(/Deep research steps/)).toBeTruthy()
-    expect(screen.queryByText(/version: 1\.2\.0/)).toBeNull()
+    expect(screen.queryByText(/Deep research steps/)).toBeNull()
+    expect(screen.getAllByText(/web-research/).length).toBeGreaterThan(0)
   })
 
   it('keeps installed skills on their toggle and installs new cards into the pinned remote profile', async () => {
