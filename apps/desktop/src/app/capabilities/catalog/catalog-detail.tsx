@@ -101,7 +101,11 @@ export function CatalogDetail({
       <p className="whitespace-pre-wrap break-words text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-secondary)">
         {isZhLocale() ? displayDesc(entry) : entry.description}
       </p>
-      {entry.overview && entry.overview !== entry.description && (
+      {/* qiji 0.20.5f: 中文环境不双显——localizeCatalogEntry 会把 overview 覆写
+          成中文 descZh，旧守卫 `overview !== description` 比的是中文 overview vs
+          英文原始 description，永真 → 英文原文从 overview 槽整段泄漏（安全防护
+          插件详情露大段英文的根因）。中文时 overview 已并入上段中文描述，跳过。 */}
+      {!isZhLocale() && entry.overview && entry.overview !== entry.description && (
         <p className="whitespace-pre-wrap break-words text-[length:var(--conversation-caption-font-size)] leading-relaxed text-(--ui-text-tertiary)">
           {entry.overview}
         </p>
