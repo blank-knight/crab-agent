@@ -2722,6 +2722,10 @@ export const zh = defineLocale({
     archive: '归档',
     skillArchivedTitle: '技能已归档',
     skillArchivedMessage: '可通过 hermes curator restore 恢复。',
+    useSkill: '使用',
+    useSkillHint: '在聊天输入框输入 /{name} 加你的需求即可调用；回答语言跟随你的提问语言。',
+    skillMetaVersion: '版本',
+    skillMetaName: '技能名',
     tabPlugins: '插件',
     plugins: {
       agentTitle: 'Agent 插件',

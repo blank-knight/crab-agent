@@ -2037,6 +2037,10 @@ export const zhHant = defineLocale({
     archive: '封存',
     skillArchivedTitle: '技能已封存',
     skillArchivedMessage: '可透過 hermes curator restore 還原。',
+    useSkill: '使用',
+    useSkillHint: '在聊天輸入框輸入 /{name} 加你的需求即可調用；回覆語言跟隨你的提問語言。',
+    skillMetaVersion: '版本',
+    skillMetaName: '技能名',
     officialCatalog: '可安裝',
     officialPill: '官方'
   },

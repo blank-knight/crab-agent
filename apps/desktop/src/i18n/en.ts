@@ -2582,6 +2582,10 @@ export const en: Translations = {
     archive: 'Archive',
     skillArchivedTitle: 'Skill archived',
     skillArchivedMessage: 'Restorable via hermes curator restore.',
+    useSkill: 'Use',
+    useSkillHint: 'Type /{name} plus your request in the chat box to invoke; replies follow your language.',
+    skillMetaVersion: 'Version',
+    skillMetaName: 'Skill name',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent plugins',

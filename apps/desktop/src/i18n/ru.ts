@@ -1827,6 +1827,10 @@ export const ru = defineLocale({
     archive: 'В архив',
     skillArchivedTitle: 'Навык в архиве',
     skillArchivedMessage: 'Восстановить через hermes curator restore.',
+    useSkill: 'Использовать',
+    useSkillHint: 'Введите /{name} и ваш запрос в поле чата для вызова; ответы следуют вашему языку.',
+    skillMetaVersion: 'Версия',
+    skillMetaName: 'Имя навыка',
     hub: {
       searchPlaceholder: 'Поиск в хабе навыков',
       search: 'Поиск',

@@ -2195,6 +2195,11 @@ export interface Translations {
     archive: string
     skillArchivedTitle: string
     skillArchivedMessage: string
+    /** qiji 0.20.5e: 详情面板「使用」按钮 + 元数据标签 */
+    useSkill: string
+    useSkillHint: string
+    skillMetaVersion: string
+    skillMetaName: string
     tabPlugins: string
     plugins: {
       agentTitle: string

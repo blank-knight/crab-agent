@@ -2850,6 +2850,10 @@ export const esOverrides = {
     archive: 'Archivar',
     skillArchivedTitle: 'Skill archivado',
     skillArchivedMessage: 'Puedes restaurarlo con hermes curator restore.',
+    useSkill: 'Usar',
+    useSkillHint: 'Escribe /{name} más tu solicitud en el chat para invocar; las respuestas siguen tu idioma.',
+    skillMetaVersion: 'Versión',
+    skillMetaName: 'Nombre de la habilidad',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Plugins del agente',

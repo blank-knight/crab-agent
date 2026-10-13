@@ -1794,6 +1794,10 @@ export const ja = defineLocale({
     archive: 'アーカイブ',
     skillArchivedTitle: 'スキルをアーカイブしました',
     skillArchivedMessage: 'hermes curator restore で復元できます。',
+    useSkill: '使用',
+    useSkillHint: 'チャット入力欄に /{name} と要件を入力すると呼び出せます。回答はあなたの言語に従います。',
+    skillMetaVersion: 'バージョン',
+    skillMetaName: 'スキル名',
     officialCatalog: 'インストール可能',
     officialPill: '公式'
   },

@@ -1415,7 +1415,11 @@ export const ar = defineLocale({
     toolsetEnabled: 'تم تفعيل مجموعة الأدوات',
     toolsetDisabled: 'تم تعطيل مجموعة الأدوات',
     appliesToNewSessions: name => `ينطبق على الجلسات الجديدة في ${name}`,
-    failedToUpdate: name => `فشل تحديث ${name}`
+    failedToUpdate: name => `فشل تحديث ${name}`,
+    useSkill: 'استخدام',
+    useSkillHint: 'اكتب /{name} مع طلبك في مربع المحادثة للاستدعاء؛ الردود بلغتك.',
+    skillMetaVersion: 'الإصدار',
+    skillMetaName: 'اسم المهارة'
   },
   agents: {
     extendedTranscript: 'سجل موسّع',

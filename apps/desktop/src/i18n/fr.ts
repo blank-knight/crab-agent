@@ -2868,6 +2868,10 @@ export const frOverrides = {
     archive: 'Archiver',
     skillArchivedTitle: 'Skill archivé',
     skillArchivedMessage: 'Restaurable via hermes curator restore.',
+    useSkill: 'Utiliser',
+    useSkillHint: 'Tapez /{name} plus votre demande dans le chat pour invoquer ; les réponses suivent votre langue.',
+    skillMetaVersion: 'Version',
+    skillMetaName: 'Nom de la compétence',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: "Plugins de l'agent",

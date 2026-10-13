@@ -2859,6 +2859,10 @@ export const deOverrides = {
     archive: 'Archivieren',
     skillArchivedTitle: 'Skill archiviert',
     skillArchivedMessage: 'Wiederherstellbar über „hermes curator restore“.',
+    useSkill: 'Verwenden',
+    useSkillHint: 'Gib /{name} plus deine Anfrage im Chat ein, um aufzurufen; Antworten folgen deiner Sprache.',
+    skillMetaVersion: 'Version',
+    skillMetaName: 'Skillname',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent-Plugins',
