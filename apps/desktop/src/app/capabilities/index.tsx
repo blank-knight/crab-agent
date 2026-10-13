@@ -240,6 +240,7 @@ export function CapabilitiesView({
         }}
         onRefresh={() => void refreshCapabilities()}
         profile={scope.profile}
+        query={query}
         skills={skills ?? []}
         skillsPending={!skills}
       />

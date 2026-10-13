@@ -232,20 +232,39 @@ function SkillsPane({
   profile,
   skills,
   onRefresh,
-  marketEntry
+  marketEntry,
+  query = ''
 }: {
   profile: ProfileScope
   skills: SkillInfo[]
   onRefresh: () => void
   marketEntry?: React.ReactNode
+  /** qiji 0.20.5f: 顶部搜索词——hub 骨架此前不接收，搜索框是装饰品（装机实测失效） */
+  query?: string
 }) {
   const { t } = useI18n()
   const [activeCategory, setActiveCategory] = useState('__all')
 
+
+  // qiji 0.20.5f: 搜索先于分类过滤——技能名(中/英)/描述/别名 匹配。
+  // normalize 剥音标，中文原文直比；空串不过滤。
+  const searched = useMemo(() => {
+    const q = query.trim().toLowerCase()
+
+    if (!q) {return skills}
+
+    return skills.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      skillNameZh(s.name, s.name).toLowerCase().includes(q) ||
+      (s.description || '').toLowerCase().includes(q) ||
+      skillDescZh(s.name, s.description || '').toLowerCase().includes(q)
+    )
+  }, [skills, query])
+
   const entries = useMemo(() => {
     const byCategory = new Map<string, number>()
 
-    for (const skill of skills) {
+    for (const skill of searched) {
       const cat = skill.category || 'general'
       byCategory.set(cat, (byCategory.get(cat) ?? 0) + 1)
     }
@@ -253,19 +272,19 @@ function SkillsPane({
     const sorted = [...byCategory.entries()].sort((a, b) => b[1] - a[1])
 
     return [
-      { id: '__all', label: '全部', count: skills.length },
-      { id: '__enabled', label: '已启用', count: skills.filter(s => s.enabled).length },
+      { id: '__all', label: '全部', count: searched.length },
+      { id: '__enabled', label: '已启用', count: searched.filter(s => s.enabled).length },
       ...sorted.map(([cat, count]) => ({ id: cat, label: categoryZh(cat), count }))
     ]
-  }, [skills])
+  }, [searched])
 
   const visible = useMemo(() => {
-    if (activeCategory === '__all') {return skills}
+    if (activeCategory === '__all') {return searched}
 
-    if (activeCategory === '__enabled') {return skills.filter(s => s.enabled)}
+    if (activeCategory === '__enabled') {return searched.filter(s => s.enabled)}
 
-    return skills.filter(s => (s.category || 'general') === activeCategory)
-  }, [skills, activeCategory])
+    return searched.filter(s => (s.category || 'general') === activeCategory)
+  }, [searched, activeCategory])
 
   const ordered = useMemo(
     () =>
@@ -375,7 +394,8 @@ export function QijiCapabilitiesHub({
   profile,
   onRefresh,
   marketEntry,
-  fallbackContent
+  fallbackContent,
+  query = ''
 }: {
   activeCategory: HubCategory['id']
   /** qiji: market 模式（技能市场面板全幅渲染，覆盖 skills 分支） */
@@ -389,6 +409,8 @@ export function QijiCapabilitiesHub({
   marketEntry?: React.ReactNode
   /** 连接器/插件沿用现有 tab 组件（塞进同骨架） */
   fallbackContent: React.ReactNode
+  /** qiji 0.20.5f: 顶部搜索词（skills 分支过滤用） */
+  query?: string
 }) {
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
@@ -415,7 +437,7 @@ export function QijiCapabilitiesHub({
               <p className="text-[0.85rem] text-(--ui-text-tertiary)">正在加载能力…</p>
             </div>
           ) : (
-            <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} skills={skills} />
+            <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} query={query} skills={skills} />
           )
         ) : (
           // qiji 0.20.4→0.20.5: 连接器/插件沿用旧 tab 组件——外套同款视觉壳
