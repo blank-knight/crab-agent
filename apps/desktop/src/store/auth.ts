@@ -8,6 +8,7 @@ import {
   AUTH_MODE_KEY,
   AUTH_TOKEN_KEY,
   AUTH_USERNAME_KEY,
+  backendGet,
   backendPost,
   type LoginResponse,
   TOKEN_TTL_MS
@@ -60,7 +61,7 @@ function readPersisted(): AuthState {
 }
 
 function persist(state: AuthState) {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {return}
 
   try {
     window.localStorage.setItem(AUTH_TOKEN_KEY, state.token ?? '')
@@ -68,12 +69,14 @@ function persist(state: AuthState) {
     window.localStorage.setItem(AUTH_IS_CUSTOM_KEY, state.isCustomKey ? '1' : '0')
     window.localStorage.setItem(AUTH_MODE_KEY, state.mode)
     window.localStorage.setItem(AUTH_USERNAME_KEY, state.username ?? '')
+
     // api_key 与 token 同级敏感（token 本来就持久化），TTL 同 loginAt 30 天
     if (state.apiKey) {
       window.localStorage.setItem(AUTH_API_KEY_STORE_KEY, state.apiKey)
     } else {
       window.localStorage.removeItem(AUTH_API_KEY_STORE_KEY)
     }
+
     if (state.avatar) {
       window.localStorage.setItem(AUTH_AVATAR_KEY, state.avatar)
     } else {
@@ -105,6 +108,25 @@ function hydrateAuthFromDiskIfEmpty(): void {
 
   if (fromDisk.token) {
     $auth.set(fromDisk)
+    // qiji 0.20.5h: 冷启动额度自愈——score 不持久化,内存默认 0；此前只有进
+    // 设置→账户页或登录才刷新。冷启动后首条消息被额度门控用 0 误拦
+    // （"额度不足"假弹窗,服务端实际有分——10-13 用户实锤）。这里磁盘补读
+    // 成功后顺带后台拉一次 profile 刷 score。best-effort,失败静默（门控
+    // 拿到的仍是 0,行为与修复前一致,不劣化）。
+    void refreshScoreFromBackend()
+  }
+}
+
+/** 后台拉一次 profile,把服务端 score 同步进内存（不弹错,静默 best-effort）。 */
+async function refreshScoreFromBackend(): Promise<void> {
+  try {
+    const res = await backendGet<{ score?: number }>('/api/client/v1/profile')
+
+    if (typeof res.data?.score === 'number') {
+      setScore(res.data.score)
+    }
+  } catch {
+    // 静默：离线/后端抖动时保持现状（0 或旧值），不阻塞任何流程
   }
 }
 
@@ -130,7 +152,7 @@ export function isAuthenticated(): boolean {
 export function isTokenExpired(): boolean {
   const { loginAt } = $auth.get()
 
-  if (!loginAt) return true
+  if (!loginAt) {return true}
 
   return Date.now() - loginAt > TOKEN_TTL_MS
 }
@@ -177,7 +199,8 @@ export async function login(username: string, password: string): Promise<LoginRe
 /** 注册。成功后自动登录（后端注册接口直接返回 token + api_key）。 */
 export async function register(mobile: string, password: string, inviteCode?: string): Promise<LoginResponse> {
   const body: Record<string, string> = { mobile, password }
-  if (inviteCode) body.invite_code = inviteCode
+
+  if (inviteCode) {body.invite_code = inviteCode}
 
   const res = await backendPost<LoginResponse>('/api/client/v1/auth/register', body)
 
@@ -240,6 +263,7 @@ export function setScore(score: number) {
  */
 export function setIsCustomKey(isCustomKey: boolean) {
   patch({ isCustomKey })
+
   // 同步 localStorage
   try {
     window.localStorage.setItem(AUTH_IS_CUSTOM_KEY, isCustomKey ? '1' : '0')
