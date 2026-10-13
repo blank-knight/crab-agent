@@ -174,7 +174,14 @@ export const CatalogBrowser = memo(function CatalogBrowser({
   const filtered = sortCatalog(filterCatalog(entries, facets, deferredQuery, isInstalled), sort, kind)
 
   const discover =
-    kind === 'plugins' && !facets.categories.length && !facets.tags.length && !deferredQuery && !facets.installedOnly
+    // qiji 0.20.5g: hideCatalog（插件页只看已装）不走 discover 分组架——Reel 内
+    // 卡高随描述浮动、尾卡偏小；统一走 catalog-grid 定行高。
+    kind === 'plugins' &&
+    !hideCatalog &&
+    !facets.categories.length &&
+    !facets.tags.length &&
+    !deferredQuery &&
+    !facets.installedOnly
 
   const sections =
     discover && cardView
