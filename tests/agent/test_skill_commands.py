@@ -51,6 +51,52 @@ def _symlink_category(skills_dir: Path, linked_root: Path, category: str) -> Pat
 
 
 class TestScanSkillCommands:
+    def test_encrypted_skill_registers_command(self, tmp_path):
+        """qiji 0.20.5f: SKILL.md.enc 出厂即注册（/qiji-geo Unknown command 根因回归）。
+
+        用真实 encrypt 流程（同 key 三分片）造一个加密技能，scan_skill_commands
+        必须解出 frontmatter 并注册其命令——旧行为是 read_text 抛
+        UnicodeDecodeError 被裸 except 吞掉，命令永不注册。
+        """
+        import base64
+
+        from tools.skill_crypto import _assemble_key, decrypt_bytes, is_encrypted
+
+        # AES-256-GCM 加密（encrypt 的逆，key 同 _assemble_key）
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+        skill_dir = tmp_path / "qiji-test-enc"
+        skill_dir.mkdir(parents=True)
+        plaintext = (
+            "---\n"
+            "name: qiji-test-enc\n"
+            "description: Encrypted test skill.\n"
+            "---\n"
+            "\n"
+            "# qiji-test-enc\n"
+            "\n"
+            "Encrypted body.\n"
+        ).encode("utf-8")
+
+        aesgcm = AESGCM(_assemble_key())
+        import os as _os
+        iv = _os.urandom(12)
+        blob = b"SQIJ" + iv + aesgcm.encrypt(iv, plaintext, None)
+        assert is_encrypted(blob)
+        # 解密回环 sanity（key/格式正确才继续，避免误测）
+        assert decrypt_bytes(blob, _assemble_key()) == plaintext
+
+        (skill_dir / "SKILL.md.enc").write_bytes(blob)
+
+        with patch("tools.skills_tool.SKILLS_DIR", tmp_path):
+            commands = scan_skill_commands()
+
+        assert "/qiji-test-enc" in commands, (
+            "encrypted skill command must register — this regression is the "
+            "/qiji-geo Unknown command bug"
+        )
+        assert commands["/qiji-test-enc"]["description"] == "Encrypted test skill."
+
     def test_finds_skills(self, tmp_path):
         with patch("tools.skills_tool.SKILLS_DIR", tmp_path):
             _make_skill(tmp_path, "my-skill")

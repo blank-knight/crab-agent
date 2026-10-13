@@ -400,6 +400,7 @@ def scan_skill_commands() -> Dict[str, Dict[str, Any]]:
     _skill_commands_platform = _resolve_skill_commands_platform()
     _skill_commands = {}
     try:
+        from tools.skill_crypto import decrypt_file
         from tools.skills_tool import SKILLS_DIR, _parse_frontmatter, skill_matches_platform, skill_matches_environment, _get_disabled_skill_names
         from agent.skill_utils import get_external_skills_dirs, iter_skill_index_files
         disabled = _get_disabled_skill_names()
@@ -416,7 +417,13 @@ def scan_skill_commands() -> Dict[str, Dict[str, Any]]:
                 if any(part in {'.git', '.github', '.hub', '.archive'} for part in skill_md.parts):
                     continue
                 try:
-                    content = skill_md.read_text(encoding='utf-8')
+                    # qiji 0.20.5f: 加密技能(SKILL.md.enc)出厂即注册——旧 read_text
+                    # 对密文抛 UnicodeDecodeError 被裸 except 吞掉，商业技能命令
+                    # 永不注册(/qiji-geo Unknown command 根因)。decrypt_file 兼容
+                    # 明文/密文，失败返回 None 时跳过该技能（与 skills_tool 一致）。
+                    content = decrypt_file(skill_md)
+                    if content is None:
+                        continue
                     frontmatter, body = _parse_frontmatter(content)
                     # Skip skills incompatible with the current OS platform
                     if not skill_matches_platform(frontmatter):
