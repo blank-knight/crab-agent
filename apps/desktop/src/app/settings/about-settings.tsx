@@ -295,6 +295,15 @@ function QijiAboutSettings(): ReactElement {
             <span>账号模式</span>
             <span>{authState.mode === 'formal' ? '正式' : '体验'}</span>
           </div>
+          {/* qiji 0.20.5h: Key 来源回显——手动配置自定义 key 后此处显示"已自定义配置"，
+              此前状态不回显（用户不知道配置生效没有）。isCustomKey 由设置页保存
+              模型类 key 时同步置位。 */}
+          <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+            <span>API Key</span>
+            <span className={cn(authState.isCustomKey ? 'text-emerald-600' : '')}>
+              {authState.isCustomKey ? '已自定义配置' : '平台提供'}
+            </span>
+          </div>
           <div className="mt-3 border-t border-border/50 pt-3">
             <Button
               className="w-full"

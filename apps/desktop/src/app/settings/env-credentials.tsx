@@ -4,6 +4,7 @@ import { deleteEnvVar, getEnvVars, revealEnvVar, setEnvVar } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { type IconComponent } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
+import { setIsCustomKey } from '@/store/auth'
 import { confirm } from '@/store/confirm'
 import { notify, notifyError } from '@/store/notifications'
 import type { EnvVarInfo } from '@/types/hermes'
@@ -117,6 +118,14 @@ export function useEnvCredentials(profile?: string): UseEnvCredentials {
       patchVar(key, { is_set: true, redacted_value: redactedValue(value) })
       clearLocalState(key, editKey)
       void queryClient.invalidateQueries({ queryKey: ['model-options'] })
+
+      // qiji 0.20.5h: 手动配置模型 API key = 自定义 Key 用户——走自己的资源，
+      // 豁免平台额度门控（此前只写运行时 env，$auth.isCustomKey 不知情，
+      // 额度耗尽照样弹"额度不足"拦截发送，配置状态也不回显）。
+      if (/_API_KEY$/.test(key) || key === 'OPENAI_API_KEY') {
+        setIsCustomKey(true)
+      }
+
       notify({ kind: 'success', title: toolsets.savedTitle, message: toolsets.savedMessage(key) })
     } catch (err) {
       notifyError(err, toolsets.failedSave(key))
@@ -142,6 +151,11 @@ export function useEnvCredentials(profile?: string): UseEnvCredentials {
       patchVar(key, { is_set: true, redacted_value: redactedValue(trimmed) })
       clearLocalState(key)
       void queryClient.invalidateQueries({ queryKey: ['model-options'] })
+
+      if (/_API_KEY$/.test(key) || key === 'OPENAI_API_KEY') {
+        setIsCustomKey(true)
+      }
+
       notify({ kind: 'success', message: toolsets.savedMessage(key), title: toolsets.savedTitle })
 
       return { ok: true }
