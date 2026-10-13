@@ -209,12 +209,13 @@ const NO_MESSAGES: ChatMessage[] = []
 
 // 主页快捷技能（精选常用；点击填入 /技能名 到输入框，用户补内容后发送）
 // 注: powerpoint(Anthropic专有许可)已移除,由市场 pptx-maker(MIT)顶替
+// 0.20.5h: 六卡全部对应服务端技能市场在架技能(pptx/docx/xlsx/img/whisper/pdf)
 const INTRO_QUICK_SKILLS: QuickSkill[] = [
   { name: 'pptx-maker', title: '📄 PPT 制作', desc: '生成/编辑演示文稿' },
   { name: 'xlsx-master', title: '📊 Excel 表格', desc: '建表/公式/透视汇总' },
   { name: 'docx-writer', title: '📝 Word 文档', desc: '报告/合同生成' },
+  { name: 'pdf-toolkit', title: '📕 PDF 工具', desc: '合并/拆分/提取内容' },
   { name: 'whisper', title: '🎙️ 语音转文字', desc: '录音/视频转文字稿' },
-  { name: 'ocr-and-documents', title: '📑 文档提取', desc: 'PDF/扫描件取文字' },
   { name: 'img-toolkit', title: '🖼️ 图片处理', desc: '转格式/压缩/水印' }
 ]
 
@@ -686,10 +687,16 @@ const ChatViewContent = memo(function ChatViewContent({
   const introSkills = useMemo(() => {
     const installed = new Set(installedSkillsQuery.data?.map(s => s.name) ?? [])
 
-    if (installed.size === 0) {return INTRO_QUICK_SKILLS}
+    // qiji 0.20.5h: fail-closed——列表还在加载/失败时按「未安装」处理，
+    // 卡片置灰引导去市场（0.20.5f 的 fail-open 让慢接口窗口期把
+    // pptx-maker 等当成已装，点卡=发出注定 Unknown command 的命令，
+    // 装机实测复现）。数据成功返回且非空才放开点击。
+    if (installedSkillsQuery.isLoading || installed.size === 0) {
+      return INTRO_QUICK_SKILLS.map(sk => ({ ...sk, missing: true }))
+    }
 
     return INTRO_QUICK_SKILLS.map(sk => ({ ...sk, missing: !installed.has(sk.name) }))
-  }, [installedSkillsQuery.data])
+  }, [installedSkillsQuery.data, installedSkillsQuery.isLoading])
 
   // Session is still loading if the route references a session we haven't
   // resumed yet. Brand-new routed drafts are empty on purpose once a runtime

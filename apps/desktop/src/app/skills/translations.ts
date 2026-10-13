@@ -117,6 +117,7 @@ export const SKILL_ZH: Record<string, { name: string; description: string }> = {
   'nano-pdf': { name: 'PDF 编辑', description: '通过 nano-pdf CLI 编辑 PDF 文字/标题（自然语言）。' },
   'notion': { name: 'Notion', description: 'Notion API + ntn CLI：页面、数据库、Markdown、Workers。' },
   'ocr-and-documents': { name: 'OCR 文档', description: '从 PDF/扫描件提取文字（pymupdf、marker-pdf）。' },
+  'pdf-toolkit': { name: 'PDF 工具', description: 'PDF 全能工具箱——合并、拆分、提取内容、页面操作（pypdf）。' },
   'petdex': { name: '桌面宠物', description: '为智能体安装和选择动画桌面宠物形象。' },
   'img-toolkit': { name: '图片处理', description: '图片转格式、压缩、加水印等批量处理。' },
   'pptx-maker': { name: 'PPT 制作', description: '生成和编辑 PowerPoint 演示文稿（python-pptx）。' },
@@ -303,7 +304,9 @@ export function translateSkillField(
   fallback: string
 ): string {
   const t = SKILL_ZH[name]
-  if (!t) return fallback
+
+  if (!t) {return fallback}
+
   return t[field] || fallback
 }
 
@@ -316,7 +319,9 @@ export function translateToolsetField(
   fallback: string
 ): string {
   const t = TOOLSET_ZH[name]
-  if (!t) return fallback
+
+  if (!t) {return fallback}
+
   return t[field] || fallback
 }
 

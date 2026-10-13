@@ -2,6 +2,7 @@ import type { ThreadMessage } from '@assistant-ui/react'
 import type { ModelOptionsResult } from '@hermes/shared'
 
 import type { QuickModelOption } from '@/app/chat/composer/types'
+import { SKILL_ZH } from '@/app/skills/translations'
 import type { ClientSessionState } from '@/app/types'
 import { formatRefValue } from '@/components/assistant-ui/directive-text'
 import { type ChatMessage, type ChatMessagePart, chatMessageText, textPart } from '@/lib/chat-messages'
@@ -76,6 +77,19 @@ export function stripSkillScaffolding(text: string): string {
   return m ? `使用技能 ${m[1]}` : text
 }
 
+/** qiji 0.20.5h: 技能名→中文名（标题占位期不再显示英文 slug）。
+ * 「使用技能 pptx-maker」这类中间态查 SKILL_ZH 翻译表换成
+ * 「使用技能 PPT 制作」；未收录的技能保留原名（预期回退）。 */
+export function localizeSkillPlaceholder(text: string): string {
+  const m = /^使用技能 (.+)$/.exec(text)
+
+  if (!m) {
+    return text
+  }
+
+  return `使用技能 ${SKILL_ZH[m[1]]?.name ?? m[1]}`
+}
+
 export function sessionTitle(session: SessionInfo): string {
   const title = session.title?.trim()
 
@@ -86,7 +100,9 @@ export function sessionTitle(session: SessionInfo): string {
   // qiji 技能脚手架清洗：服务端 preview 取首条 user 消息前 60 字符，技能
   // 直发会话落库的首条消息是 "[IMPORTANT: …]" 脚手架——标题为空等 LLM
   // 异步生成的窗口期，侧栏会闪英文内部标记。渲染层剥离，别让中间态见人。
-  const preview = stripSkillScaffolding(session.preview?.trim() || '')
+  // 0.20.5h: 剥离后的「使用技能 <slug>」再过一道中文化（装机反馈：
+  // 占位期显示 pptx-maker 数秒，用户要一开始就是中文）。
+  const preview = localizeSkillPlaceholder(stripSkillScaffolding(session.preview?.trim() || ''))
 
   return preview || 'Untitled session'
 }
