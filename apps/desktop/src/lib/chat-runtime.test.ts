@@ -8,6 +8,8 @@ import {
   attachmentId,
   coalesceToolOnlyAssistants,
   coerceThinkingText,
+  localizeSkillPlaceholder,
+  sessionTitle,
   createClientSessionState,
   createToolMergeCache,
   messageCreatedAt,
@@ -298,5 +300,30 @@ describe('personalityNamesFromConfig', () => {
     })
 
     expect(names).toEqual(['catgirl', 'spaced'])
+  })
+})
+
+describe('localizeSkillPlaceholder (qiji 0.20.5h)', () => {
+  it('translates a known skill slug to its Chinese name', () => {
+    expect(localizeSkillPlaceholder('使用技能 pptx-maker')).toBe('使用技能 PPT 制作')
+  })
+
+  it('keeps an unknown skill slug as-is (expected fallback)', () => {
+    expect(localizeSkillPlaceholder('使用技能 some-unknown-skill')).toBe('使用技能 some-unknown-skill')
+  })
+
+  it('passes through non-skill text untouched', () => {
+    expect(localizeSkillPlaceholder('销售数据透视汇总')).toBe('销售数据透视汇总')
+    expect(localizeSkillPlaceholder('')).toBe('')
+  })
+
+  it('sessionTitle shows the localized placeholder before the async title lands', () => {
+    const session = {
+      id: 's1',
+      title: '',
+      preview: '[IMPORTANT: The user has invoked the "pptx-maker" skill.'
+    } as unknown as Parameters<typeof sessionTitle>[0]
+
+    expect(sessionTitle(session)).toBe('使用技能 PPT 制作')
   })
 })
