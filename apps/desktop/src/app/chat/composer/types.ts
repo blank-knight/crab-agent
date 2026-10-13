@@ -27,9 +27,11 @@ export interface ChatBarState {
   introTop?: {
     headline: string
     body: string
-    skills: { name: string; title: string; desc: string }[]
+    skills: { name: string; title: string; desc: string; missing?: boolean }[]
   }
   onSkillPick?: (name: string, title?: string) => void
+  /** qiji 0.20.5e: 主页技能卡未安装 → 打开技能广场引导安装（不预填注定失败的命令） */
+  onInstallSkill?: () => void
   model: {
     model: string
     provider: string

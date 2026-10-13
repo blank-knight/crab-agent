@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useI18n } from '@/i18n'
 import { capitalize, normalize } from '@/lib/text'
+import { cn } from '@/lib/utils'
 import { brandText } from '@/store/oem-brand'
 
 import introCopyJsonl from './intro-copy.jsonl?raw'
@@ -20,6 +21,9 @@ export type QuickSkill = {
   name: string
   title: string
   desc: string
+  /** qiji 0.20.5e: 技能未安装（市场技能未装/被卸载）。卡片降级为「点击去安装」，
+   * 不再预填注定 Unknown command 的 /技能名。 */
+  missing?: boolean
 }
 
 export type IntroExample = {
@@ -34,6 +38,8 @@ export type IntroProps = {
   examples?: IntroExample[]
   onPickSkill?: (name: string) => void
   onPickExample?: (prompt: string) => void
+  /** qiji 0.20.5e: 点未安装技能卡 → 打开技能广场（由宿主导航），替换默认的预填行为 */
+  onInstallSkill?: () => void
 }
 
 const NEUTRAL_PERSONALITIES = new Set(['', 'default', 'none', 'neutral'])
@@ -176,7 +182,7 @@ function resolveCopy(personality?: string, seed?: number): IntroCopy {
   return pickCopy(copies, seed)
 }
 
-export function Intro({ personality, seed, quickSkills, onPickSkill }: IntroProps) {
+export function Intro({ personality, seed, quickSkills, onPickSkill, onInstallSkill }: IntroProps) {
   const [mountSeed] = useState(() => Math.floor(Math.random() * 100000))
   const { t } = useI18n()
   const rotationSeed = mountSeed + (seed ?? 0)
@@ -209,10 +215,12 @@ export function Intro({ personality, seed, quickSkills, onPickSkill }: IntroProp
                   aria-label={sk.desc}
                   className="group shrink-0 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-center transition-colors hover:border-primary/50 hover:bg-muted/40"
                   key={sk.name}
-                  onClick={() => onPickSkill(sk.name)}
+                  onClick={() => (sk.missing ? onInstallSkill?.() : onPickSkill(sk.name))}
                   type="button"
                 >
-                  <span className="text-[0.75rem] font-medium text-foreground">{sk.title}</span>
+                  <span className={cn('text-[0.75rem] font-medium', sk.missing ? 'text-(--ui-text-tertiary)' : 'text-foreground')}>
+                    {sk.missing ? `${sk.title} · 需安装` : sk.title}
+                  </span>
                 </button>
               ))}
             </div>

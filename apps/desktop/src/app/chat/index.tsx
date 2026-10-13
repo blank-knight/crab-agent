@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import type { ReadableAtom } from 'nanostores'
 import type * as React from 'react'
 import { memo, Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { useLocation } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import type { SubmitTextOptions } from '@/app/session/hooks/use-prompt-actions/utils'
 import { sessionShouldHaveTranscript } from '@/app/session/hooks/use-session-actions/utils'
@@ -18,8 +18,7 @@ import { usePaneGroup, usePaneVisible } from '@/components/pane-shell/pane-visib
 import { $hoveredTreeGroup, $sessionTileDragging, $sessionTileEdgeHover } from '@/components/pane-shell/tree/store'
 import { PromptOverlays } from '@/components/prompt-overlays'
 import { TitleMenuTrigger } from '@/components/ui/title-menu-trigger'
-import { type HermesGateway } from '@/hermes'
-import { brandText } from '@/store/oem-brand'
+import { getSkills, type HermesGateway } from '@/hermes'
 import { useI18n } from '@/i18n'
 import type { ChatMessage } from '@/lib/chat-messages'
 import { NEW_SESSION_TITLE, quickModelOptions, sessionTitle } from '@/lib/chat-runtime'
@@ -31,6 +30,7 @@ import { migrateSessionDraft } from '@/store/composer'
 import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
 import { $introSplash } from '@/store/intro-splash'
 import { $pinnedSessionIds } from '@/store/layout'
+import { brandText } from '@/store/oem-brand'
 import { $guideOpening, $onboardingGate } from '@/store/onboarding-gate'
 import { $petActive } from '@/store/pet'
 import { $petOverlayActive } from '@/store/pet-overlay'
@@ -670,6 +670,27 @@ const ChatViewContent = memo(function ChatViewContent({
     selectedSessionId
   })
 
+  const navigateForMarket = useNavigate()
+
+  // qiji 0.20.5e: 主页快捷技能动态检测——市场技能（pptx-maker 等）没装时,
+  // 卡片降级为「· 需安装」点击跳技能广场,不再预填注定 Unknown command 的
+  // /技能名(0.20.5d 装机反馈:主页五个卡全踩空)。检测只在空态主页启用,
+  // staleTime 拉长避免每次空态都重扫技能树(后端 /api/skills 45s 超时,重)。
+  const installedSkillsQuery = useQuery({
+    queryKey: ['intro-skills-installed'],
+    queryFn: () => getSkills(),
+    enabled: showIntro,
+    staleTime: 5 * 60_000
+  })
+
+  const introSkills = useMemo(() => {
+    const installed = new Set(installedSkillsQuery.data?.map(s => s.name) ?? [])
+
+    if (installed.size === 0) {return INTRO_QUICK_SKILLS}
+
+    return INTRO_QUICK_SKILLS.map(sk => ({ ...sk, missing: !installed.has(sk.name) }))
+  }, [installedSkillsQuery.data])
+
   // Session is still loading if the route references a session we haven't
   // resumed yet. Brand-new routed drafts are empty on purpose once a runtime
   // is bound. A session the list already knows has history must keep the
@@ -758,11 +779,14 @@ const ChatViewContent = memo(function ChatViewContent({
         ? {
             headline: brandText('奇计'),
             body: '今天要做点什么？',
-            skills: INTRO_QUICK_SKILLS
+            skills: introSkills
           }
         : undefined,
       onSkillPick: (name: string, title?: string) => {
         window.dispatchEvent(new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: title } }))
+      },
+      onInstallSkill: () => {
+        navigateForMarket('/skills?tab=market')
       },
       model: {
         model: currentModel,
@@ -789,9 +813,12 @@ const ChatViewContent = memo(function ChatViewContent({
       currentModel,
       currentProvider,
       gatewayOpen,
+      introSkills,
       modelMenuContent,
+      navigateForMarket,
       quickModels,
       reasoningMenuContent,
+      showIntro,
       supportsReasoning
     ]
   )

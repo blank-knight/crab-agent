@@ -8,18 +8,16 @@ import {
   useEffect,
   useId,
   useMemo,
-  useRef,
-  useState
+  useRef
 } from 'react'
 
 import { useTourMarker } from '@/app/chat/tour-marker'
 import { useHudComposerDrag } from '@/app/hud/composer-drag'
+import { $workspaceIsPage } from '@/app/routes'
 import { composerFloatingStrip, composerInputBacking } from '@/components/chat/composer-dock'
 import { $chatOnboardingSolo, $chatOnboardingThreadIds } from '@/components/onboarding-chat/assembly'
 import { OnboardingSkip } from '@/components/onboarding-chat/skip'
 import { Button } from '@/components/ui/button'
-import { Codicon } from '@/components/ui/codicon'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Slot as ContribSlot } from '@/contrib/react/slot'
 import { useI18n } from '@/i18n'
 import { chatMessageText } from '@/lib/chat-messages'
@@ -31,11 +29,10 @@ import { useStoreSelector, useStoresSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
 import { interceptsTypedVoiceStop } from '@/lib/voice-stop-word'
 import { sessionCompacting } from '@/store/compaction'
+import { $pendingSkillInserts, takeSkillInserts } from '@/store/composer'
 import { browseBackward, browseForward, deriveUserHistory, isBrowsingHistory } from '@/store/composer-input-history'
 import { POPOUT_WIDTH_REM } from '@/store/composer-popout'
 import { parkQueuedPrompts, removeQueuedPrompt, unparkQueuedPrompts } from '@/store/composer-queue'
-import { $pendingSkillInserts, takeSkillInserts } from '@/store/composer'
-import { $workspaceIsPage } from '@/app/routes'
 import { $hudMode } from '@/store/hud'
 import { $showsAdvancedChrome } from '@/store/interface-mode'
 import { sessionBlockingPrompt } from '@/store/prompts'
@@ -638,12 +635,15 @@ export function ChatBar({
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ text: string }>).detail
+
       if (detail?.text) {
         insertText(detail.text)
         requestMainFocus()
       }
     }
+
     window.addEventListener('qiji:insert-text', handler)
+
     return () => window.removeEventListener('qiji:insert-text', handler)
   }, [])
 
@@ -1492,10 +1492,10 @@ export function ChatBar({
                 <div className="flex flex-nowrap justify-center gap-1.5 overflow-x-auto">
                   {state.introTop.skills.map(sk => (
                     <button
+                      aria-label={sk.desc}
                       className="group shrink-0 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-center transition-colors hover:border-primary/50 hover:bg-muted/40"
                       key={sk.name}
                       onClick={() => state.onSkillPick?.(sk.name, sk.title)}
-                      aria-label={sk.desc}
                       type="button"
                     >
                       <span className="text-[0.75rem] font-medium text-foreground">{sk.title}</span>
@@ -1548,10 +1548,10 @@ export function ChatBar({
                 <div className="text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">试试这样用</div>
                 {state.introExamples.map(ex => (
                   <button
+                    aria-label={ex.prompt}
                     className="w-full truncate rounded-lg border border-border/50 bg-transparent px-3 py-1.5 text-left text-[0.8rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                     key={ex.title}
                     onClick={() => state.onIntroPick?.(ex.prompt)}
-                    aria-label={ex.prompt}
                     type="button"
                   >
                     {ex.title}
