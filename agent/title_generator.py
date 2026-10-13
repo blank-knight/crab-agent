@@ -48,6 +48,22 @@ def _title_language() -> str:
         return ""
 
 
+def _title_language_defaulted() -> str:
+    """qiji 0.20.5h: 贴牌产品标题默认中文。
+
+    未显式配置（空串）时回落 Chinese——技能调用喂给标题模型的内容混着
+    英文 SKILL.md 正文，"跟随用户语言"常被带偏成英文标题（装机实测
+    Create PowerPoint）。显式配置了任何值则尊重配置（含显式空串改回
+    跟随用户——通过 config set 写入的空串会存为 ""，与未配置的缺 key
+    无法区分，此处以 DEFAULT_CONFIG 的 Chinese 兜底，用户显式 set ""
+    的场景接受回落中文）。
+    """
+    language = _title_language()
+    if language:
+        return language
+    return "Chinese"
+
+
 def generate_title(
     user_message: str,
     assistant_response: str,
@@ -106,7 +122,7 @@ def generate_title(
     except Exception:
         pass
 
-    language = _title_language()
+    language = _title_language_defaulted()
     prompt = _TITLE_PROMPT_PINNED_LANGUAGE.format(language=language) if language else _TITLE_PROMPT
 
     messages = [

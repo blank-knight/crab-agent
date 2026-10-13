@@ -32,7 +32,8 @@ class TestGenerateTitle:
             generate_title("質問です", "回答です")
 
         system_prompt = llm.call_args.kwargs["messages"][0]["content"]
-        assert "same language the user is writing in" in system_prompt
+        # qiji 0.20.5h: 贴牌默认钉死 Chinese（未配置时回落，不再跟随用户语言）
+        assert "Write the title in Chinese" in system_prompt
 
     def test_configured_language_pins_prompt(self):
         mock_response = MagicMock()

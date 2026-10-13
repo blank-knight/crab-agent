@@ -1460,7 +1460,11 @@ DEFAULT_CONFIG = {
             "api_key": "",
             "timeout": 30,
             "extra_body": {},
-            "language": "",
+            # qiji 0.20.5h: 默认中文标题。空串=跟随用户消息语言（上游默认），
+            # 但技能调用喂给标题模型的内容混着英文 SKILL.md 正文，模型常被
+            # 带偏输出英文标题（装机实测 Create PowerPoint）。贴牌产品默认
+            # 钉死中文，需要英文的用户可显式改回 ""。
+            "language": "Chinese",
         },
         "tts_audio_tags": {
             "provider": "auto",
