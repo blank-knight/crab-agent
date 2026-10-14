@@ -91,6 +91,16 @@ const INITIAL: AuthState = readPersisted()
 
 export const $auth = atom<AuthState>(INITIAL)
 
+// qiji 0.20.5h(2): 额度冷启动根治——score 不持久化,内存默认 0,此前只有进
+// 设置→账户页/登录才刷新,首条消息被门控用 0 误拦「额度不足」(服务端实际
+// 有分)。第一版只挂在 hydrateAuthFromDiskIfEmpty 的补读分支——但正常启动
+// readPersisted() 模块求值即成功,该分支 return,永远不刷新(10-14 装机
+// 实锤:去趟个人中心才恢复)。这里挪到模块加载必经之路:只要 INITIAL 带着
+// token,启动即后台拉一次 profile 刷 score。best-effort,失败静默。
+if (INITIAL.token) {
+  void refreshScoreFromBackend()
+}
+
 // 启动自愈（2026-08-28 实案）：模块求值期 readPersisted 偶发读空（渲染进程
 // 极早期 localStorage 不可用/抛异常被 catch 吞掉）→ INITIAL 全空 → needLogin
 // =true 弹登录页；而几毫秒后 LoginOverlay 挂载时 localStorage 又正常了
@@ -108,11 +118,8 @@ function hydrateAuthFromDiskIfEmpty(): void {
 
   if (fromDisk.token) {
     $auth.set(fromDisk)
-    // qiji 0.20.5h: 冷启动额度自愈——score 不持久化,内存默认 0；此前只有进
-    // 设置→账户页或登录才刷新。冷启动后首条消息被额度门控用 0 误拦
-    // （"额度不足"假弹窗,服务端实际有分——10-13 用户实锤）。这里磁盘补读
-    // 成功后顺带后台拉一次 profile 刷 score。best-effort,失败静默（门控
-    // 拿到的仍是 0,行为与修复前一致,不劣化）。
+    // qiji 0.20.5h: 补读成功也顺手刷一次（主刷新点已挪到模块加载处，
+    // 见 $auth 定义下方——这里是竞态补读场景的双保险）。
     void refreshScoreFromBackend()
   }
 }
