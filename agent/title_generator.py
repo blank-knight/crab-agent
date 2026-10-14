@@ -501,6 +501,11 @@ def generate_title(
     ):
         return None
     language = _title_language()
+    # qiji 0.20.5h: 贴牌产品标题默认中文。技能调用喂给标题模型的内容混着
+    # 英文 SKILL.md 正文，"跟随用户语言"常被带偏成英文标题（装机实测
+    # Create PowerPoint）。未配置时回落 Chinese，显式配置则尊重配置。
+    if not language:
+        language = "Chinese"
     # str.replace, not str.format: the prompt embeds literal JSON braces.
     prompt = _TITLE_PROMPT_TEMPLATE.replace(
         "__LANGUAGE_RULE__", _LANGUAGE_RULE_PINNED.format(language=language) if language else _LANGUAGE_RULE_MATCH_USER,

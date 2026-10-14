@@ -358,7 +358,17 @@ def _scan_skill_md(skill_md: Path, disabled: set, seen_names: set, commands: Dic
     from tools.skills_tool import _parse_frontmatter, skill_matches_apps, skill_matches_platform, skill_matches_environment
     if any(part in _SCAN_SKIP_PARTS for part in skill_md.parts):
         return
-    frontmatter, body = _parse_frontmatter(skill_md.read_text(encoding='utf-8-sig'))
+    # qiji 0.20.5f: 加密技能(SKILL.md.enc)出厂即注册——旧 read_text 对密文抛
+    # UnicodeDecodeError 被裸 except 吞掉，商业技能命令永不注册(/qiji-geo
+    # Unknown command 根因)。decrypt_file 兼容明文/密文，失败返回 None 跳过。
+    try:
+        from tools.skill_crypto import decrypt_file
+        content = decrypt_file(skill_md)
+        if content is None:
+            return
+    except ImportError:
+        content = skill_md.read_text(encoding='utf-8-sig')
+    frontmatter, body = _parse_frontmatter(content)
     # OS gate is hard; environment gate (kanban/docker/s6) is offer-time only.
     if not skill_matches_platform(frontmatter) or not skill_matches_environment(frontmatter) or not skill_matches_apps(frontmatter):
         return

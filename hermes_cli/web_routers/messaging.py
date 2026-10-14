@@ -57,6 +57,7 @@ load_config = late("load_config", "hermes_cli.config")
 read_runtime_status = late("read_runtime_status", "gateway.status")
 remove_env_value = late("remove_env_value", "hermes_cli.config")
 save_env_value = late("save_env_value", "hermes_cli.config")
+get_env_value = late("get_env_value", "hermes_cli.config")  # qiji patch
 _gateway_subcommand = late("_gateway_subcommand", "hermes_cli.web_server_gateway")
 _probe_gateway_health = late("_probe_gateway_health", "hermes_cli.web_server_gateway")
 get_running_pid_cached = late("get_running_pid_cached", "gateway.status")
@@ -969,3 +970,295 @@ async def test_messaging_platform(platform_id: str, profile: Optional[str] = Non
     if payload.get("error_message"):
         return result(False, payload["error_message"])
     return result(False, "Setup looks complete, but the gateway has not reported a connection yet. Restart the gateway.")
+
+
+# ── qiji patch: Weixin / QQ / Feishu QR onboarding (ported from qiji-fork 320c474548+d423a63e4f) ─────────────
+
+from pydantic import BaseModel as _QijiBaseModel
+
+
+class WeixinOnboardingApply(_QijiBaseModel):
+    profile: Optional[str] = None
+
+
+class FeishuOnboardingStart(_QijiBaseModel):
+    domain: Optional[str] = None
+
+
+# -- Weixin (iLink) QR onboarding ---------------------------------------------
+_weixin_onboarding_sessions: dict[str, Any] = {}
+_weixin_onboarding_lock = threading.RLock()
+
+
+def _prune_weixin_onboarding_sessions() -> None:
+    stale = [sid for sid, s in _weixin_onboarding_sessions.items() if s.expired()]
+    for sid in stale:
+        _weixin_onboarding_sessions.pop(sid, None)
+
+
+@router.post("/api/messaging/weixin/onboarding/start")
+async def start_weixin_onboarding(profile: Optional[str] = None):
+    try:
+        from gateway.platforms.weixin import WeixinQrSession, check_weixin_requirements
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"微信适配器不可用: {exc}") from exc
+
+    if not check_weixin_requirements():
+        raise HTTPException(status_code=503, detail="缺少依赖（aiohttp / cryptography），无法扫码登录。")
+
+    session = WeixinQrSession()
+    if not await session.start():
+        detail = session.last_error or "获取微信二维码失败"
+        await session.close()
+        raise HTTPException(status_code=502, detail=detail)
+
+    pairing_id = secrets.token_urlsafe(16)
+    with _weixin_onboarding_lock:
+        _prune_weixin_onboarding_sessions()
+        _weixin_onboarding_sessions[pairing_id] = session
+    return {"pairing_id": pairing_id, **session.snapshot()}
+
+
+@router.get("/api/messaging/weixin/onboarding/{pairing_id}")
+async def get_weixin_onboarding_status(pairing_id: str):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.get(pairing_id)
+        if session is None or session.expired():
+            _weixin_onboarding_sessions.pop(pairing_id, None)
+            raise HTTPException(status_code=404, detail="微信扫码会话不存在或已过期，请重新开始。")
+    snapshot = await session.poll()
+    if session.status == "timeout":
+        with _weixin_onboarding_lock:
+            _weixin_onboarding_sessions.pop(pairing_id, None)
+        await session.close()
+    return snapshot
+
+
+@router.post("/api/messaging/weixin/onboarding/{pairing_id}/apply")
+async def apply_weixin_onboarding(pairing_id: str, body: WeixinOnboardingApply, profile: Optional[str] = None):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.get(pairing_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="微信扫码会话不存在，请重新开始。")
+        if session.status != "confirmed" or not session.credentials:
+            raise HTTPException(status_code=409, detail="微信扫码尚未完成确认。")
+        credentials = dict(session.credentials)
+
+    effective_profile = body.profile or profile
+
+    def _apply():
+        with _profile_scope(effective_profile):
+            save_env_value("WEIXIN_ACCOUNT_ID", credentials["account_id"])
+            save_env_value("WEIXIN_TOKEN", credentials["token"])
+            if credentials.get("base_url"):
+                save_env_value("WEIXIN_BASE_URL", credentials["base_url"])
+            save_env_value(
+                "WEIXIN_CDN_BASE_URL",
+                "https://novac2c.cdn.weixin.qq.com/c2c",
+            )
+            _write_platform_enabled("weixin", True)
+
+    with _onboarding_save_errors("Weixin onboarding apply failed", "保存微信设置失败。"):
+        await asyncio.to_thread(_apply)
+
+    with _weixin_onboarding_lock:
+        _weixin_onboarding_sessions.pop(pairing_id, None)
+    await session.close()
+
+    restart_result = _restart_gateway_after(effective_profile, what="Weixin onboarding", label="Weixin onboarding")
+    return {
+        "ok": True, "platform": "weixin",
+        "account_id": credentials["account_id"], "user_id": credentials.get("user_id", ""),
+        "needs_restart": not restart_result["restart_started"], **restart_result,
+    }
+
+
+@router.delete("/api/messaging/weixin/onboarding/{pairing_id}")
+async def cancel_weixin_onboarding(pairing_id: str):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.pop(pairing_id, None)
+    if session is not None:
+        await session.close()
+    return {"ok": True}
+
+
+# -- QQ Bot QR onboarding (q.qq.com bind tasks) --------------------------------
+_qq_onboarding_sessions: dict[str, Any] = {}
+_qq_onboarding_lock = threading.RLock()
+
+
+def _prune_qq_onboarding_sessions() -> None:
+    stale = [sid for sid, s in _qq_onboarding_sessions.items() if s.expired()]
+    for sid in stale:
+        _qq_onboarding_sessions.pop(sid, None)
+
+
+@router.post("/api/messaging/qqbot/onboarding/start")
+async def start_qq_onboarding(profile: Optional[str] = None):
+    try:
+        from gateway.platforms.qqbot.onboard import QQBotQrSession
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"QQ 适配器不可用: {exc}") from exc
+
+    session = QQBotQrSession()
+    if not await asyncio.to_thread(session.start):
+        detail = session.last_error or "创建 QQ 绑定任务失败"
+        raise HTTPException(status_code=502, detail=detail)
+
+    pairing_id = secrets.token_urlsafe(16)
+    with _qq_onboarding_lock:
+        _prune_qq_onboarding_sessions()
+        _qq_onboarding_sessions[pairing_id] = session
+    return {"pairing_id": pairing_id, **session.snapshot()}
+
+
+@router.get("/api/messaging/qqbot/onboarding/{pairing_id}")
+async def get_qq_onboarding_status(pairing_id: str):
+    with _qq_onboarding_lock:
+        session = _qq_onboarding_sessions.get(pairing_id)
+        if session is None or session.expired():
+            _qq_onboarding_sessions.pop(pairing_id, None)
+            raise HTTPException(status_code=404, detail="QQ 扫码会话不存在或已过期，请重新开始。")
+    snapshot = await session.poll()
+    if session.status == "timeout":
+        with _qq_onboarding_lock:
+            _qq_onboarding_sessions.pop(pairing_id, None)
+    return snapshot
+
+
+@router.post("/api/messaging/qqbot/onboarding/{pairing_id}/apply")
+async def apply_qq_onboarding(pairing_id: str, body: WeixinOnboardingApply, profile: Optional[str] = None):
+    with _qq_onboarding_lock:
+        session = _qq_onboarding_sessions.get(pairing_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="QQ 扫码会话不存在，请重新开始。")
+        if session.status != "confirmed" or not session.credentials:
+            raise HTTPException(status_code=409, detail="QQ 扫码尚未完成确认。")
+        credentials = dict(session.credentials)
+
+    effective_profile = body.profile or profile
+
+    def _apply():
+        with _profile_scope(effective_profile):
+            save_env_value("QQ_APP_ID", credentials["app_id"])
+            save_env_value("QQ_CLIENT_SECRET", credentials["client_secret"])
+            if credentials.get("user_openid"):
+                existing = (get_env_value("QQ_ALLOWED_USERS") or "").strip()
+                users = [u.strip() for u in existing.split(",") if u.strip()]
+                openid = credentials["user_openid"]
+                if openid not in users:
+                    users.append(openid)
+                save_env_value("QQ_ALLOWED_USERS", ",".join(users))
+            _write_platform_enabled("qqbot", True)
+
+    with _onboarding_save_errors("QQ onboarding apply failed", "保存 QQ 设置失败。"):
+        await asyncio.to_thread(_apply)
+
+    with _qq_onboarding_lock:
+        _qq_onboarding_sessions.pop(pairing_id, None)
+
+    restart_result = _restart_gateway_after(effective_profile, what="QQ onboarding", label="QQ onboarding")
+    return {
+        "ok": True, "platform": "qqbot",
+        "app_id": credentials["app_id"], "user_openid": credentials.get("user_openid", ""),
+        "needs_restart": not restart_result["restart_started"], **restart_result,
+    }
+
+
+@router.delete("/api/messaging/qqbot/onboarding/{pairing_id}")
+async def cancel_qq_onboarding(pairing_id: str):
+    with _qq_onboarding_lock:
+        _qq_onboarding_sessions.pop(pairing_id, None)
+    return {"ok": True}
+
+
+# -- Feishu / Lark QR onboarding (device-code flow) ----------------------------
+_feishu_onboarding_sessions: dict[str, Any] = {}
+_feishu_onboarding_lock = threading.RLock()
+
+
+def _prune_feishu_onboarding_sessions() -> None:
+    stale = [sid for sid, s in _feishu_onboarding_sessions.items() if s.expired()]
+    for sid in stale:
+        _feishu_onboarding_sessions.pop(sid, None)
+
+
+@router.post("/api/messaging/feishu/onboarding/start")
+async def start_feishu_onboarding(body: Optional[FeishuOnboardingStart] = None, profile: Optional[str] = None):
+    domain = "lark" if (body and body.domain == "lark") else "feishu"
+    try:
+        from plugins.platforms.feishu.adapter import FeishuQrSession
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"飞书适配器不可用: {exc}") from exc
+
+    session = FeishuQrSession(domain=domain)
+    if not await asyncio.to_thread(session.start):
+        detail = session.last_error or "获取飞书二维码失败"
+        raise HTTPException(status_code=502, detail=detail)
+
+    pairing_id = secrets.token_urlsafe(16)
+    with _feishu_onboarding_lock:
+        _prune_feishu_onboarding_sessions()
+        _feishu_onboarding_sessions[pairing_id] = session
+    return {"pairing_id": pairing_id, **session.snapshot()}
+
+
+@router.get("/api/messaging/feishu/onboarding/{pairing_id}")
+async def get_feishu_onboarding_status(pairing_id: str):
+    with _feishu_onboarding_lock:
+        session = _feishu_onboarding_sessions.get(pairing_id)
+        if session is None or session.expired():
+            _feishu_onboarding_sessions.pop(pairing_id, None)
+            raise HTTPException(status_code=404, detail="飞书扫码会话不存在或已过期，请重新开始。")
+    snapshot = await session.poll()
+    if session.status == "timeout":
+        with _feishu_onboarding_lock:
+            _feishu_onboarding_sessions.pop(pairing_id, None)
+    return snapshot
+
+
+@router.post("/api/messaging/feishu/onboarding/{pairing_id}/apply")
+async def apply_feishu_onboarding(pairing_id: str, body: WeixinOnboardingApply, profile: Optional[str] = None):
+    with _feishu_onboarding_lock:
+        session = _feishu_onboarding_sessions.get(pairing_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="飞书扫码会话不存在，请重新开始。")
+        if session.status != "confirmed" or not session.credentials:
+            raise HTTPException(status_code=409, detail="飞书扫码尚未完成确认。")
+        credentials = dict(session.credentials)
+
+    effective_profile = body.profile or profile
+
+    def _apply():
+        with _profile_scope(effective_profile):
+            save_env_value("FEISHU_APP_ID", credentials["app_id"])
+            save_env_value("FEISHU_APP_SECRET", credentials["app_secret"])
+            save_env_value("FEISHU_DOMAIN", credentials.get("domain") or "feishu")
+            if credentials.get("open_id"):
+                existing = (get_env_value("FEISHU_ALLOWED_USERS") or "").strip()
+                users = [u.strip() for u in existing.split(",") if u.strip()]
+                open_id = credentials["open_id"]
+                if open_id not in users:
+                    users.append(open_id)
+                save_env_value("FEISHU_ALLOWED_USERS", ",".join(users))
+            _write_platform_enabled("feishu", True)
+
+    with _onboarding_save_errors("Feishu onboarding apply failed", "保存飞书设置失败。"):
+        await asyncio.to_thread(_apply)
+
+    with _feishu_onboarding_lock:
+        _feishu_onboarding_sessions.pop(pairing_id, None)
+
+    restart_result = _restart_gateway_after(effective_profile, what="Feishu onboarding", label="Feishu onboarding")
+    return {
+        "ok": True, "platform": "feishu",
+        "app_id": credentials["app_id"], "domain": credentials.get("domain", "feishu"),
+        "needs_restart": not restart_result["restart_started"], **restart_result,
+    }
+
+
+@router.delete("/api/messaging/feishu/onboarding/{pairing_id}")
+async def cancel_feishu_onboarding(pairing_id: str):
+    with _feishu_onboarding_lock:
+        _feishu_onboarding_sessions.pop(pairing_id, None)
+    return {"ok": True}

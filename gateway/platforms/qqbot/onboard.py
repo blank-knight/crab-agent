@@ -125,3 +125,92 @@ def qr_register(timeout_seconds: int = 600) -> Optional[dict]:
             logger.warning("[QQBot onboard] Poll timed out after %ds", timeout_seconds)
             return None
     return None
+
+
+# ---- qiji patch: QR onboarding session (ported from qiji-fork d423a63e4f) ----
+class QQBotQrSession:
+    """Pull-based QR bind session for the desktop/web onboarding UI.
+
+    Same lifecycle as ``qr_register()`` (create → poll → refresh ×3 → decrypt)
+    but each step is one call and nothing prints. Mirrors
+    ``gateway.platforms.weixin.WeixinQrSession``.
+    """
+
+    MAX_REFRESHES = 3
+
+    def __init__(self) -> None:
+        self.created_at = time.monotonic()
+        self.refresh_count = 0
+        self.status = "wait"  # wait|scaned|confirmed|timeout
+        self.last_error = ""
+        self.credentials: Optional[dict] = None
+        self._task_id: str = ""
+        self._aes_key: str = ""
+
+    def start(self) -> bool:
+        """Create the first bind task. False (with last_error) on failure."""
+        try:
+            self._task_id, self._aes_key = _create_bind_task()
+        except Exception as exc:
+            self.last_error = f"创建绑定任务失败: {exc}"
+            return False
+        return True
+
+    def qr_url(self) -> str:
+        return build_connect_url(self._task_id) if self._task_id else ""
+
+    async def poll(self) -> dict:
+        """One bind-status tick. Runs the sync HTTP call in a thread."""
+        import asyncio
+
+        if self.status in ("confirmed", "timeout") or not self._task_id:
+            return self.snapshot()
+
+        try:
+            status, app_id, encrypted_secret, user_openid = await asyncio.to_thread(
+                _poll_bind_result, self._task_id
+            )
+        except Exception as exc:
+            logger.debug("[QQBot onboard] poll error: %s", exc)
+            return self.snapshot()
+
+        if status == BindStatus.PENDING:
+            self.status = "wait"
+        elif status == BindStatus.COMPLETED:
+            try:
+                client_secret = decrypt_secret(encrypted_secret, self._aes_key)
+            except Exception as exc:
+                self.status = "timeout"
+                self.last_error = f"解密凭证失败: {exc}"
+                return self.snapshot()
+            if app_id and client_secret:
+                self.credentials = {
+                    "app_id": app_id,
+                    "client_secret": client_secret,
+                    "user_openid": user_openid,
+                }
+                self.status = "confirmed"
+            else:
+                self.status = "timeout"
+                self.last_error = "绑定响应缺少凭证字段"
+        elif status == BindStatus.EXPIRED:
+            self.refresh_count += 1
+            if self.refresh_count > self.MAX_REFRESHES:
+                self.status = "timeout"
+                self.last_error = "二维码多次过期"
+            elif not self.start():
+                self.status = "timeout"
+        # BindStatus.NONE → keep waiting
+        return self.snapshot()
+
+    def snapshot(self) -> dict:
+        return {
+            "status": self.status,
+            "qr_url": self.qr_url(),
+            "refresh_count": self.refresh_count,
+            "error": self.last_error,
+            "user_openid": (self.credentials or {}).get("user_openid", ""),
+        }
+
+    def expired(self) -> bool:
+        return time.monotonic() - self.created_at > 900  # 15 min hard cap
