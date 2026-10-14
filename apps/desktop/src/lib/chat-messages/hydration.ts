@@ -1,5 +1,6 @@
 import { skillInvocationText } from '@hermes/shared'
 
+import { SKILL_ZH } from '@/app/skills/translations'
 import { splitLeadingAttachmentRefs } from '@/components/assistant-ui/reference-kinds'
 import { extractImageRefs } from '@/lib/embedded-images'
 import { dedupeGeneratedImageEchoesInParts } from '@/lib/generated-images'
@@ -121,7 +122,11 @@ function displayContentForMessage(role: SessionMessage['role'], content: unknown
   const invocation = skillInvocationText(textContent)
 
   if (invocation) {
-    return invocation
+    // qiji: 用户气泡的技能调用显示中文名（「/PPT 制作 做一份周报」），
+    // 英文 slug 对中文用户是黑话。
+    return invocation.replace(/^\/([\w.-]+)(\s|$)/, (whole, slug: string, rest: string) =>
+      SKILL_ZH[slug]?.name ? `/${SKILL_ZH[slug].name}${rest}` : whole
+    )
   }
 
   const marker = textContent.match(ATTACHED_CONTEXT_MARKER_RE)

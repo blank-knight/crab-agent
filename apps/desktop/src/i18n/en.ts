@@ -5401,6 +5401,7 @@ export const en: Translations = {
       restorePrevious: 'Restore previous checkpoint',
       restoreCheckpoint: 'Restore checkpoint',
       restoreFromHere: 'Restore checkpoint — rerun from this prompt',
+      awaitingFirstResponse: 'Working — first response pending…',
       restoreTitle: 'Restore to this checkpoint?',
       restoreBody:
         'Everything after this prompt is removed from the conversation, and the prompt runs again from here.',

@@ -1,3 +1,4 @@
+import { SKILL_ZH } from '@/app/skills/translations'
 import { translateNow } from '@/i18n'
 import { firstStringField } from '@/lib/text'
 
@@ -24,7 +25,13 @@ export function skillActivityTitle(part: SkillCall, live = true): string | undef
   const missing = !pending && part.result === undefined
   const file = firstStringField(args, ['file_path'])
   const name = firstStringField(args, ['name'])
-  const target = [name, file].filter(Boolean).join(' → ')
+
+  // qiji: 技能名中文化——活动卡片不再显示英文 slug（「已加载技能: pptx-maker」→
+  // 「已加载技能: PPT 制作」）。文件路径不翻译。
+  const zhName = (n: string | undefined): string | undefined =>
+    n && SKILL_ZH[n]?.name ? SKILL_ZH[n].name : n
+
+  const target = [zhName(name), file].filter(Boolean).join(' → ')
 
   const keys =
     part.toolName === 'skills_list'

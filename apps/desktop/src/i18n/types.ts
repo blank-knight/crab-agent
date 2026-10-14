@@ -4506,6 +4506,7 @@ export interface Translations {
       restorePrevious: string
       restoreCheckpoint: string
       restoreFromHere: string
+      awaitingFirstResponse: string
       restoreTitle: string
       restoreBody: string
       restoreConfirm: string

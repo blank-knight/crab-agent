@@ -5630,6 +5630,7 @@ export const zh = defineLocale({
       restorePrevious: '恢复上一个检查点',
       restoreCheckpoint: '恢复检查点',
       restoreFromHere: '恢复检查点 — 从此提示重新运行',
+      awaitingFirstResponse: '正在处理，请稍候…',
       restoreTitle: '恢复到此检查点？',
       restoreBody: '此提示之后的所有消息将从对话中移除，并从此处重新运行该提示。',
       restoreConfirm: '恢复并重新运行',

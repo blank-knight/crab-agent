@@ -26,6 +26,17 @@ import { $gateway } from '@/store/gateway'
 import { notifyThreadEditOpen } from '@/store/thread-scroll'
 import { isWatchWindow } from '@/store/windows'
 
+/** qiji: 提交后、assistant 首个内容前的一行轻量等待指示。 */
+const PendingTurnNotice: FC<{ label: string }> = ({ label }) => (
+  <div
+    className="flex items-center gap-2 py-1 pl-1 text-[0.78rem] text-(--ui-text-tertiary)"
+    data-slot="aui_pending-turn-notice"
+  >
+    <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-current" />
+    {label}
+  </div>
+)
+
 /** True when the user has a live text highlight (drag-select / triple-click). */
 export function hasTextSelection(): boolean {
   const selection = window.getSelection()
@@ -595,6 +606,10 @@ export const UserMessage: FC<{
             </BranchPickerPrimitive.Root>
           </div>
         </ActionBarPrimitive.Root>
+        {/* qiji: 提交后空窗反馈——最后一条用户消息在 turn 运行中但还没有任何
+            assistant 内容时（技能调用/长首响应最明显），给一行轻量状态行，
+            别让用户面对一分钟死寂以为卡死。assistant 一旦出内容，此行消失。 */}
+        {isLatestUser && threadRunning && <PendingTurnNotice label={copy.awaitingFirstResponse} />}
       </StickyHumanMessageContainer>
     </MessagePrimitive.Root>
   )
