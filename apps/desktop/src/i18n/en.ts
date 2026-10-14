@@ -3133,6 +3133,50 @@ export const en: Translations = {
       savedRestarting: 'WeChat saved; gateway restarting…',
       savedRestartFailed: detail => `WeChat saved; gateway restart failed${detail}`
     },
+    qqQr: {
+      quickSetup: 'Quick setup',
+      recommended: 'Recommended',
+      quickHelp:
+        'Scan the QR code with QQ on your phone and confirm. The bot app is created for you — App ID and secret are filled in automatically, and the scanner is allowed by default.',
+      startScan: 'Scan to create bot',
+      starting: 'Fetching QR code…',
+      replaceWarning: 'QQ Bot is already configured. Saving a new QR setup replaces the current bot.',
+      scanHint: 'Scan the QR code with QQ on your phone and confirm.',
+      waiting: 'Waiting for scan…',
+      confirmed: 'Confirmed',
+      confirmedHint: 'QQ confirmed the binding. Save to finish.',
+      saveAndRestart: 'Save and restart',
+      applying: 'Saving…',
+      autoRefreshHint: 'The QR code refreshes automatically when it expires — scan it soon.',
+      expired: 'The QR code expired. Start a new scan.',
+      sessionGone: 'The pairing session is gone. Start again.',
+      qrAlt: 'QQ bot binding QR code',
+      openLink: 'Open QR link on this device',
+      savedRestarting: 'QQ Bot saved; gateway restarting…',
+      savedRestartFailed: detail => `QQ Bot saved; gateway restart failed${detail}`
+    },
+    feishuQr: {
+      quickSetup: 'Quick setup',
+      recommended: 'Recommended',
+      quickHelp:
+        'Scan the QR code with Feishu / Lark and confirm. The bot app is created for you — App ID and secret are filled in automatically, the scanner is allowed by default, and no public URL is needed.',
+      startScan: 'Scan to create app',
+      starting: 'Fetching QR code…',
+      replaceWarning: 'Feishu is already configured. Saving a new QR setup replaces the current app.',
+      scanHint: 'Scan the QR code with Feishu / Lark on your phone and confirm.',
+      waiting: 'Waiting for scan…',
+      confirmed: 'Confirmed',
+      confirmedHint: 'Feishu confirmed the authorization. Save to finish.',
+      saveAndRestart: 'Save and restart',
+      applying: 'Saving…',
+      autoRefreshHint: 'The QR code refreshes automatically when it expires — scan it soon.',
+      expired: 'The QR code expired. Start a new scan.',
+      sessionGone: 'The pairing session is gone. Start again.',
+      qrAlt: 'Feishu login QR code',
+      openLink: 'Open QR link on this device',
+      savedRestarting: 'Feishu saved; gateway restarting…',
+      savedRestartFailed: detail => `Feishu saved; gateway restart failed${detail}`
+    },
     fieldCopy: {
       TELEGRAM_BOT_TOKEN: {
         label: 'Bot token',

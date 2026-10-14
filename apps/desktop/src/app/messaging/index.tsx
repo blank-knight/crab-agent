@@ -14,11 +14,13 @@ import { Switch } from '@/components/ui/switch'
 import { Tip } from '@/components/ui/tooltip'
 import {
   approvePairing,
+  type FeishuOnboardingApplyResponse,
   getMessagingPlatforms,
   getPairing,
   type MessagingEnvVarInfo,
   type MessagingPlatformInfo,
   type PairingUser,
+  type QqOnboardingApplyResponse,
   revokePairing,
   type TelegramOnboardingApplyResponse,
   updateMessagingPlatform,
@@ -45,8 +47,10 @@ import { ListRow } from '../settings/primitives'
 import { SettingsProfileScope } from '../settings/profile-scope'
 import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
+import { FeishuQrSetup } from './feishu-qr-setup'
 import { PlatformAvatar } from './platform-icon'
 import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH, platformRegion, type PlatformRegion } from './platforms-zh'
+import { QqQrSetup } from './qq-qr-setup'
 import { TelegramQrSetup } from './telegram-qr-setup'
 import { WeixinQrSetup } from './weixin-qr-setup'
 
@@ -502,6 +506,90 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
     }
   }
 
+  // Feishu QR onboarding: same post-apply handling as Weixin.
+  async function handleFeishuApplied(result: FeishuOnboardingApplyResponse) {
+    await refreshPlatforms(true)
+
+    if (result.restart_started) {
+      notify({
+        kind: 'success',
+        title: m.setupSaved(PLATFORM_NAME_ZH.feishu ?? 'Feishu'),
+        message: m.feishuQr.savedRestarting
+      })
+      setRestartNeeded(false)
+      const ok = await watchGatewayRestartOutcome()
+
+      if (!ok) {
+        setRestartNeeded(true)
+        notify({
+          kind: 'error',
+          title: m.restartFailedManual,
+          message: m.restartFailedManualDetail,
+          action: { label: m.restartAgain, onClick: () => void runGatewayRestart() },
+          secondaryAction: {
+            label: m.openLogs,
+            onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+          }
+        })
+      }
+
+      void refreshPlatforms(true)
+
+      return
+    }
+
+    if (result.needs_restart) {
+      await restartGatewayNow()
+
+      if (result.restart_error) {
+        notifyError(new Error(result.restart_error), m.feishuQr.savedRestartFailed(`: ${result.restart_error}`))
+        setRestartNeeded(true)
+      }
+    }
+  }
+
+  // QQ QR onboarding: same post-apply handling as Weixin.
+  async function handleQqApplied(result: QqOnboardingApplyResponse) {
+    await refreshPlatforms(true)
+
+    if (result.restart_started) {
+      notify({
+        kind: 'success',
+        title: m.setupSaved(PLATFORM_NAME_ZH.qqbot ?? 'QQ Bot'),
+        message: m.qqQr.savedRestarting
+      })
+      setRestartNeeded(false)
+      const ok = await watchGatewayRestartOutcome()
+
+      if (!ok) {
+        setRestartNeeded(true)
+        notify({
+          kind: 'error',
+          title: m.restartFailedManual,
+          message: m.restartFailedManualDetail,
+          action: { label: m.restartAgain, onClick: () => void runGatewayRestart() },
+          secondaryAction: {
+            label: m.openLogs,
+            onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+          }
+        })
+      }
+
+      void refreshPlatforms(true)
+
+      return
+    }
+
+    if (result.needs_restart) {
+      await restartGatewayNow()
+
+      if (result.restart_error) {
+        notifyError(new Error(result.restart_error), m.qqQr.savedRestartFailed(`: ${result.restart_error}`))
+        setRestartNeeded(true)
+      }
+    }
+  }
+
   // Weixin QR onboarding wrote the credentials the same way; mirror the
   // Telegram post-apply handling (refresh → restart watch → banner).
   async function handleWeixinApplied(result: WeixinOnboardingApplyResponse) {
@@ -713,6 +801,8 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                         }
                       }))
                     }
+                    onFeishuApplied={result => void handleFeishuApplied(result)}
+                    onQqApplied={result => void handleQqApplied(result)}
                     onRevoke={setPendingRevoke}
                     onTelegramApplied={result => void handleTelegramApplied(result)}
                     onWeixinApplied={result => void handleWeixinApplied(result)}
@@ -805,6 +895,8 @@ function PlatformDetail({
   onRevoke,
   onTelegramApplied,
   onWeixinApplied,
+  onQqApplied,
+  onFeishuApplied,
   pending,
   platform,
   saving,
@@ -819,6 +911,8 @@ function PlatformDetail({
   onRevoke: (user: PairingUser) => void
   onTelegramApplied: (result: TelegramOnboardingApplyResponse) => void
   onWeixinApplied: (result: WeixinOnboardingApplyResponse) => void
+  onQqApplied: (result: QqOnboardingApplyResponse) => void
+  onFeishuApplied: (result: FeishuOnboardingApplyResponse) => void
   pending: PairingUser[]
   platform: MessagingPlatformInfo
   saving: string | null
@@ -932,6 +1026,24 @@ function PlatformDetail({
           <SectionTitle>{m.weixinQr.quickSetup}</SectionTitle>
           <div className="mt-3">
             <WeixinQrSetup onApplied={onWeixinApplied} platform={platform} scopeProfile={scopeProfile} />
+          </div>
+        </section>
+      )}
+
+      {platform.id === 'qqbot' && (
+        <section>
+          <SectionTitle>{m.qqQr.quickSetup}</SectionTitle>
+          <div className="mt-3">
+            <QqQrSetup onApplied={onQqApplied} platform={platform} scopeProfile={scopeProfile} />
+          </div>
+        </section>
+      )}
+
+      {platform.id === 'feishu' && (
+        <section>
+          <SectionTitle>{m.feishuQr.quickSetup}</SectionTitle>
+          <div className="mt-3">
+            <FeishuQrSetup onApplied={onFeishuApplied} platform={platform} scopeProfile={scopeProfile} />
           </div>
         </section>
       )}
@@ -1104,16 +1216,18 @@ const PLATFORM_INTRO: Record<string, string> = {
   email:
     'Use a dedicated mailbox. For Gmail/Workspace, create an app password and use imap.gmail.com / smtp.gmail.com.',
   sms: 'Get your Twilio Account SID and Auth Token from the Twilio console, plus a phone number that can send SMS.',
-  dingtalk: 'Create a DingTalk app in the developer console, then copy the Client ID (App key) and Client Secret here.',
+  dingtalk:
+    'Two steps: ① create an enterprise app at open-dev.dingtalk.com (no public callback needed) ② copy the Client ID (App key) and Client Secret into the fields below.',
   feishu:
     '三步接入：① 在 open.feishu.cn 创建企业自建应用 ② 添加「机器人」能力，事件订阅选择「使用长连接接收事件」 ③ 把凭证与基础信息页的 App ID 和 App Secret 粘贴到下方。无需公网地址。',
   wecom:
-    'Add a group robot in WeCom and copy its webhook key as WECOM_BOT_ID. Send-only — use the WeCom (app) option for two-way.',
+    'Two steps: ① in a WeCom group tap … → Group robot → Add ② paste the key= part of the webhook URL below. Push-only; use WeCom (app) for two-way chat.',
   wecom_callback:
     'Set up a WeCom self-built app, expose its callback URL, and provide the corp ID, secret, agent ID, and AES key.',
   weixin:
-    "Run `hermes gateway setup`, select Weixin, then scan and confirm the QR code with a personal WeChat account. Hermes connects through Tencent's iLink Bot API and saves the credentials.",
-  qqbot: 'Register an app on the QQ Open Platform (q.qq.com) and copy the App ID and Client Secret.',
+    'Prefer Quick setup above: scan the QR with WeChat and confirm on your phone — no manual credentials. Connects through Tencent\'s iLink Bot API.',
+  qqbot:
+    'Prefer Quick setup above (scan to create the bot). Manual: register an app on the QQ Open Platform (q.qq.com) and copy the App ID and Client Secret.',
   api_server:
     'Expose Hermes as an OpenAI-compatible API. Set an auth key, then point Open WebUI / LobeChat / etc. at the host:port.',
   webhook:

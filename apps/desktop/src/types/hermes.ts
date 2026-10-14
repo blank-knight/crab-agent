@@ -437,6 +437,69 @@ export interface WeixinOnboardingApplyResponse {
   user_id: string
 }
 
+// -- QQ Bot QR onboarding ------------------------------------------------------
+// q.qq.com bind-task pairing: scan with QQ, credentials minted server-side.
+
+export interface QqOnboardingStartResponse {
+  error?: string
+  pairing_id: string
+  qr_url: string
+  refresh_count: number
+  status: string
+}
+
+export interface QqOnboardingStatusResponse {
+  error?: string
+  qr_url: string
+  refresh_count: number
+  status: 'confirmed' | 'timeout' | 'wait'
+  user_openid?: string
+}
+
+export interface QqOnboardingApplyResponse {
+  app_id: string
+  needs_restart: boolean
+  ok: boolean
+  platform: 'qqbot'
+  restart_action?: string
+  restart_error?: string
+  restart_pid?: null | number
+  restart_started?: boolean
+  user_openid: string
+}
+
+// -- Feishu / Lark QR onboarding ------------------------------------------------
+// Device-code flow: scan with Feishu/Lark, app created server-side.
+
+export interface FeishuOnboardingStartResponse {
+  domain: 'feishu' | 'lark'
+  error?: string
+  open_id?: string
+  pairing_id: string
+  qr_url: string
+  status: string
+}
+
+export interface FeishuOnboardingStatusResponse {
+  domain: 'feishu' | 'lark'
+  error?: string
+  open_id?: string
+  qr_url: string
+  status: 'confirmed' | 'timeout' | 'wait'
+}
+
+export interface FeishuOnboardingApplyResponse {
+  app_id: string
+  domain: 'feishu' | 'lark'
+  needs_restart: boolean
+  ok: boolean
+  platform: 'feishu'
+  restart_action?: string
+  restart_error?: string
+  restart_pid?: null | number
+  restart_started?: boolean
+}
+
 // -- Webhooks (subscription CRUD) --------------------------------------------
 // Incoming HTTP event routes served by the webhook gateway platform. Backed by
 // the same JSON store the CLI/dashboard use; per-route HMAC secrets are

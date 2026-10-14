@@ -1,9 +1,15 @@
 import type {
+  FeishuOnboardingApplyResponse,
+  FeishuOnboardingStartResponse,
+  FeishuOnboardingStatusResponse,
   MessagingPlatformsResponse,
   MessagingPlatformTestResponse,
   MessagingPlatformUpdate,
   PairingResponse,
   PairingUser,
+  QqOnboardingApplyResponse,
+  QqOnboardingStartResponse,
+  QqOnboardingStatusResponse,
   TelegramOnboardingApplyResponse,
   TelegramOnboardingStartResponse,
   TelegramOnboardingStatusResponse,
@@ -148,6 +154,92 @@ export function cancelWeixinOnboarding(pairingId: string, profile?: null | strin
   return hermesApi<{ ok: boolean }>({
     ...profileScoped(profile),
     path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- QQ Bot QR onboarding ------------------------------------------------------
+
+export function startQqOnboarding(profile?: null | string): Promise<QqOnboardingStartResponse> {
+  return hermesApi<QqOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/qqbot/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getQqOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<QqOnboardingStatusResponse> {
+  return hermesApi<QqOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyQqOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<QqOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<QqOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelQqOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- Feishu / Lark QR onboarding ------------------------------------------------
+
+export function startFeishuOnboarding(profile?: null | string): Promise<FeishuOnboardingStartResponse> {
+  return hermesApi<FeishuOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/feishu/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getFeishuOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<FeishuOnboardingStatusResponse> {
+  return hermesApi<FeishuOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyFeishuOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<FeishuOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<FeishuOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelFeishuOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}`,
     method: 'DELETE'
   })
 }
