@@ -648,9 +648,9 @@ export const en: Translations = {
   },
 
   sendDiagnostics: {
-    title: 'Send diagnostics to Nous',
+    title: 'Send diagnostics',
     privacyNotice:
-      'This uploads a debug bundle to Nous-internal storage (not a public paste). It includes system info (OS, versions, provider, which API keys are configured — never the keys themselves) and full agent, gateway, and desktop logs (up to 512 KB each), which likely contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. The bundle is viewable only by Nous staff and allowlisted Discord moderators, and auto-deletes after 14 days.',
+      'This uploads a debug bundle to the official server for support staff to troubleshoot. It includes system info (OS, versions, provider — never the keys themselves), the error context, and agent, gateway, and desktop logs, which likely contain conversation content, tool outputs, and file paths. Secrets are redacted before upload. Only official support staff can view it in the admin console.',
     upload: 'Upload',
     uploading: 'Uploading…',
     cancel: 'Cancel',
@@ -663,7 +663,7 @@ export const en: Translations = {
     failedTitle: 'Upload failed',
     failedHint:
       'You can also run `hermes debug share --nous` from a terminal, or `hermes debug share --local` to print the report without uploading.',
-    handoffLead: 'Pick up the discussion in:',
+    handoffLead: 'Report received. Quote the ID above when contacting support.',
     links: {
       github: 'GitHub Issues',
       portal: 'Nous Portal Support',

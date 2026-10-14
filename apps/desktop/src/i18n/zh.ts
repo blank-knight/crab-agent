@@ -626,21 +626,21 @@ export const zh = defineLocale({
   },
 
   sendDiagnostics: {
-    title: '向 Nous 发送诊断信息',
+    title: '发送诊断信息',
     privacyNotice:
-      '这会将调试包上传到 Nous 内部存储（并非公开粘贴板）。内容包括系统信息（操作系统、版本、服务商、已配置的 API 密钥种类 — 绝不包含密钥本身）以及完整的 agent、gateway 和桌面端日志（每个最多 512 KB，很可能包含对话内容、工具输出与文件路径）。上传前会先脱敏。仅 Nous 员工与获准的 Discord 版主可查看，14 天后自动删除。',
+      '这会将调试包上传到螃蟹OPC 官方服务器，供技术支持人员排查问题。内容包括系统信息（操作系统、版本、服务商 — 绝不包含密钥本身）、出错的上下文，以及 agent、gateway 和桌面端日志（很可能包含对话内容、工具输出与文件路径）。上传前会先自动脱敏。仅官方支持人员可在管理后台查看。',
     upload: '上传',
     uploading: '上传中…',
     cancel: '取消',
     close: '关闭',
     copyLink: '复制链接',
-    uploadIdFallback: id => `未返回查看链接 — 请向支持人员提供上传 ID ${id}`,
+    uploadIdFallback: id => `上报编号 ${id}`,
     doneTitle: '诊断信息已发送',
-    doneDescription: '调试包已私密上传。在您的支持会话中分享以下链接，团队即可查看您的日志。',
+    doneDescription: '诊断信息已上传到官方服务器。凭下方编号可联系客服查询。',
     failedTitle: '上传失败',
     failedHint:
       '您也可以在终端运行 `螃蟹OPC debug share --nous`，或运行 `螃蟹OPC debug share --local` 在不上传的情况下查看报告。',
-    handoffLead: '在以下位置继续讨论:',
+    handoffLead: '已上报成功。联系客服时请提供上方编号。',
     links: {
       github: 'GitHub Issues',
       portal: 'Nous Portal 支持',

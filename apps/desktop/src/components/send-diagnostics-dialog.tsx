@@ -21,15 +21,9 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { useI18n } from '@/i18n'
-import { ExternalLink as ExternalLinkAnchor, openExternalLink } from '@/lib/external-link'
-import { ExternalLink, Loader2Icon, Lock } from '@/lib/icons'
+import { ExternalLink as ExternalLinkAnchor } from '@/lib/external-link'
+import { Loader2Icon, Lock } from '@/lib/icons'
 import { $sendDiagnostics, confirmSendDiagnostics, dismissSendDiagnostics } from '@/store/send-diagnostics'
-
-const SUPPORT_LINKS = [
-  { key: 'github', url: 'https://github.com/NousResearch/hermes-agent/issues' },
-  { key: 'portal', url: 'https://portal.nousresearch.com/help' },
-  { key: 'discord', url: 'https://discord.gg/NousResearch' }
-] as const
 
 export function SendDiagnosticsHost() {
   const { t } = useI18n()
@@ -131,14 +125,6 @@ export function SendDiagnosticsHost() {
               </div>
             )}
             <div className="text-[0.8rem] text-(--ui-text-secondary)">{copy.handoffLead}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {SUPPORT_LINKS.map(link => (
-                <Button key={link.key} onClick={() => openExternalLink(link.url)} size="sm" variant="outline">
-                  <ExternalLink className="size-3" />
-                  {copy.links[link.key]}
-                </Button>
-              ))}
-            </div>
             <DialogFooter>
               <Button onClick={dismissSendDiagnostics} variant="ghost">
                 {copy.close}

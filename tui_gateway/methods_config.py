@@ -478,36 +478,66 @@ def _safe_client_label(label: str) -> str:
 
 @method("diagnostics.share_nous")
 def _(rid, params: dict) -> dict:
-    """Upload a redacted debug bundle to Nous-internal diagnostics storage — same collection +
-    force-redaction pipeline as ``hermes debug share --nous``; redaction is NOT client-controllable
-    and consent lives with the CALLER (privacy notice first). Structured ``ok``/``error`` envelope so
-    upload failures render inline. Optional: ``error_context`` (-> ``error-context.txt``),
-    ``extra_files`` ({label -> text}), ``log_lines`` (default 200); all force-redacted."""
+    """qiji: report the (locally redacted) debug bundle to OUR backend's client-report
+    endpoint instead of Nous-internal storage. Same collection + force-redaction
+    pipeline as before — nothing leaves the machine unredacted — but the upload
+    target is ``POST {QIJI_REPORT_BASE_URL}/api/client/v1/report/submit`` (the
+    fa_client_report table the admin dashboard already reads). Optional:
+    ``error_context`` (-> digest), ``extra_files`` ({label -> text}),
+    ``log_lines`` (default 200); all force-redacted."""
     try:
-        from hermes_cli.debug import _redact_log_text, build_nous_bundle, collect_share_bundle
-        from hermes_cli.diagnostics_upload import share_to_nous
+        from hermes_cli.debug import _redact_log_text, collect_share_bundle
         log_lines = params.get("log_lines")
         if not isinstance(log_lines, int) or not (10 <= log_lines <= 2000):
             log_lines = 200
         bundle = collect_share_bundle(log_lines=log_lines, redact=True)
-        # Client text goes through the SAME upload-safe redactor as backend logs (force secret
-        # redaction + email masking), never the weaker bare secret pass.
         error_context = params.get("error_context")
+        digest_text = ""
         if isinstance(error_context, str) and error_context.strip():
-            bundle["error-context.txt"] = _redact_log_text(error_context.strip()[:8_000])
+            digest_text = _redact_log_text(error_context.strip()[:8_000])
         # Bounded: at most 4 files, 512KB each, sanitized labels — not an arbitrary upload surface.
         extra_files = params.get("extra_files")
         for label, text in list(extra_files.items())[:4] if isinstance(extra_files, dict) else ():
             safe_label = _safe_client_label(label) if isinstance(label, str) else ""
             if safe_label and isinstance(text, str) and text.strip():
                 bundle[f"client/{safe_label}"] = _redact_log_text(text[:524_288])
-        res = share_to_nous(build_nous_bundle(bundle, redact=True))
-        view_url = res.get("viewUrl") or res.get("view_url")
-        upload_id = res.get("id")
-        if not view_url and not upload_id:  # an upload the user can't reference is useless to support
-            return _ok(rid, {"ok": False, "error": "upload succeeded but returned no view URL or id"})
-        return _ok(rid, {"ok": True, "view_url": view_url, "upload_id": upload_id,
-                         "expires_at": res.get("expiresAt") or res.get("expires_at")})
+
+        import json as _json
+        import os as _os
+        import urllib.request as _rq
+        base = _os.environ.get("QIJI_REPORT_BASE_URL", "https://agent.aijiqiren.vip").rstrip("/")
+        # One flat text payload keeps the legacy 200KB logs contract: report first,
+        # then the full-log files, then the client extras (desktop.log …).
+        parts: list[str] = []
+        if digest_text:
+            parts.append(f"=== error-context ===\n{digest_text}")
+        for name, body in bundle.items():
+            parts.append(f"=== {name} ===\n{body}")
+        payload = _json.dumps({
+            "type": "manual",
+            "app_version": "desktop",
+            "platform": _os.environ.get("PROCESSOR_ARCHITECTURE", ""),
+            "digest": (digest_text.splitlines() or ["诊断信息上报"])[0][:190] or "诊断信息上报",
+            "logs": "\n\n".join(parts)[-200 * 1024:],
+        }).encode("utf-8")
+        req = _rq.Request(
+            f"{base}/api/client/v1/report/submit",
+            data=payload,
+            method="POST",
+            headers={"Content-Type": "application/json", "User-Agent": "qiji-desktop/diag"},
+        )
+        with _rq.urlopen(req, timeout=60) as resp:
+            status = getattr(resp, "status", None) or resp.getcode()
+            body = resp.read().decode("utf-8", errors="replace")[:400]
+            if not (200 <= status < 300):
+                return _ok(rid, {"ok": False, "error": f"report submit HTTP {status}: {body}"})
+        try:
+            result = _json.loads(body)
+        except (ValueError, _json.JSONDecodeError):
+            result = {}
+        upload_id = str(result.get("data", {}).get("id") or result.get("id") or "")
+        return _ok(rid, {"ok": True, "view_url": "", "upload_id": upload_id,
+                         "expires_at": ""})
     except Exception as e:
         return _ok(rid, {"ok": False, "error": str(e)})
 
