@@ -9,8 +9,8 @@ class Uninstaller
 {
     // 展示名 —— 由 build-installer.cjs 的 injectBrandSrc() 打包期注入（源
     // apps/desktop/electron/brand.cjs）。与 launcher3 的 APP_NAME 注入点同源，
-    // 贴牌改名只改 brand.cjs 一处。兜底值与 injectBrandSrc 的替换目标保持一致。
-    const string APP_NAME = "奇计";
+    // 贴牌改名只改 brand.cjs 一处。兜底值与 launcher3 一致（螃蟹OPC）。
+    const string APP_NAME = "螃蟹OPC";
     // 品牌数据目录名 —— 由打包期生成 BrandInfo.cs 注入（源 apps/desktop/electron/brand.cjs）。
     // #if 兜底保证缺 BrandInfo.cs 时仍可独立编译（回落 'qiji'）。
 #if !BRAND_INFO
@@ -93,10 +93,10 @@ class Uninstaller
 
         Console.WriteLine();
         Console.WriteLine("  ============================================");
-        Console.WriteLine("            奇计 - 卸载程序");
+        Console.WriteLine("            " + APP_NAME + " - 卸载程序");
         Console.WriteLine("  ============================================");
         Console.WriteLine();
-        Console.WriteLine("  正在卸载奇计...");
+        Console.WriteLine("  正在卸载" + APP_NAME + "...");
 
         // 1. Kill running Qiji processes (by exe path, full family, retry)
         Console.Write("  停止运行中的进程...");

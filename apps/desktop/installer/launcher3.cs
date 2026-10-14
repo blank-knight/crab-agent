@@ -23,10 +23,16 @@ class Launcher
         public static extern IntPtr SendMessageTimeout(
             IntPtr hWnd, uint Msg, IntPtr wParam, string lParam,
             uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
+        // qiji 0.20.3: 装完刷新图标缓存 —— SHChangeNotify 广播让 Explorer 立即
+        // 重新提取 exe 图标（旧缓存残留=装机后桌面图标不更新，2026-10-07 实案）。
+        [DllImport("shell32.dll")]
+        public static extern void SHChangeNotify(
+            uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
     }
 
     // ── Constants ───────────────────────────────────────────────────
-    const string APP_NAME = "螃蟹AI";
+    const string APP_NAME = "螃蟹OPC";
     const string APP_VERSION = "0.17.0";
     // 品牌数据目录名 —— 由打包期生成 BrandInfo.cs 注入（源 apps/desktop/electron/brand.cjs）。
     // #if 兜底保证缺 BrandInfo.cs 时仍可独立编译（回落 'qiji'）。
@@ -209,6 +215,16 @@ class Launcher
         CreateShortcut(
             Path.Combine(startMenu, APP_NAME + ".lnk"),
             appExe, appDir);
+
+        // qiji 0.20.3: 广播 SHCNE_UPDATEIMAGE+UPDATEITEM —— 通知 Explorer 这台机器
+        // 上新装的 exe 图标需要重新提取，桌面/开始菜单 lnk 立即换新（不等重启）。
+        // 0x00000002=SHCNE_UPDATEIMAGE, 0x00002000=SHCNE_UPDATEITEM; uFlags 0x0005=SHCNF_IDLIST|SHCNF_FLUSH
+        try
+        {
+            NativeMethods.SHChangeNotify(0x00000002, 0x0005, IntPtr.Zero, IntPtr.Zero);
+            NativeMethods.SHChangeNotify(0x00002000, 0x0005, Marshal.StringToHGlobalAuto(appExe), IntPtr.Zero);
+        }
+        catch { }
 
         // 7. 注册卸载信息
         reporter(93, "正在注册系统信息...");
@@ -614,7 +630,11 @@ class Launcher
                     if (prevKey != null)
                     {
                         var prevDir = prevKey.GetValue("InstallLocation") as string;
-                        if (!string.IsNullOrWhiteSpace(prevDir) && Directory.Exists(prevDir))
+                        // qiji 0.20.3: 临时目录名（「新建文件夹」「新建文件夹 (N)」）不回读 ——
+                        // 那是手工解包的测试位置，不是正经安装位；回读会让默认路径
+                        // 钉死在临时目录，图标缓存的旧 key 也永远换不掉。
+                        if (!string.IsNullOrWhiteSpace(prevDir) && Directory.Exists(prevDir) &&
+                            !System.Text.RegularExpressions.Regex.IsMatch(prevDir, @"新建文件夹(\s*\(\d+\))?$"))
                         {
                             defaultPath = prevDir;
                         }
@@ -624,9 +644,13 @@ class Launcher
             catch { /* 读注册表失败 → 走默认 */ }
             if (string.IsNullOrEmpty(defaultPath))
             {
+                // qiji 0.20.3: 品牌目录名跟随（Programs\螃蟹OPC），与 0.20.2 的
+                // Programs\Qiji 断开 —— 换路径即换图标缓存 key，根治「装完桌面
+                // 图标不更新」（2026-10-07 实案：exe 内嵌图标六尺寸 md5 已全对，
+                // 旧缓存 key 命中旧 extraction）。老目录回读逻辑不变（升级仍优先原位）。
                 defaultPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Programs", "Qiji");
+                    "Programs", APP_NAME);
             }
 
             _dirTextBox = new TextBox
