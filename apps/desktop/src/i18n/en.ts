@@ -198,7 +198,7 @@ export const en: Translations = {
       freeTierNote: 'Connections stay on this computer until you sign in.',
       signInLine: 'Sign in to Nous to use managed apps.',
       signIn: 'Sign in',
-      managedUnavailable: 'Managed apps are not available for this account yet.',
+      managedUnavailable: 'The installed engine version does not support hosted connectors (local MCP servers still work). Install the latest version to use them.',
       writeFailed: 'That change was not saved.',
       refreshFailed: 'The tool list was not refreshed.',
       disconnectNoAccount: '螃蟹OPC has no account to disconnect here. Refresh the page and try again.',

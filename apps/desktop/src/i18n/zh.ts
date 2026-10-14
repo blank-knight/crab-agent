@@ -164,7 +164,7 @@ export const zh = defineLocale({
       freeTierNote: '登录前，所有连接都只保存在本机。',
       signInLine: '登录 Nous 后才能使用托管应用。',
       signIn: '登录',
-      managedUnavailable: '此账号暂不支持托管应用。',
+      managedUnavailable: '当前引擎版本不支持托管连接器（本地 MCP 服务器不受影响）。安装最新版本后即可使用。',
       writeFailed: '改动未保存。',
       refreshFailed: '工具列表未刷新。',
       disconnectNoAccount: '螃蟹OPC 在这里没有可断开的账号。刷新页面后重试。',

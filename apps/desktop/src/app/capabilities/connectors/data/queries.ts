@@ -124,11 +124,16 @@ export function useHostedConnectors(scope: ProfileScope): HostedConnectorsView {
     return { rows: joinHostedConnectors(input), titles: connectorTitles(input) }
   }, [accounts.data, catalog.data, list.data, policyView, rulesFailed])
 
+  // qiji: 旧引擎（0.17 home 树）没有 connectors.* RPC 族——unknown method 不是
+  // 「连接失败」而是「版本不支持」。归入 unavailable 档（页面显示版本提示而非
+  // 红色报错横幅），本地 MCP 服务器区照常可用。
+  const legacyBackend = listError !== null && isMissingRpcMethod(listError)
+
   const phase = hostedPhase({
     available: list.data?.available,
-    errored: listError !== null,
+    errored: listError !== null && !legacyBackend,
     pending: list.isPending,
-    reason: listError?.reason ?? null
+    reason: legacyBackend ? 'CONNECTORS_UNAVAILABLE' : (listError?.reason ?? null)
   })
 
   const blanked = phase === 'signedOut' || phase === 'unavailable'
