@@ -51,6 +51,7 @@ from hermes_cli.config import (
     clear_model_endpoint_credentials,
     get_config_path,
     get_env_path,
+    get_env_value,
     get_hermes_home,
     load_config,
     load_env,
@@ -757,6 +758,10 @@ class TelegramOnboardingStart(BaseModel):
 
 class TelegramOnboardingApply(BaseModel):
     allowed_user_ids: List[str]
+    profile: Optional[str] = None
+
+
+class WeixinOnboardingApply(BaseModel):
     profile: Optional[str] = None
 
 
@@ -5418,6 +5423,141 @@ async def apply_telegram_onboarding(
 async def cancel_telegram_onboarding(pairing_id: str):
     with _telegram_onboarding_lock:
         _telegram_onboarding_pairings.pop(pairing_id, None)
+    return {"ok": True}
+
+
+# -- Weixin (iLink) QR onboarding ---------------------------------------------
+# Mirrors the Telegram onboarding shape (start → poll → apply/cancel) but the
+# pairing runs locally: WeixinQrSession talks to Tencent's iLink API directly,
+# so there is no external pairing service. Sessions live in backend memory and
+# hard-expire after 15 minutes; credentials only reach disk on apply.
+
+_weixin_onboarding_sessions: dict[str, "Any"] = {}
+_weixin_onboarding_lock = threading.RLock()
+
+
+def _prune_weixin_onboarding_sessions() -> None:
+    stale = [sid for sid, s in _weixin_onboarding_sessions.items() if s.expired()]
+    for sid in stale:
+        session = _weixin_onboarding_sessions.pop(sid, None)
+        if session is not None:
+            try:
+                asyncio.ensure_future(session.close())
+            except Exception:
+                pass
+
+
+@app.post("/api/messaging/weixin/onboarding/start")
+async def start_weixin_onboarding(profile: Optional[str] = None):
+    try:
+        from gateway.platforms.weixin import WeixinQrSession, check_weixin_requirements
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"微信适配器不可用: {exc}",
+        ) from exc
+
+    if not check_weixin_requirements():
+        raise HTTPException(
+            status_code=503,
+            detail="缺少依赖（aiohttp / cryptography），无法扫码登录。",
+        )
+
+    session = WeixinQrSession()
+    if not await session.start():
+        detail = session.last_error or "获取微信二维码失败"
+        await session.close()
+        raise HTTPException(status_code=502, detail=detail)
+
+    pairing_id = secrets.token_urlsafe(16)
+    with _weixin_onboarding_lock:
+        _prune_weixin_onboarding_sessions()
+        _weixin_onboarding_sessions[pairing_id] = session
+    return {"pairing_id": pairing_id, **session.snapshot()}
+
+
+@app.get("/api/messaging/weixin/onboarding/{pairing_id}")
+async def get_weixin_onboarding_status(pairing_id: str):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.get(pairing_id)
+        if session is None or session.expired():
+            _weixin_onboarding_sessions.pop(pairing_id, None)
+            raise HTTPException(
+                status_code=404,
+                detail="微信扫码会话不存在或已过期，请重新开始。",
+            )
+    snapshot = await session.poll()
+    if session.status == "timeout":
+        with _weixin_onboarding_lock:
+            _weixin_onboarding_sessions.pop(pairing_id, None)
+        await session.close()
+    return snapshot
+
+
+@app.post("/api/messaging/weixin/onboarding/{pairing_id}/apply")
+async def apply_weixin_onboarding(
+    pairing_id: str, body: WeixinOnboardingApply, profile: Optional[str] = None
+):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.get(pairing_id)
+        if session is None:
+            raise HTTPException(
+                status_code=404,
+                detail="微信扫码会话不存在，请重新开始。",
+            )
+        if session.status != "confirmed" or not session.credentials:
+            raise HTTPException(
+                status_code=409,
+                detail="微信扫码尚未完成确认。",
+            )
+        credentials = dict(session.credentials)
+
+    effective_profile = body.profile or profile
+    try:
+        with _profile_scope(effective_profile):
+            save_env_value("WEIXIN_ACCOUNT_ID", credentials["account_id"])
+            save_env_value("WEIXIN_TOKEN", credentials["token"])
+            if credentials.get("base_url"):
+                save_env_value("WEIXIN_BASE_URL", credentials["base_url"])
+            save_env_value(
+                "WEIXIN_CDN_BASE_URL",
+                get_env_value("WEIXIN_CDN_BASE_URL")
+                or "https://novac2c.cdn.weixin.qq.com/c2c",
+            )
+            _write_platform_enabled("weixin", True)
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        _log.exception("Weixin onboarding apply failed")
+        raise HTTPException(
+            status_code=500,
+            detail="保存微信设置失败。",
+        ) from exc
+
+    with _weixin_onboarding_lock:
+        _weixin_onboarding_sessions.pop(pairing_id, None)
+    await session.close()
+
+    restart_result = _restart_gateway_after_telegram_onboarding(effective_profile)
+
+    return {
+        "ok": True,
+        "platform": "weixin",
+        "account_id": credentials["account_id"],
+        "user_id": credentials.get("user_id", ""),
+        "needs_restart": not restart_result["restart_started"],
+        **restart_result,
+    }
+
+
+@app.delete("/api/messaging/weixin/onboarding/{pairing_id}")
+async def cancel_weixin_onboarding(pairing_id: str):
+    with _weixin_onboarding_lock:
+        session = _weixin_onboarding_sessions.pop(pairing_id, None)
+    if session is not None:
+        await session.close()
     return {"ok": True}
 
 

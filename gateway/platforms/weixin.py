@@ -1135,6 +1135,146 @@ async def qr_login(
         return None
 
 
+class WeixinQrSession:
+    """Non-interactive iLink QR login for the desktop/web onboarding UI.
+
+    A pull-based state machine (the HTTP layer polls :meth:`poll`), unlike the
+    blocking :func:`qr_login` used by the terminal wizard. Lifecycle mirrors
+    what the interactive flow does — including the 3-refresh budget on
+    ``expired`` and the ``scaned_but_redirect`` base-URL hop — but every step
+    is one await, no prints, and credentials are only held in memory until the
+    caller persists them via the onboarding apply endpoint.
+    """
+
+    MAX_REFRESHES = 3
+    REFRESH_AFTER_S = 300
+
+    def __init__(self) -> None:
+        self.created_at = time.monotonic()
+        self.refresh_count = 0
+        self.last_poll = 0.0
+        # Public snapshot fields the API layer reads.
+        self.qr_url: str = ""            # scannable liteapp URL (what the QR encodes)
+        self.qr_token: str = ""          # raw hex token for status polling
+        self.status: str = "wait"        # wait|scaned|confirmed|expired|timeout
+        self.last_error: str = ""
+        self.credentials: Optional[Dict[str, str]] = None
+        self._base_url: str = ILINK_BASE_URL
+        self._session: Optional["aiohttp.ClientSession"] = None
+
+    def _ensure_session(self) -> "aiohttp.ClientSession":
+        assert aiohttp is not None  # gated by start(): AIOHTTP_AVAILABLE
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession(
+                trust_env=True, connector=_make_ssl_connector()
+            )
+        return self._session
+
+    async def _fetch_qr(self) -> bool:
+        session = self._ensure_session()
+        try:
+            qr_resp = await _api_get(
+                session,
+                base_url=ILINK_BASE_URL,
+                endpoint=f"{EP_GET_BOT_QR}?bot_type=3",
+                timeout_ms=QR_TIMEOUT_MS,
+            )
+        except Exception as exc:
+            logger.error("weixin-qr: failed to fetch QR code: %s", exc)
+            self.last_error = f"获取二维码失败: {exc}"
+            return False
+        self.qr_token = str(qr_resp.get("qrcode") or "")
+        self.qr_url = str(qr_resp.get("qrcode_img_content") or "")
+        if not self.qr_token:
+            self.last_error = "二维码响应缺少 qrcode 字段"
+            return False
+        return True
+
+    async def start(self) -> bool:
+        """Fetch the first QR. Returns False (with ``last_error`` set) on failure."""
+        if not AIOHTTP_AVAILABLE:
+            self.last_error = "aiohttp 未安装"
+            return False
+        return await self._fetch_qr()
+
+    async def poll(self) -> Dict[str, Any]:
+        """One status tick. Safe to call repeatedly; ~1s spacing is ideal."""
+        self.last_poll = time.monotonic()
+        if self.status == "confirmed" or self.status == "timeout":
+            return self.snapshot()
+        if not self.qr_token:
+            return self.snapshot()
+        try:
+            status_resp = await _api_get(
+                self._ensure_session(),
+                base_url=self._base_url,
+                endpoint=f"{EP_GET_QR_STATUS}?qrcode={self.qr_token}",
+                timeout_ms=QR_TIMEOUT_MS,
+            )
+        except asyncio.TimeoutError:
+            return self.snapshot()
+        except Exception as exc:
+            # Transient poll errors keep waiting (same as the terminal flow).
+            logger.debug("weixin-qr: poll error: %s", exc)
+            return self.snapshot()
+
+        status = str(status_resp.get("status") or "wait")
+        if status == "scaned_but_redirect":
+            redirect_host = str(status_resp.get("redirect_host") or "")
+            if redirect_host:
+                self._base_url = f"https://{redirect_host}"
+        elif status == "expired":
+            self.refresh_count += 1
+            if self.refresh_count > self.MAX_REFRESHES:
+                self.status = "timeout"
+                self.last_error = "二维码多次过期"
+            elif not await self._fetch_qr():
+                self.status = "timeout"
+        elif status == "confirmed":
+            account_id = str(status_resp.get("ilink_bot_id") or "")
+            token = str(status_resp.get("bot_token") or "")
+            base_url = str(status_resp.get("baseurl") or ILINK_BASE_URL)
+            user_id = str(status_resp.get("ilink_user_id") or "")
+            if account_id and token:
+                self.credentials = {
+                    "account_id": account_id,
+                    "token": token,
+                    "base_url": base_url,
+                    "user_id": user_id,
+                }
+                self.status = "confirmed"
+            else:
+                self.status = "timeout"
+                self.last_error = "确认响应缺少凭证字段"
+        else:
+            # wait / scaned
+            self.status = status
+        return self.snapshot()
+
+    def snapshot(self) -> Dict[str, Any]:
+        return {
+            "status": self.status,
+            "qr_url": self.qr_url,
+            "expires_at": time.strftime(
+                "%Y-%m-%dT%H:%M:%SZ",
+                time.gmtime(time.time() + max(0, self.REFRESH_AFTER_S)),
+            ),
+            "refresh_count": self.refresh_count,
+            "error": self.last_error,
+            "user_id": (self.credentials or {}).get("user_id", ""),
+        }
+
+    def expired(self) -> bool:
+        return time.monotonic() - self.created_at > 900  # 15 min hard cap
+
+    async def close(self) -> None:
+        if self._session is not None and not self._session.closed:
+            try:
+                await self._session.close()
+            except Exception:
+                pass
+
+
 class WeixinAdapter(BasePlatformAdapter):
     """Native Hermes adapter for Weixin personal accounts."""
 
