@@ -3125,7 +3125,7 @@ export const en: Translations = {
       confirmedHint: 'WeChat confirmed the connection. Save to finish.',
       saveAndRestart: 'Save and restart',
       applying: 'Saving…',
-      expiresIn: remaining => `Expires in ${remaining}`,
+      autoRefreshHint: 'The QR code refreshes automatically when it expires — scan it soon.',
       expired: 'The QR code expired. Start a new scan.',
       sessionGone: 'The pairing session is gone. Start again.',
       qrAlt: 'WeChat login QR code',

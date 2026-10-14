@@ -2688,7 +2688,7 @@ export interface Translations {
       confirmedHint: string
       saveAndRestart: string
       applying: string
-      expiresIn: (remaining: string) => string
+      autoRefreshHint: string
       expired: string
       sessionGone: string
       qrAlt: string

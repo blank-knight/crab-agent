@@ -3250,7 +3250,7 @@ export const zh = defineLocale({
       confirmedHint: '微信已确认连接，点保存完成配置。',
       saveAndRestart: '保存并重启',
       applying: '正在保存…',
-      expiresIn: remaining => `${remaining} 后过期`,
+      autoRefreshHint: '二维码过期后会自动刷新，请尽快扫描。',
       expired: '二维码已过期，请重新扫码。',
       sessionGone: '扫码会话已失效，请重新开始。',
       qrAlt: '微信登录二维码',

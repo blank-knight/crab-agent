@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,6 @@ export function WeixinQrSetup({ onApplied, platform, scopeProfile }: WeixinQrSet
   const [phase, setPhase] = useState<Phase>('idle')
   const [connectedAccount, setConnectedAccount] = useState<null | string>(null)
   const [error, setError] = useState('')
-  const [tick, setTick] = useState(0)
 
   const reset = () => {
     setSetup(null)
@@ -130,24 +129,6 @@ export function WeixinQrSetup({ onApplied, platform, scopeProfile }: WeixinQrSet
       }
     }
   }, [phase, q, scopeProfile, setup])
-
-  // One-second tick keeps the expiry countdown honest while a QR is shown.
-  useEffect(() => {
-    if (!setup) {
-      return
-    }
-
-    const timer = window.setInterval(() => setTick(value => value + 1), 1000)
-
-    return () => window.clearInterval(timer)
-  }, [setup])
-
-  const expiresIn = useMemo(
-    () => (setup ? formatExpiry(setup.expires_at) : null),
-    // tick refreshes the memo each second without recomputing on every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [setup, tick]
-  )
 
   const start = async () => {
     setPhase('starting')
@@ -277,11 +258,9 @@ export function WeixinQrSetup({ onApplied, platform, scopeProfile }: WeixinQrSet
               className="size-[224px] rounded-lg border border-(--ui-stroke-secondary) bg-white p-2"
               src={qrDataUrl}
             />
-            {expiresIn && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>{q.expiresIn(expiresIn)}</span>
-              </div>
-            )}
+            <div className="max-w-[224px] text-center text-xs leading-relaxed text-muted-foreground">
+              {q.autoRefreshHint}
+            </div>
             {setup.qr_url && (
               <button
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
@@ -297,16 +276,4 @@ export function WeixinQrSetup({ onApplied, platform, scopeProfile }: WeixinQrSet
       )}
     </div>
   )
-}
-
-function formatExpiry(expiresAt: string, now = Date.now()): null | string {
-  const ms = Date.parse(expiresAt) - now
-
-  if (!Number.isFinite(ms) || ms <= 0) {
-    return null
-  }
-
-  const seconds = Math.ceil(ms / 1000)
-
-  return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 }
