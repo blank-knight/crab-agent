@@ -403,6 +403,40 @@ export interface TelegramOnboardingApplyResponse {
   restart_started?: boolean
 }
 
+// -- Weixin (iLink) QR onboarding ---------------------------------------------
+// Local pairing (no external service): start mints a QR from Tencent's iLink
+// API, poll walks wait → scaned → confirmed, apply persists credentials.
+
+export interface WeixinOnboardingStartResponse {
+  error?: string
+  expires_at: string
+  pairing_id: string
+  qr_url: string
+  refresh_count: number
+  status: string
+}
+
+export interface WeixinOnboardingStatusResponse {
+  error?: string
+  expires_at: string
+  qr_url: string
+  refresh_count: number
+  status: 'confirmed' | 'scaned' | 'timeout' | 'wait'
+  user_id?: string
+}
+
+export interface WeixinOnboardingApplyResponse {
+  account_id: string
+  needs_restart: boolean
+  ok: boolean
+  platform: 'weixin'
+  restart_action?: string
+  restart_error?: string
+  restart_pid?: null | number
+  restart_started?: boolean
+  user_id: string
+}
+
 // -- Webhooks (subscription CRUD) --------------------------------------------
 // Incoming HTTP event routes served by the webhook gateway platform. Backed by
 // the same JSON store the CLI/dashboard use; per-route HMAC secrets are

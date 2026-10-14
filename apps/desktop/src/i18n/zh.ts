@@ -3237,6 +3237,27 @@ export const zh = defineLocale({
       savedRestarting: 'Telegram 已保存；网关正在重启…',
       savedRestartFailed: detail => `Telegram 已保存；网关重启失败${detail}`
     },
+    weixinQr: {
+      quickSetup: '快速设置',
+      recommended: '推荐',
+      quickHelp: '用微信扫一扫下面的二维码并在手机上确认。螃蟹OPC 通过腾讯 iLink 接口连接你的个人微信，凭证自动保存，无需手动填写。',
+      startScan: '扫码连接',
+      starting: '正在获取二维码…',
+      replaceWarning: '微信已配置。保存后，新的扫码登录将替换当前账号。',
+      scanHint: '用手机微信「扫一扫」扫描右侧二维码，然后在手机上点确认。',
+      waiting: '等待扫码…',
+      confirmed: '已确认',
+      confirmedHint: '微信已确认连接，点保存完成配置。',
+      saveAndRestart: '保存并重启',
+      applying: '正在保存…',
+      expiresIn: remaining => `${remaining} 后过期`,
+      expired: '二维码已过期，请重新扫码。',
+      sessionGone: '扫码会话已失效，请重新开始。',
+      qrAlt: '微信登录二维码',
+      openLink: '本机打开二维码链接',
+      savedRestarting: '微信已保存；网关正在重启…',
+      savedRestartFailed: detail => `微信已保存；网关重启失败${detail}`
+    },
     fieldCopy: {
       TELEGRAM_BOT_TOKEN: {
         label: 'Bot 令牌',
@@ -3486,11 +3507,11 @@ export const zh = defineLocale({
       email: '使用专用邮箱。对于 Gmail/Workspace,创建应用专用密码并使用 imap.gmail.com / smtp.gmail.com。',
       sms: '从 Twilio 控制台获取你的 Account SID 和 Auth Token，以及一个可发送短信的电话号码。',
       dingtalk: '在开发者控制台创建钉钉应用，然后在此复制 Client ID(App key) 和 Client Secret。',
-      feishu: '创建飞书 / Lark 应用，配置机器人能力，复制 App ID、App secret 和事件加密密钥。',
+      feishu: '三步接入：① 在 open.feishu.cn 创建企业自建应用 ② 添加「机器人」能力，事件订阅选择「使用长连接接收事件」 ③ 把凭证与基础信息页的 App ID 和 App Secret 粘贴到下方。无需公网地址。',
       wecom: '在企业微信中添加群机器人，复制其 webhook key 作为 WECOM_BOT_ID。仅可发送——双向请用企业微信 (应用) 选项。',
       wecom_callback: '设置一个企业微信自建应用，暴露其回调 URL，并提供 corp ID、secret、agent ID 和 AES key。',
       weixin:
-        '运行 `螃蟹OPC gateway setup`，选择 Weixin，然后使用个人微信账号扫描并确认二维码。螃蟹OPC会通过腾讯 iLink Bot API 连接并保存凭据。',
+        '推荐使用上方「快速设置」扫码连接：微信扫一扫并在手机上确认即可，无需手动填写。螃蟹OPC 通过腾讯 iLink Bot API 连接你的个人微信并自动保存凭据。',
       qqbot: '在 QQ 开放平台 (q.qq.com) 注册一个应用，复制 App ID 和 Client Secret。',
       api_server: '把 螃蟹OPC 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port。',
       webhook: '运行一个 HTTP 服务器，供其他工具 (GitHub、GitLab、自定义应用)POST。用 secret 验证签名。'

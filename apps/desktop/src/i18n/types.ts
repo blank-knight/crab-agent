@@ -2675,6 +2675,27 @@ export interface Translations {
       savedRestarting: string
       savedRestartFailed: (detail: string) => string
     }
+    weixinQr: {
+      quickSetup: string
+      recommended: string
+      quickHelp: string
+      startScan: string
+      starting: string
+      replaceWarning: string
+      scanHint: string
+      waiting: string
+      confirmed: string
+      confirmedHint: string
+      saveAndRestart: string
+      applying: string
+      expiresIn: (remaining: string) => string
+      expired: string
+      sessionGone: string
+      qrAlt: string
+      openLink: string
+      savedRestarting: string
+      savedRestartFailed: (detail: string) => string
+    }
     fieldCopy: Record<string, { label?: string; help?: string; placeholder?: string }>
     platformIntro: Record<string, string>
   }

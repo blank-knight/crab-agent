@@ -128,5 +128,8 @@ export type {
   WebhookCreateResponse,
   WebhookEnableResponse,
   WebhookRoute,
-  WebhooksResponse
+  WebhooksResponse,
+  WeixinOnboardingApplyResponse,
+  WeixinOnboardingStartResponse,
+  WeixinOnboardingStatusResponse
 } from '@/types/hermes'

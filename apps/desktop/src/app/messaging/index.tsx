@@ -21,7 +21,8 @@ import {
   type PairingUser,
   revokePairing,
   type TelegramOnboardingApplyResponse,
-  updateMessagingPlatform
+  updateMessagingPlatform,
+  type WeixinOnboardingApplyResponse
 } from '@/hermes'
 import { type Translations, useI18n } from '@/i18n'
 import { openExternalLink } from '@/lib/external-link'
@@ -47,6 +48,7 @@ import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 import { PlatformAvatar } from './platform-icon'
 import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH, platformRegion, type PlatformRegion } from './platforms-zh'
 import { TelegramQrSetup } from './telegram-qr-setup'
+import { WeixinQrSetup } from './weixin-qr-setup'
 
 interface MessagingViewProps extends React.ComponentProps<'section'> {
   setStatusbarItemGroup?: SetStatusbarItemGroup
@@ -116,7 +118,11 @@ const FIELD_COPY: Record<string, { advanced?: boolean }> = {
   QQBOT_HOME_CHANNEL: { advanced: true },
   QQBOT_HOME_CHANNEL_NAME: { advanced: true },
   WHATSAPP_ENABLED: { advanced: true },
-  WHATSAPP_MODE: { advanced: true }
+  WHATSAPP_MODE: { advanced: true },
+  // qiji 0.20.5i: 飞书走 WebSocket 长连接，必填仅 AppID+Secret；这两个是
+  // webhook 回调模式的可选项（adapter.py:1660），平铺在表单里吓退用户。
+  FEISHU_ENCRYPT_KEY: { advanced: true },
+  FEISHU_VERIFICATION_TOKEN: { advanced: true }
 }
 
 function fieldCopy(field: MessagingEnvVarInfo, m: Translations['messaging']) {
@@ -496,6 +502,49 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
     }
   }
 
+  // Weixin QR onboarding wrote the credentials the same way; mirror the
+  // Telegram post-apply handling (refresh → restart watch → banner).
+  async function handleWeixinApplied(result: WeixinOnboardingApplyResponse) {
+    await refreshPlatforms(true)
+
+    if (result.restart_started) {
+      notify({
+        kind: 'success',
+        title: m.setupSaved(PLATFORM_NAME_ZH.weixin ?? 'Weixin'),
+        message: m.weixinQr.savedRestarting
+      })
+      setRestartNeeded(false)
+      const ok = await watchGatewayRestartOutcome()
+
+      if (!ok) {
+        setRestartNeeded(true)
+        notify({
+          kind: 'error',
+          title: m.restartFailedManual,
+          message: m.restartFailedManualDetail,
+          action: { label: m.restartAgain, onClick: () => void runGatewayRestart() },
+          secondaryAction: {
+            label: m.openLogs,
+            onClick: () => void window.hermesDesktop?.revealLogs?.().catch(() => undefined)
+          }
+        })
+      }
+
+      void refreshPlatforms(true)
+
+      return
+    }
+
+    if (result.needs_restart) {
+      await restartGatewayNow()
+
+      if (result.restart_error) {
+        notifyError(new Error(result.restart_error), m.weixinQr.savedRestartFailed(`: ${result.restart_error}`))
+        setRestartNeeded(true)
+      }
+    }
+  }
+
   // Approve/revoke paint from a snapshot immediately, then let the
   // authoritative refresh have the last word. A failed write restores the
   // snapshot so the row never silently disappears on an error.
@@ -666,6 +715,7 @@ export function MessagingView({ setStatusbarItemGroup: _setStatusbarItemGroup, .
                     }
                     onRevoke={setPendingRevoke}
                     onTelegramApplied={result => void handleTelegramApplied(result)}
+                    onWeixinApplied={result => void handleWeixinApplied(result)}
                     pending={pendingByPlatform[selected.id] ?? []}
                     platform={selected}
                     saving={saving}
@@ -754,6 +804,7 @@ function PlatformDetail({
   onEdit,
   onRevoke,
   onTelegramApplied,
+  onWeixinApplied,
   pending,
   platform,
   saving,
@@ -767,6 +818,7 @@ function PlatformDetail({
   onEdit: (key: string, value: string) => void
   onRevoke: (user: PairingUser) => void
   onTelegramApplied: (result: TelegramOnboardingApplyResponse) => void
+  onWeixinApplied: (result: WeixinOnboardingApplyResponse) => void
   pending: PairingUser[]
   platform: MessagingPlatformInfo
   saving: string | null
@@ -871,6 +923,15 @@ function PlatformDetail({
           <SectionTitle>{m.telegramQr.quickSetup}</SectionTitle>
           <div className="mt-3">
             <TelegramQrSetup onApplied={onTelegramApplied} platform={platform} scopeProfile={scopeProfile} />
+          </div>
+        </section>
+      )}
+
+      {platform.id === 'weixin' && (
+        <section>
+          <SectionTitle>{m.weixinQr.quickSetup}</SectionTitle>
+          <div className="mt-3">
+            <WeixinQrSetup onApplied={onWeixinApplied} platform={platform} scopeProfile={scopeProfile} />
           </div>
         </section>
       )}
@@ -1045,7 +1106,7 @@ const PLATFORM_INTRO: Record<string, string> = {
   sms: 'Get your Twilio Account SID and Auth Token from the Twilio console, plus a phone number that can send SMS.',
   dingtalk: 'Create a DingTalk app in the developer console, then copy the Client ID (App key) and Client Secret here.',
   feishu:
-    'Create a Feishu / Lark app, configure the bot capability, and copy the App ID, App secret, and event encryption keys.',
+    '三步接入：① 在 open.feishu.cn 创建企业自建应用 ② 添加「机器人」能力，事件订阅选择「使用长连接接收事件」 ③ 把凭证与基础信息页的 App ID 和 App Secret 粘贴到下方。无需公网地址。',
   wecom:
     'Add a group robot in WeCom and copy its webhook key as WECOM_BOT_ID. Send-only — use the WeCom (app) option for two-way.',
   wecom_callback:

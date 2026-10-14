@@ -10,7 +10,10 @@ import type {
   WebhookCreatePayload,
   WebhookCreateResponse,
   WebhookEnableResponse,
-  WebhooksResponse
+  WebhooksResponse,
+  WeixinOnboardingApplyResponse,
+  WeixinOnboardingStartResponse,
+  WeixinOnboardingStatusResponse
 } from '@/types/hermes'
 
 import { hermesApi, profileScoped } from './client'
@@ -100,6 +103,51 @@ export function cancelTelegramOnboarding(pairingId: string, profile?: null | str
   return hermesApi<{ ok: boolean }>({
     ...profileScoped(profile),
     path: `/api/messaging/telegram/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- Weixin (iLink) QR onboarding ---------------------------------------------
+// Same profile-scoping rule as Telegram: pairing state lives in the backend
+// process that started it, so every call carries the SAME profile scope.
+
+export function startWeixinOnboarding(profile?: null | string): Promise<WeixinOnboardingStartResponse> {
+  return hermesApi<WeixinOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/weixin/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getWeixinOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<WeixinOnboardingStatusResponse> {
+  return hermesApi<WeixinOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyWeixinOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<WeixinOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<WeixinOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelWeixinOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}`,
     method: 'DELETE'
   })
 }

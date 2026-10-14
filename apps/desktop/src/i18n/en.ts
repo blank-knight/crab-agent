@@ -3111,6 +3111,28 @@ export const en: Translations = {
       savedRestarting: 'Telegram saved; gateway restarting…',
       savedRestartFailed: detail => `Telegram saved; gateway restart failed${detail}`
     },
+    weixinQr: {
+      quickSetup: 'Quick setup',
+      recommended: 'Recommended',
+      quickHelp:
+        "Scan the QR code with WeChat and confirm on your phone. Connects your personal WeChat via Tencent's iLink API — credentials are saved automatically.",
+      startScan: 'Scan to connect',
+      starting: 'Fetching QR code…',
+      replaceWarning: 'WeChat is already configured. Saving a new QR login replaces the current account.',
+      scanHint: 'Scan the QR code with WeChat on your phone, then confirm there.',
+      waiting: 'Waiting for scan…',
+      confirmed: 'Confirmed',
+      confirmedHint: 'WeChat confirmed the connection. Save to finish.',
+      saveAndRestart: 'Save and restart',
+      applying: 'Saving…',
+      expiresIn: remaining => `Expires in ${remaining}`,
+      expired: 'The QR code expired. Start a new scan.',
+      sessionGone: 'The pairing session is gone. Start again.',
+      qrAlt: 'WeChat login QR code',
+      openLink: 'Open QR link on this device',
+      savedRestarting: 'WeChat saved; gateway restarting…',
+      savedRestartFailed: detail => `WeChat saved; gateway restart failed${detail}`
+    },
     fieldCopy: {
       TELEGRAM_BOT_TOKEN: {
         label: 'Bot token',
