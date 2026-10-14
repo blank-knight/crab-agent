@@ -5510,3 +5510,100 @@ def register(ctx) -> None:
         emoji="🪽",
         allow_update_command=True,
     )
+
+
+# ---------------------------------------------------------------------------
+# Non-interactive session (desktop/web onboarding UI)
+# ---------------------------------------------------------------------------
+
+
+class FeishuQrSession:
+    """Pull-based device-code QR session for the desktop/web onboarding UI.
+
+    Same flow as :func:`qr_register` (init → begin → poll, with Lark domain
+    auto-detection) but each step is one call and nothing prints. Mirrors
+    ``gateway.platforms.weixin.WeixinQrSession``.
+    """
+
+    def __init__(self, domain: str = "feishu") -> None:
+        self.created_at = time.monotonic()
+        self.domain = domain
+        self.status = "wait"  # wait|confirmed|timeout
+        self.last_error = ""
+        self.credentials: Optional[dict] = None
+        self._device_code: str = ""
+        self._interval: int = 5
+        self._expire_in: int = 600
+
+    def start(self) -> bool:
+        """init + begin. Returns False (with last_error) on failure."""
+        try:
+            _init_registration(self.domain)
+            begin = _begin_registration(self.domain)
+        except (RuntimeError, URLError, OSError, json.JSONDecodeError) as exc:
+            self.last_error = f"启动飞书注册失败: {exc}"
+            return False
+        self._device_code = begin["device_code"]
+        self._interval = max(1, int(begin["interval"]))
+        self._expire_in = min(int(begin["expire_in"]), 600)
+        self.qr_url_value = begin["qr_url"]
+        return True
+
+    qr_url_value: str = ""
+
+    async def poll(self) -> dict:
+        """One device-code poll tick. Runs the sync HTTP call in a thread."""
+        import asyncio
+
+        if self.status in ("confirmed", "timeout") or not self._device_code:
+            return self.snapshot()
+
+        try:
+            res = await asyncio.to_thread(
+                _post_registration,
+                _accounts_base_url(self.domain),
+                {
+                    "action": "poll",
+                    "device_code": self._device_code,
+                    "tp": "ob_app",
+                },
+            )
+        except (URLError, OSError, json.JSONDecodeError) as exc:
+            logger.debug("[Feishu onboard] poll error: %s", exc)
+            return self.snapshot()
+
+        # Domain auto-detection (Lark accounts are served by lark domain)
+        user_info = res.get("user_info") or {}
+        if user_info.get("tenant_brand") == "lark":
+            self.domain = "lark"
+
+        if res.get("client_id") and res.get("client_secret"):
+            self.credentials = {
+                "app_id": res["client_id"],
+                "app_secret": res["client_secret"],
+                "domain": self.domain,
+                "open_id": user_info.get("open_id"),
+            }
+            self.status = "confirmed"
+            return self.snapshot()
+
+        error = res.get("error", "")
+        if error in {"access_denied", "expired_token"}:
+            self.status = "timeout"
+            self.last_error = (
+                "授权被拒绝" if error == "access_denied" else "二维码已过期"
+            )
+        # authorization_pending / unknown → keep waiting
+        return self.snapshot()
+
+    def snapshot(self) -> dict:
+        return {
+            "status": self.status,
+            "qr_url": self.qr_url_value,
+            "error": self.last_error,
+            "domain": self.domain,
+            "open_id": (self.credentials or {}).get("open_id") or "",
+        }
+
+    def expired(self) -> bool:
+        return time.monotonic() - self.created_at > 900  # 15 min hard cap
