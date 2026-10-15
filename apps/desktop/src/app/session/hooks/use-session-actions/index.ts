@@ -20,6 +20,7 @@ import {
 } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { accountLockedProfile } from '@/lib/account-profile'
+import { $lastRoster } from '@/plugins/hermes-bots/data'
 import {
   type ChatMessage,
   preserveLocalAssistantErrors,
@@ -1240,16 +1241,53 @@ export function useSessionActions({
 
       // qiji 账号隔离：登录账号锁定专属 profile 时，其他 profile 的会话
       // 一律拒绝恢复——否则点击会把 gateway 热切换到那个账号的 backend，
-      // 等于带着全套配置登进别人的账号。判定采用“确认是他人的才拒”：
-      // 只有 resolveStoredSession 明确带回一行、且其归属 ≠ 锁定 profile
-      // 时才拦；查不到行（冷启动 404/超时）一律放行，防误拦本人会话。
+      // 等于带着全套配置登进别人的账号。判定采用“确认是他人的才拒”：只有
+      // resolveStoredSession 明确带回一行、且其归属 ≠ 锁定 profile 时才拦；
+      // 查不到行（冷启动 404/超时）一律放行，防误拦本人会话。
+      // crab 0.20.5k 修正：专家（hermes-bots 子档案）也是独立 profile，
+      // 天然 ≠ 账号锁定 profile——原逻辑会把“打开我自己建的专家”误判成
+      // “进别人的账号”。专家档案属于创建它的登录账号（账号 A 建的专家，
+      // 账号 B 看不到 roster 行），把当前 roster 里的专家 profile 集合视为
+      // 本人白名单：会话归属 ∈ 白名单 → 放行。roster 查不到时不放行也不
+      // 拦截，维持“确认是他人的才拒”的保守取向。
       const lockedProfile = accountLockedProfile()
 
       const sessionProfileKey = storedForProfile
         ? normalizeProfileKey(storedForProfile.profile || 'default')
         : null
 
-      if (lockedProfile && sessionProfileKey !== null && sessionProfileKey !== normalizeProfileKey(lockedProfile)) {
+      const isOwnExpertProfile = (() => {
+        if (!lockedProfile || sessionProfileKey === null) {
+          return false
+        }
+
+        try {
+          // $lastRoster 由 useRoster 5s 轮询维护（插件 eager 加载），这里
+          // 只读快照不发请求；判据 = 该 profile 名下已有 Bot Chat 登记
+          // （canonical_session 由服务端按 title 解析，能被解析出来说明
+          // 这个 profile 确实是本机 roster 里的专家档案）。
+          const roster: Array<{
+            name?: string
+            canonical_session?: { id?: string } | null
+            worker_session?: unknown
+          }> = $lastRoster.get()
+
+          return roster.some(
+            row =>
+              row?.name === sessionProfileKey &&
+              (row.canonical_session?.id || row.worker_session)
+          )
+        } catch {
+          return false
+        }
+      })()
+
+      if (
+        lockedProfile &&
+        sessionProfileKey !== null &&
+        sessionProfileKey !== normalizeProfileKey(lockedProfile) &&
+        !isOwnExpertProfile
+      ) {
         if (!isCurrentResume()) {
           return
         }

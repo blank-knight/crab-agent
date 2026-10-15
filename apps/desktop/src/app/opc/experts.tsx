@@ -19,9 +19,9 @@ import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
 
 import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
-import { useRoster } from '../../plugins/hermes-bots/data'
+import { $botMeta, useRoster } from '../../plugins/hermes-bots/data'
 import { displayName } from '../../plugins/hermes-bots/labels'
-import { botWorkspaceOwnerKey } from '../../plugins/hermes-bots/routing'
+import { botRosterMeta, botWorkspaceOwnerKey } from '../../plugins/hermes-bots/routing'
 import type { RosterRow } from '../../plugins/hermes-bots/types'
 import { CreateExpertDialog } from './create-expert'
 
@@ -69,16 +69,27 @@ function toRow(row: Record<string, unknown>): OpcExpertRow | null {
   const name = row.name
   const worker = row.worker_session as { last_active?: unknown } | null | undefined
 
+  // crab 0.20.5k: 专家名显示修复。CreateExpertDialog 把「专家名字」存进
+  // ui_meta['hermes-bots'].title（服务端 profile.yaml 持久化），旧 toRow 的
+  // label 只读 row.display_name ——新建专家没有 display_name，于是永远显示
+  // profile id（pmv9im007）。优先级链对齐 Bots 面板 displayName()：
+  // ui_meta title > row.title > display_name > name。desc 同步只读人设
+  // （description），不再把 title 当人设显示（避免名字重复出现在两行）。
+  const meta =
+    row.ui_meta && typeof row.ui_meta === 'object'
+      ? ((row.ui_meta as Record<string, unknown>)['hermes-bots'] as { title?: unknown; description?: unknown } | null)
+      : null
+  const metaTitle = typeof meta?.title === 'string' ? meta.title.trim() : ''
+  const rowTitle = typeof row.title === 'string' ? row.title.trim() : ''
+  const displayNameField = typeof row.display_name === 'string' && row.display_name ? row.display_name : ''
+  const metaDesc = typeof meta?.description === 'string' ? meta.description : ''
+  const rowDesc = typeof row.description === 'string' ? row.description : ''
+
   return {
     name,
-    label: typeof row.display_name === 'string' && row.display_name ? row.display_name : name,
-    desc:
-      typeof row.title === 'string' && row.title
-        ? row.title
-        : typeof row.description === 'string'
-          ? row.description
-          : '',
-    hue: expertHue(name),
+    label: metaTitle || rowTitle || displayNameField || name,
+    desc: metaDesc || rowDesc || '',
+    hue: expertHue(metaTitle || name),
     lastActive:
       worker && typeof worker.last_active === 'number' ? (worker.last_active as number) : undefined
   }
@@ -189,7 +200,9 @@ function RosterGrid() {
     rows.forEach(bot => {
       if (!bot?.name || bot.ghost) {return}
       try {
-        setWorkspaceOwnerLabel(botWorkspaceOwnerKey(bot), displayName(bot))
+        // crab 0.20.5k: meta 必传——displayName 不带 meta 时读不到
+        // ui_meta['hermes-bots'].title，专家 tab 标题会退回 profile id。
+        setWorkspaceOwnerLabel(botWorkspaceOwnerKey(bot), displayName(bot, botRosterMeta(bot, $botMeta.get())))
       } catch {
         // 无 route 的孤儿行（botWorkspaceOwnerKey 内部有 degrade 路径，这里兜底静默）
       }
@@ -207,7 +220,7 @@ function RosterGrid() {
   if (experts.length === 0) {
     return (
       <p className="col-span-full px-1 py-8 text-center text-[0.85rem] text-(--ui-text-tertiary)">
-        还没有专家。在「设置 → 高级功能」里打开专家面板即可创建。
+        还没有专家。点击右下角「新建专家」创建第一位。
       </p>
     )
   }

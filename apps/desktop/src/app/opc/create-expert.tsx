@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
+import { GeneratePromptButton } from './user-agent-cards'
 import { saveBotMeta } from '../../plugins/hermes-bots/data'
 
 /** profile id：合法字符集内且几乎不撞名（同秒重复提交由调用方串行化）。 */
@@ -80,13 +81,23 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[0.78rem] font-medium text-(--ui-text-secondary)">人设（它擅长什么、说话风格…）</span>
+            <span className="flex items-center justify-between">
+              <span className="text-[0.78rem] font-medium text-(--ui-text-secondary)">人设（它擅长什么、说话风格…）</span>
+              <GeneratePromptButton
+                hint={title || persona}
+                label="AI 生成人设"
+                onGenerated={text => setPersona(text)}
+              />
+            </span>
             <textarea
               className={cn(inputCls, 'min-h-28 resize-y')}
               onChange={e => setPersona(e.target.value)}
               placeholder={'如：你是一位资深增长顾问，擅长拆解获客漏斗。回答先给结论，再给依据，语气直接。'}
               value={persona}
             />
+            <span className="text-[0.7rem] text-(--ui-text-quaternary)">
+              不会写？填好专家名字（如「增长顾问」），点「AI 生成人设」让 AI 代写
+            </span>
           </label>
           <p className="text-[0.72rem] leading-relaxed text-(--ui-text-tertiary)">
             专家是独立的 AI 档案：有自己的记忆和对话历史，创建后出现在下方列表，点击即可开始对话。
