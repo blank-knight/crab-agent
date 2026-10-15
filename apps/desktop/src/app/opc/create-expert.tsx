@@ -13,7 +13,6 @@
 
 import { useState } from 'react'
 
-import { createProfile } from '@/api/profiles'
 import { Codicon } from '@/components/ui/codicon'
 import {
   Dialog,
@@ -22,10 +21,12 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { cn } from '@/lib/utils'
 
 import { GeneratePromptButton } from './user-agent-cards'
 import { saveBotMeta } from '../../plugins/hermes-bots/data'
+import { composeSoul } from '../../plugins/hermes-bots/soul'
 
 /** profile id：合法字符集内且几乎不撞名（同秒重复提交由调用方串行化）。 */
 function generateProfileId(): string {
@@ -33,6 +34,7 @@ function generateProfileId(): string {
 }
 
 export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) => void }) {
+  const { requestGateway } = useGatewayRequest()
   const [title, setTitle] = useState('')
   const [persona, setPersona] = useState('')
   const [busy, setBusy] = useState(false)
@@ -45,13 +47,28 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
     setBusy(true)
     setError(null)
     try {
-      // 1) 建 profile（id 自动生成；后端 normalize 为小写，字符集内必合法）
+      // 1) 建 profile（id 自动生成）+ 人设直达后端。crab 0.20.5k 修正：
+      //    人设必须随 profiles.create 落到 description + SOUL.md
+      //    （composeSoul，与上游 Bots 面板创建流同链路）——后端读
+      //    SOUL.md 塑造人格。首版只写 ui_meta（saveBotMeta），后端完全
+      //    不知道人设，专家开口还是 Hermes/Nous Research 默认自我介绍
+      //    （装机实锤）。走 JSON-RPC（REST /api/profiles 的 payload
+      //    类型不带 soul/description）。
       const name = generateProfileId()
-      await createProfile({ name })
-      // 2) 写专家身份（中文名+人设）——服务端 profile.yaml，跨机同步
+      const personaText = persona.trim() || undefined
+      await requestGateway('profiles.create', {
+        name,
+        description: personaText,
+        soul: composeSoul({
+          name,
+          title: title.trim(),
+          description: personaText
+        })
+      })
+      // 2) 写专家身份（中文名）——服务端 profile.yaml ui_meta，跨机同步
       await saveBotMeta(name, {
         title: title.trim(),
-        description: persona.trim() || undefined
+        description: personaText
       })
       // roster 5s 轮询会自动带出新专家；无需手动失效
       onClose(true)

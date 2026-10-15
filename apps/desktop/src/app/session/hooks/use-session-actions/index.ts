@@ -1263,20 +1263,14 @@ export function useSessionActions({
 
         try {
           // $lastRoster 由 useRoster 5s 轮询维护（插件 eager 加载），这里
-          // 只读快照不发请求；判据 = 该 profile 名下已有 Bot Chat 登记
-          // （canonical_session 由服务端按 title 解析，能被解析出来说明
-          // 这个 profile 确实是本机 roster 里的专家档案）。
-          const roster: Array<{
-            name?: string
-            canonical_session?: { id?: string } | null
-            worker_session?: unknown
-          }> = $lastRoster.get()
+          // 只读快照不发请求。判据 = 该 profile 出现在本机 roster ——
+          // roster 是 profiles.list 的全量投影（本机后端有多少 profile 就
+          // 列多少行），行存在本身就是"这是本机的专家档案"。0.20.5k 首版
+          // 要求行还要有 canonical_session/worker_session，把"刚建好还没
+          // 聊过"的专家（registry 行还没 mint）也拦了——装机实锤，放宽。
+          const roster: Array<{ name?: string }> = $lastRoster.get()
 
-          return roster.some(
-            row =>
-              row?.name === sessionProfileKey &&
-              (row.canonical_session?.id || row.worker_session)
-          )
+          return roster.some(row => row?.name === sessionProfileKey)
         } catch {
           return false
         }
