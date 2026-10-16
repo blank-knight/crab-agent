@@ -33,8 +33,10 @@ const RELEASE = path.join(ROOT, 'release')
 const INSTALLER = __dirname
 
 // Config
-const APP_NAME = 'Qiji'
-const VERSION = '0.20.5f'
+// crab 0.20.5m: 安装包名 Qiji→Crab。数据目录字面量(qiji-portable.7z)是
+// 内部中间产物,用户不可见,保持不动减少变量。
+const APP_NAME = 'Crab'
+const VERSION = '0.20.5-l'
 const PRODUCT_NAME_ZH = '螃蟹OPC'
 // 品牌数据目录单一事实源 —— 与 electron/brand.cjs 同源。贴牌改名只改那里。
 const brand = require(path.join(ROOT, 'electron', 'brand.cjs'))
@@ -163,7 +165,7 @@ console.log(`  Size: ${outputSize} MB`)
 // ---- Verify ----
 step(6, 'Verifying embedded 7z archive ...')
 try {
-  execSync(`"${sevenZip}" t "${output}"`, { stdio: 'inherit', timeout: 30000 })
+  execSync(`"${sevenZip}" t "${output}"`, { stdio: 'inherit', timeout: 600000 })
   console.log('\n  Verification: PASSED')
 } catch (e) {
   console.error('\n  Verification: FAILED - 7z could not find embedded archive')

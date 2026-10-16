@@ -73,7 +73,7 @@ class Launcher
     // ─────────────────────────────────────────────────────────────────
     static void PrepSevenZip()
     {
-        s_tempDir = Path.Combine(Path.GetTempPath(), "QijiSetup_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+        s_tempDir = Path.Combine(Path.GetTempPath(), "CrabSetup_" + Guid.NewGuid().ToString("N").Substring(0, 8));
         Directory.CreateDirectory(s_tempDir);
         s_sevenZipPath = Path.Combine(s_tempDir, "7zr.exe");
 
@@ -178,12 +178,25 @@ class Launcher
         try { Directory.Delete(s_tempDir, true); } catch { }
 
         // 4. 查找 app exe
-        string appExe = Path.Combine(installDir, "Qiji.exe");
+        // crab 0.20.5m: exe 改名 Qiji→Crab。优先 Crab.exe（新包）；
+        // Qiji.exe 兜底（防 brand 注入链回归时找不到 exe），两都无报错。
+        string appExe = Path.Combine(installDir, "Crab.exe");
         if (!File.Exists(appExe))
         {
-            var found = Directory.GetFiles(installDir, "Qiji.exe", SearchOption.AllDirectories);
+            var found = Directory.GetFiles(installDir, "Crab.exe", SearchOption.AllDirectories);
             if (found.Length > 0) appExe = found[0];
-            else { reporter(-1, "错误: 解压后未找到 Qiji.exe"); return; }
+            else
+            {
+                // 旧名兜底：brand.executableName 注入断链时 eb 仍产出 Qiji.exe
+                var legacy = Path.Combine(installDir, "Qiji.exe");
+                if (File.Exists(legacy)) appExe = legacy;
+                else
+                {
+                    var legacyFound = Directory.GetFiles(installDir, "Qiji.exe", SearchOption.AllDirectories);
+                    if (legacyFound.Length > 0) appExe = legacyFound[0];
+                    else { reporter(-1, "错误: 解压后未找到 Crab.exe"); return; }
+                }
+            }
         }
         string appDir = Path.GetDirectoryName(appExe);
 
@@ -248,7 +261,17 @@ class Launcher
         string qijiHome = ResolvePrimaryDataDir();
         Directory.CreateDirectory(qijiHome);
 
-        Registry.SetValue(@"HKEY_CURRENT_USER\Environment", "QIJI_HOME", qijiHome);
+        // crab 0.20.5m: 环境变量 QIJI_HOME→CRAB_HOME（白标泄漏点：环境变量
+        // 编辑器用户可见）。ResolvePrimaryDataDir/ResolveDataDirs 读链已兼容
+        // 旧 QIJI_HOME（老装机覆盖安装不换目录）；app 运行时只读 HERMES_HOME，
+        // 不读此名，改名零风险。写新名同时清掉旧名，防两份并存漂移。
+        Registry.SetValue(@"HKEY_CURRENT_USER\Environment", "CRAB_HOME", qijiHome);
+        try
+        {
+            Registry.CurrentUser.DeleteSubKey(@"Environment\QIJI_HOME", false);
+            Environment.SetEnvironmentVariable("QIJI_HOME", null, EnvironmentVariableTarget.User);
+        }
+        catch { }
 
         try
         {
@@ -277,11 +300,22 @@ class Launcher
 
     static void LaunchApp(string installDir)
     {
-        string appExe = Path.Combine(installDir, "Qiji.exe");
+        // crab 0.20.5m: Crab.exe 优先，Qiji.exe 兜底（与 PerformInstall 第4步同策略）
+        string appExe = Path.Combine(installDir, "Crab.exe");
         if (!File.Exists(appExe))
         {
-            var found = Directory.GetFiles(installDir, "Qiji.exe", SearchOption.AllDirectories);
+            var found = Directory.GetFiles(installDir, "Crab.exe", SearchOption.AllDirectories);
             if (found.Length > 0) appExe = found[0];
+        }
+        if (!File.Exists(appExe))
+        {
+            var legacy = Path.Combine(installDir, "Qiji.exe");
+            if (File.Exists(legacy)) appExe = legacy;
+            else
+            {
+                var legacyFound = Directory.GetFiles(installDir, "Qiji.exe", SearchOption.AllDirectories);
+                if (legacyFound.Length > 0) appExe = legacyFound[0];
+            }
         }
         if (File.Exists(appExe))
         {
@@ -405,11 +439,14 @@ class Launcher
         return null;
     }
 
-    /// <summary>主数据目录（安装时写 QIJI_HOME 注册表用它）</summary>
+    /// <summary>主数据目录（安装时写 CRAB_HOME 注册表用它）</summary>
     static string ResolvePrimaryDataDir()
     {
         // 已有显式覆盖（老机器迁移/定制部署）优先，不动
-        string existing = ReadUserEnvVar("QIJI_HOME") ?? ReadUserEnvVar("HERMES_HOME");
+        // crab 0.20.5m: 读链兼容三代表——CRAB_HOME（新）→ QIJI_HOME（0.20.5l
+        // 及以前写的）→ HERMES_HOME（更老的 Hermes 装机）。老装机覆盖安装
+        // 继续用原目录，绝不因改名搬家。
+        string existing = ReadUserEnvVar("CRAB_HOME") ?? ReadUserEnvVar("QIJI_HOME") ?? ReadUserEnvVar("HERMES_HOME");
         if (existing != null) return existing;
 
         return Path.Combine(
@@ -439,6 +476,8 @@ class Launcher
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             BrandInfo.DataDir));
 
+        // crab 0.20.5m: CRAB_HOME（新名）+ QIJI_HOME/HERMES_HOME（老装机）全覆盖
+        AddDataDir(dirs, seen, ReadUserEnvVar("CRAB_HOME"));
         AddDataDir(dirs, seen, ReadUserEnvVar("QIJI_HOME"));
         AddDataDir(dirs, seen, ReadUserEnvVar("HERMES_HOME"));
 

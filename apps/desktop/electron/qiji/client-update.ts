@@ -30,7 +30,7 @@ export interface DownloadProgress {
 }
 
 function installerDownloadDir(): string {
-  return path.join(app.getPath('temp'), 'qiji-updates')
+  return path.join(app.getPath('temp'), 'crab-updates')
 }
 
 function sanitizeInstallerName(rawUrl: string): string {
@@ -48,7 +48,7 @@ function sanitizeInstallerName(rawUrl: string): string {
   // No usable extension (e.g. a bare CDN path) → assume the published
   // installer; otherwise keep whatever the publisher named it (.exe/.msi/.zip).
   if (!/\.[a-zA-Z0-9]{1,5}$/.test(name)) {
-    name = `${name || 'qiji-setup'}.exe`
+    name = `${name || 'crab-setup'}.exe`
   }
 
   return name

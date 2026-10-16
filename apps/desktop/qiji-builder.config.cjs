@@ -19,7 +19,9 @@ module.exports = {
   // qiji 0.20.4: productName=显示名(eb把它烙进exe FileDescription/任务栏右键
   // 名);exe文件名/安装目录走 executableName/userDataDirName(独立=Qiji,不动用户现场)。
   productName: BRAND.displayName,
-  executableName: BRAND.userDataDirName,
+  // crab 0.20.5m: exe 名走 brand.executableName(=Crab);userDataDirName(Qiji)
+  // 只作 Roaming 兜底与老装机清理,两者解耦。
+  executableName: BRAND.executableName || BRAND.userDataDirName,
   compression: 'maximum',
   directories: { output: 'release' },
   files: ['dist/**', 'assets/**', 'public/**', 'package.json'],

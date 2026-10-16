@@ -45,7 +45,8 @@ class Uninstaller
 
     static string ResolvePrimaryDataDir()
     {
-        string existing = ReadUserEnvVar("QIJI_HOME") ?? ReadUserEnvVar("HERMES_HOME");
+        // crab 0.20.5m: 与 launcher3 同链——CRAB_HOME → QIJI_HOME → HERMES_HOME
+        string existing = ReadUserEnvVar("CRAB_HOME") ?? ReadUserEnvVar("QIJI_HOME") ?? ReadUserEnvVar("HERMES_HOME");
         if (existing != null) return existing;
 
         return Path.Combine(
@@ -62,7 +63,7 @@ class Uninstaller
         // Mode 1: launched from install dir (no args) -> copy to temp and relaunch
         if (args.Length == 0)
         {
-            string tempExe = Path.Combine(Path.GetTempPath(), "qiji_uninstall.exe");
+            string tempExe = Path.Combine(Path.GetTempPath(), "crab_uninstall.exe");
             try
             {
                 File.Copy(exePath, tempExe, true);
@@ -240,10 +241,13 @@ class Uninstaller
             failures.Add("登录数据");
         }
 
-        // 7. Remove QIJI_HOME env var from registry
+        // 7. Remove CRAB_HOME / QIJI_HOME env vars from registry（新老双名都清）
         Console.Write("  清理环境变量...");
         try
         {
+            Registry.CurrentUser.DeleteSubKey(
+                @"Environment\CRAB_HOME", false);
+            Environment.SetEnvironmentVariable("CRAB_HOME", null, EnvironmentVariableTarget.User);
             Registry.CurrentUser.DeleteSubKey(
                 @"Environment\QIJI_HOME", false);
             // Also try the typed API (more reliable on some Windows versions)

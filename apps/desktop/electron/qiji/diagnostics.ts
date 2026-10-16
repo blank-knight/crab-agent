@@ -44,7 +44,7 @@ export function registerQijiDiagnosticsIpc({
   ipcMain.handle('hermes:diagnostics:export', async () => {
     const home = app.getPath('home')
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-    const fileName = `qiji-diagnostics-${stamp}.txt`
+    const fileName = `crab-diagnostics-${stamp}.txt`
     const desktopDir = path.join(home, 'Desktop')
     const outPath = path.join(desktopDir, fileName)
 

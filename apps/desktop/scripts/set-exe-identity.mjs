@@ -96,8 +96,8 @@ async function stampExeIdentity(
     'version-string': {
       ProductName: brandName,
       FileDescription: brandName,
-      CompanyName: brand.companyName || 'Qiji',
-      LegalCopyright: `Copyright (c) 2026 ${brand.companyName || 'Qiji'}`
+      CompanyName: brand.companyName || 'Crab',
+      LegalCopyright: `Copyright (c) 2026 ${brand.companyName || 'Crab'}`
     }
   }
 

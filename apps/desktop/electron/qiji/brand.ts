@@ -14,7 +14,9 @@ export const BRAND = {
   // 默认产品显示名（OEM 未推送时用）
   defaultName: '螃蟹OPC',
   // exe 版本资源 CompanyName / LegalCopyright（set-exe-identity.mjs 经 brand.cjs 消费）
-  companyName: 'Qiji',
-  // Windows AUMI：toast 通知 + 任务栏分组；必须与 qiji-builder.config.cjs 的 appId 一致
-  appId: 'com.qiji.desktop'
+  companyName: 'Crab',
+  // crab 0.20.5m: AUMI 随贴牌 qiji→crab（须与 qiji-builder.config.cjs appId 一致=brand.cjs 单一源）。
+  // 改 AUMI 会让老装机的 toast 通知/任务栏分组键换代——覆盖安装后 Windows 以新 AUMI
+  // 重新分组，无功能损失。
+  appId: 'com.crab.desktop'
 } as const
