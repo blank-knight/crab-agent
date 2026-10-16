@@ -622,7 +622,9 @@ function SidebarSessionRowImpl({
                         SIDEBAR_TRUNCATED_LEADING
                       )}
                     >
-                      {session.preview}
+                      {/* crab 0.20.5l: 裸 preview 出口——乐观行的技能命令原文先露
+                          英文 slug；走 details 同一条中文化链（清洗+本地化）。 */}
+                      {details.preview ?? session.preview}
                     </span>
                   ) : null}
                 </div>

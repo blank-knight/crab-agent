@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { listAllProfileSessions } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { sessionTitle } from '@/lib/chat-runtime'
+import { localizeSkillPlaceholder, sessionTitle, stripSkillScaffolding } from '@/lib/chat-runtime'
 import { Check, MessageCircle } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
@@ -61,7 +61,12 @@ export function SessionPickerDialog({ activeStoredSessionId, onOpenChange, onRes
               >
                 {sessions.map(session => {
                   const title = sessionTitle(session)
-                  const preview = session.preview?.trim()
+
+                  // crab 0.20.5l: preview 同侧栏行——技能脚手架/英文 slug
+                  // 先清洗再显示，与 sessionTitle 一条链。
+                  const preview = localizeSkillPlaceholder(
+                    stripSkillScaffolding(session.preview?.trim() ?? '')
+                  ).trim() || null
 
                   return (
                     <CommandItem

@@ -1,3 +1,4 @@
+import { localizeSkillPlaceholder, stripSkillScaffolding } from '@/lib/chat-runtime'
 import type { SessionListDensity } from '@/store/session-list-density'
 import type { SessionInfo } from '@/types/hermes'
 
@@ -14,6 +15,15 @@ export interface SessionRowFormatters {
 const modelLabel = (model: null | string) => model?.split('/').pop()?.trim() || null
 const oneLine = (value: null | string) => value?.replace(/\s+/g, ' ').trim() || null
 
+// crab 0.20.5l: preview 副行同享标题链的中文化——技能调用的乐观 preview 是
+// 原始命令/脚手架文本（"/pptx-maker" 或 "[IMPORTANT: …"），副行先露英文
+// slug 数秒才被服务端纠正。与 sessionTitle 同一条清洗链，一处定义。
+const oneLineLocalized = (value: null | string) => {
+  const cleaned = oneLine(value)
+
+  return cleaned ? localizeSkillPlaceholder(stripSkillScaffolding(cleaned)) : cleaned
+}
+
 export const sessionRowEstimate = (density: SessionListDensity) =>
   ({ compact: 28, comfortable: 45, detailed: 63 })[density]
 
@@ -28,7 +38,7 @@ export const sessionRowEstimate = (density: SessionListDensity) =>
 export const SESSION_CARD_ROW_ESTIMATE_PX = 96
 
 export function sessionRowDetails(session: SessionInfo, fmt: SessionRowFormatters): SessionRowDetails {
-  const preview = oneLine(session.preview)
+  const preview = oneLineLocalized(session.preview)
   const hasOwnTitle = Boolean(session.title?.trim())
 
   const metadata = [

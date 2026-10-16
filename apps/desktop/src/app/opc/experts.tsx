@@ -12,6 +12,7 @@
  * React #310（0.20.5 装机实锤，f_l 组件 hooks 计数漂移），已废弃。
  */
 
+import { useStore } from '@nanostores/react'
 import { useEffect, useState } from 'react'
 
 import { setWorkspaceOwnerLabel } from '@/components/pane-shell/workspace-scope'
@@ -24,6 +25,7 @@ import { displayName } from '../../plugins/hermes-bots/labels'
 import { deleteBot } from '../../plugins/hermes-bots/profile-ops'
 import { botRosterMeta, botWorkspaceOwnerKey } from '../../plugins/hermes-bots/routing'
 import type { RosterRow } from '../../plugins/hermes-bots/types'
+
 import { CreateExpertDialog } from './create-expert'
 
 export interface OpcExpertRow {
@@ -62,7 +64,7 @@ function asSnapshotLike(data: unknown): RosterSnapshotLike {
   return null
 }
 
-function toRow(row: Record<string, unknown>): OpcExpertRow | null {
+function toRow(row: Record<string, unknown>, localMeta?: Record<string, { title?: unknown; description?: unknown }>): OpcExpertRow | null {
   if (typeof row.name !== 'string' || row.name.length === 0) {
     return null
   }
@@ -80,26 +82,40 @@ function toRow(row: Record<string, unknown>): OpcExpertRow | null {
     row.ui_meta && typeof row.ui_meta === 'object'
       ? ((row.ui_meta as Record<string, unknown>)['hermes-bots'] as { title?: unknown; description?: unknown } | null)
       : null
-  const metaTitle = typeof meta?.title === 'string' ? meta.title.trim() : ''
+
+  // crab 0.20.5l: 行不带 ui_meta 时（创建竞态窗口：profiles.create 已落、
+  // 服务端 ui_meta 写回未达、roster 抓到裸行），叠查本地 $botMeta——
+  // saveBotMeta 在建档后同步写好，比等下一轮轮询早数秒。
+  const local = localMeta?.[name]
+
+  const metaTitle =
+    (typeof meta?.title === 'string' && meta.title.trim()) ||
+    (typeof local?.title === 'string' && local.title.trim()) ||
+    ''
+
   const rowTitle = typeof row.title === 'string' ? row.title.trim() : ''
   const displayNameField = typeof row.display_name === 'string' && row.display_name ? row.display_name : ''
   const metaDesc = typeof meta?.description === 'string' ? meta.description : ''
+  const localDesc = typeof local?.description === 'string' ? local.description : ''
   const rowDesc = typeof row.description === 'string' ? row.description : ''
 
   return {
     name,
     label: metaTitle || rowTitle || displayNameField || name,
-    desc: metaDesc || rowDesc || '',
+    desc: metaDesc || localDesc || rowDesc || '',
     hue: expertHue(metaTitle || name),
     lastActive:
       worker && typeof worker.last_active === 'number' ? (worker.last_active as number) : undefined
   }
 }
 
-export function toOpcExpertRows(snapshot: RosterSnapshotLike): OpcExpertRow[] {
+export function toOpcExpertRows(
+  snapshot: RosterSnapshotLike,
+  localMeta?: Record<string, { title?: unknown; description?: unknown }>
+): OpcExpertRow[] {
   const rows = Array.isArray(snapshot?.profiles) ? (snapshot!.profiles as Array<Record<string, unknown>>) : []
 
-  return rows.map(toRow).filter((r): r is OpcExpertRow => r !== null)
+  return rows.map(row => toRow(row, localMeta)).filter((r): r is OpcExpertRow => r !== null)
 }
 
 /** qiji 0.20.5a: 静态 import——动态 import 在加密链(blob:)下不可靠
@@ -142,6 +158,7 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
     if (deleting) {return}
     setDeleting(true)
     setConfirmError(null)
+
     try {
       await deleteBot({ name: expert.name } as RosterRow)
       setConfirming(false)
@@ -165,14 +182,14 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
           void openOpcExpert(expert.name).finally(() => setOpening(false))
         }
       }}
-      role="button"
-      tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' && !opening && !deleting) {
           setOpening(true)
           void openOpcExpert(expert.name).finally(() => setOpening(false))
         }
       }}
+      role="button"
+      tabIndex={0}
     >
       {/* crab 0.20.5k-r3: hover 删除按钮（装机反馈：专家删不掉）。
           外层是 div（不是 button）就是为了允许这个嵌套交互元素。 */}
@@ -213,6 +230,7 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
               className="rounded-md px-3 py-1 text-[0.78rem] text-(--ui-text-secondary) transition-colors hover:bg-(--ui-muted)"
               onClick={e => {
                 e.stopPropagation()
+
                 if (!deleting) {setConfirming(false)}
               }}
               type="button"
@@ -275,7 +293,12 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
 /** roster → 专家卡片墙（静态 useRoster，React 规则：无条件调用） */
 function RosterGrid() {
   const { data, error } = useRoster()
-  const experts = toOpcExpertRows(asSnapshotLike(data))
+  // crab 0.20.5l: 创建瞬间防闪 id——saveBotMeta 同步先写本地 $botMeta，
+  // 而 roster 行的 ui_meta 要等下一轮轮询（且服务端写回有 1-2s 空档）才带
+  // 中文名；行数据缺 title 时叠查本地缓存，卡片首帧就是中文名，不再先露
+  // profile id 再跳变。本地缓存只在行缺 meta 时兜底，服务端真源优先。
+  const botMeta = useStore($botMeta)
+  const experts = toOpcExpertRows(asSnapshotLike(data), botMeta)
 
   // qiji 0.20.5b: 发布 owner label——OPC 打开专家的 tab 标题显示专家名而非
   // 存档名 "Bot Chat"（workspaceOwnerTitle 机制，BotsPane 同款 roster-pane-lifecycle:39）。
@@ -285,6 +308,7 @@ function RosterGrid() {
     const rows = Array.isArray(data?.profiles) ? (data!.profiles as RosterRow[]) : []
     rows.forEach(bot => {
       if (!bot?.name || bot.ghost) {return}
+
       try {
         // crab 0.20.5k: meta 必传——displayName 不带 meta 时读不到
         // ui_meta['hermes-bots'].title，专家 tab 标题会退回 profile id。
