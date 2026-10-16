@@ -20,6 +20,7 @@ import {
 } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { accountLockedProfile } from '@/lib/account-profile'
+import { getProfiles } from '@/api/profiles'
 import { $lastRoster } from '@/plugins/hermes-bots/data'
 import {
   type ChatMessage,
@@ -1256,22 +1257,34 @@ export function useSessionActions({
         ? normalizeProfileKey(storedForProfile.profile || 'default')
         : null
 
-      const isOwnExpertProfile = (() => {
+      const isOwnExpertProfile = await (async () => {
         if (!lockedProfile || sessionProfileKey === null) {
           return false
         }
 
+        // 快照命中 → 直接放行（roster 是 profiles.list 的全量投影，行存在
+        // 即本机专家档案）。快照空/未加载时不能只信快照——0.20.5k-r2 装机
+        // 实锤：快照还没轮询到就点了专家，照样被误拦。降级查后端权威
+        // /api/profiles（短超时，失败按保守取向处理：查不到 ≠ 拒绝，
+        // 维持「确认是他人的才拒」）。
         try {
-          // $lastRoster 由 useRoster 5s 轮询维护（插件 eager 加载），这里
-          // 只读快照不发请求。判据 = 该 profile 出现在本机 roster ——
-          // roster 是 profiles.list 的全量投影（本机后端有多少 profile 就
-          // 列多少行），行存在本身就是"这是本机的专家档案"。0.20.5k 首版
-          // 要求行还要有 canonical_session/worker_session，把"刚建好还没
-          // 聊过"的专家（registry 行还没 mint）也拦了——装机实锤，放宽。
-          const roster: Array<{ name?: string }> = $lastRoster.get()
+          const snapshot: Array<{ name?: string }> = $lastRoster.get()
 
-          return roster.some(row => row?.name === sessionProfileKey)
+          if (snapshot.some(row => row?.name === sessionProfileKey)) {
+            return true
+          }
         } catch {
+          // 快照读取失败，走后端查询
+        }
+
+        try {
+          const res = await getProfiles()
+          const names = (res?.profiles || []).map(p => String(p?.name || '').toLowerCase())
+
+          return names.includes(sessionProfileKey)
+        } catch {
+          // 后端查询失败（超时/网关忙）：不放行也不拦截——
+          // 「确认是他人的才拒」的保守取向。
           return false
         }
       })()

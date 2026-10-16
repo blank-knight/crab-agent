@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
 import { $botMeta, useRoster } from '../../plugins/hermes-bots/data'
 import { displayName } from '../../plugins/hermes-bots/labels'
+import { deleteBot } from '../../plugins/hermes-bots/profile-ops'
 import { botRosterMeta, botWorkspaceOwnerKey } from '../../plugins/hermes-bots/routing'
 import type { RosterRow } from '../../plugins/hermes-bots/types'
 import { CreateExpertDialog } from './create-expert'
@@ -133,21 +134,106 @@ function formatLastActive(ts?: number): string {
 
 function ExpertCard({ expert }: { expert: OpcExpertRow }) {
   const [opening, setOpening] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
+
+  const doDelete = async () => {
+    if (deleting) {return}
+    setDeleting(true)
+    setConfirmError(null)
+    try {
+      await deleteBot({ name: expert.name } as RosterRow)
+      setConfirming(false)
+    } catch (e) {
+      setConfirmError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
-    <button
+    <div
       className={cn(
         'group relative flex cursor-pointer flex-col gap-3 rounded-2xl border p-5 text-left transition-all duration-150',
         'border-(--ui-stroke-tertiary) bg-(--ui-card) hover:-translate-y-0.5 hover:border-(--ui-primary)/40 hover:shadow-[0_6px_20px_color-mix(in_srgb,var(--ui-primary)_14%,transparent)]'
       )}
       data-tour={`opc-expert-${expert.name}`}
-      disabled={opening}
       onClick={() => {
-        setOpening(true)
-        void openOpcExpert(expert.name).finally(() => setOpening(false))
+        if (!opening && !deleting) {
+          setOpening(true)
+          void openOpcExpert(expert.name).finally(() => setOpening(false))
+        }
       }}
-      type="button"
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' && !opening && !deleting) {
+          setOpening(true)
+          void openOpcExpert(expert.name).finally(() => setOpening(false))
+        }
+      }}
     >
+      {/* crab 0.20.5k-r3: hover 删除按钮（装机反馈：专家删不掉）。
+          外层是 div（不是 button）就是为了允许这个嵌套交互元素。 */}
+      <span className="absolute right-2.5 top-2.5 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <button
+          aria-label="删除专家"
+          className={cn(
+            'flex size-6 items-center justify-center rounded-md bg-(--ui-muted) text-(--ui-text-secondary) transition-colors hover:text-red-500',
+            deleting && 'animate-spin'
+          )}
+          onClick={e => {
+            e.stopPropagation()
+            setConfirming(true)
+          }}
+          type="button"
+        >
+          <Codicon name={deleting ? 'loading' : 'trash'} size="0.8rem" />
+        </button>
+      </span>
+
+      {confirming ? (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2.5 rounded-2xl bg-(--ui-card)/95 p-4 backdrop-blur-sm"
+          onClick={e => e.stopPropagation()}
+          role="presentation"
+        >
+          <p className="text-[0.85rem] font-semibold text-(--ui-text-primary)">
+            删除专家「{expert.label}」？
+          </p>
+          <p className="text-center text-[0.72rem] leading-relaxed text-(--ui-text-tertiary)">
+            将永久删除该专家的档案、记忆与全部对话历史，不可恢复。
+          </p>
+          {confirmError ? (
+            <p className="max-w-full break-all text-center text-[0.7rem] text-red-500">{confirmError}</p>
+          ) : null}
+          <div className="flex gap-2">
+            <button
+              className="rounded-md px-3 py-1 text-[0.78rem] text-(--ui-text-secondary) transition-colors hover:bg-(--ui-muted)"
+              onClick={e => {
+                e.stopPropagation()
+                if (!deleting) {setConfirming(false)}
+              }}
+              type="button"
+            >
+              取消
+            </button>
+            <button
+              className="rounded-md bg-red-500/90 px-3 py-1 text-[0.78rem] font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+              disabled={deleting}
+              onClick={e => {
+                e.stopPropagation()
+                void doDelete()
+              }}
+              type="button"
+            >
+              {deleting ? '删除中…' : '永久删除'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="flex items-center gap-3">
         <span
           className="flex size-10 shrink-0 items-center justify-center rounded-xl text-[1.05rem] font-bold text-white"
@@ -182,7 +268,7 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
           <span className="font-normal text-(--ui-text-tertiary)">{formatLastActive(expert.lastActive)}</span>
         )}
       </span>
-    </button>
+    </div>
   )
 }
 
