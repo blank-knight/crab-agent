@@ -1683,27 +1683,59 @@ def _rmtree_with_retry(profile_dir: Path, onexc_handler) -> None:
         raise last_exc
 
 
+def _stdio_write_guard() -> bool:
+    """True when stdout is a usable console/pipe.
+
+    A Desktop-spawned serve backend can end up with an invalid stdout handle
+    (dead pipe after suspend/resume, closed reader): any print() then raises
+    ``OSError: [Errno 22] Invalid argument`` on Windows and aborts the whole
+    delete chain — observed as DELETE /api/profiles/<name> failing with 500
+    before ANY deletion work ran. Decorative output must not be load-bearing.
+    """
+    try:
+        if sys.stdout is None or sys.stdout.closed:
+            return False
+        sys.stdout.flush()
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def _safe_print(*args, **kwargs) -> None:
+    """print() that never raises on a broken stdout (see _stdio_write_guard)."""
+    with contextlib.suppress(OSError, ValueError):
+        print(*args, **kwargs)
+
+
+def _read_confirm(prompt: str) -> "str | None":
+    """input() guarded against a broken stdin (EOF mirrors the CLI's cancel path)."""
+    try:
+        return input(prompt).strip()
+    except (OSError, ValueError, KeyboardInterrupt, EOFError):
+        return None
+
+
 def _print_delete_summary(canon: str, profile_dir: Path, gw_running: bool, wrapper_path: Optional[Path]) -> None:
     """Show what ``delete_profile`` is about to remove."""
     model, provider = _read_config_model(profile_dir)
     skill_count = _count_skills(profile_dir)
     dist_name, dist_version, dist_source = _read_distribution_meta(profile_dir)
-    print(f"\nProfile: {canon}")
-    print(f"Path:    {profile_dir}")
+    _safe_print(f"\nProfile: {canon}")
+    _safe_print(f"Path:    {profile_dir}")
     if model:
-        print(f"Model:   {model}" + (f" ({provider})" if provider else ""))
+        _safe_print(f"Model:   {model}" + (f" ({provider})" if provider else ""))
     if skill_count:
-        print(f"Skills:  {skill_count}")
+        _safe_print(f"Skills:  {skill_count}")
     if dist_name:
-        print(f"Distribution: {dist_name}@{dist_version or '?'}")
+        _safe_print(f"Distribution: {dist_name}@{dist_version or '?'}")
         if dist_source:
-            print(f"Installed from: {dist_source}")
-    print("\nThis will permanently delete:")
-    print("  • All config, API keys, memories, sessions, skills, cron jobs")
+            _safe_print(f"Installed from: {dist_source}")
+    _safe_print("\nThis will permanently delete:")
+    _safe_print("  • All config, API keys, memories, sessions, skills, cron jobs")
     if wrapper_path is not None:
-        print(f"  • Command alias ({wrapper_path})")
+        _safe_print(f"  • Command alias ({wrapper_path})")
     if gw_running:
-        print("  ⚠ Gateway is running — it will be stopped.")
+        _safe_print("  ⚠ Gateway is running — it will be stopped.")
 
 
 class ProfileIdentitySettlementPending(RuntimeError):
@@ -1737,14 +1769,14 @@ def delete_profile(name: str, yes: bool = False) -> Path:
     has_wrapper = wrapper_path.exists()
     _print_delete_summary(canon, profile_dir, gw_running, wrapper_path if has_wrapper else None)
     if not yes:
-        print()
+        _safe_print()
         try:
-            confirm = input(f"Type '{canon}' to confirm: ").strip()
+            confirm = _read_confirm(f"Type '{canon}' to confirm: ")
         except (KeyboardInterrupt, EOFError):
             confirm = None
-            print()
+            _safe_print()
         if confirm != canon:
-            print("Cancelled.")
+            _safe_print("Cancelled.")
             return profile_dir
 
     # 1. Disable service (prevents auto-restart); drop the s6 slot on container (host no-op).
@@ -1783,12 +1815,12 @@ def delete_profile(name: str, yes: bool = False) -> Path:
         from plugins.memory import import_provider_module
         _released = import_provider_module("holographic", "store").MemoryStore.release_all_under(profile_dir)
         if _released:
-            print(f"✓ Released {_released} memory-store connection(s) held by this process")
+            _safe_print(f"✓ Released {_released} memory-store connection(s) held by this process")
     with contextlib.suppress(Exception):
         from hermes_state_registry import close_all_under as _close_session_dbs_under
         _closed = _close_session_dbs_under(profile_dir)
         if _closed:
-            print(f"✓ Released {_closed} session database connection(s) held by this process")
+            _safe_print(f"✓ Released {_closed} session database connection(s) held by this process")
 
     # The Desktop serve process routes its agent/errors logs for every profile through one
     # QueueListener. On Windows those ConcurrentRotatingFileHandler instances retain their
@@ -1797,26 +1829,26 @@ def delete_profile(name: str, yes: bool = False) -> Path:
         from hermes_logging import release_profile_log_handlers
         _released_logs = release_profile_log_handlers(profile_dir)
         if _released_logs:
-            print(f"✓ Released {_released_logs} profile log handler(s) held by this process")
+            _safe_print(f"✓ Released {_released_logs} profile log handler(s) held by this process")
 
     # 3. Remove wrapper script
     if has_wrapper and remove_wrapper_script(canon):
-        print(f"✓ Removed {wrapper_path}")
+        _safe_print(f"✓ Removed {wrapper_path}")
 
     # 4. Remove profile directory
     remove_error: Exception | None = None
     try:
         _rmtree_with_retry(profile_dir, _rmtree_make_writable)
-        print(f"✓ Removed {profile_dir}")
+        _safe_print(f"✓ Removed {profile_dir}")
     except Exception as e:
-        print(f"⚠ Could not remove {profile_dir}: {e}")
+        _safe_print(f"⚠ Could not remove {profile_dir}: {e}")
         remove_error = e
 
     # 5. Clear active_profile if it pointed to this profile
     _retarget_active_profile(canon, "default", "✓ Active profile reset to default")
     if remove_error is not None:
         raise RuntimeError(f"Could not remove profile directory {profile_dir}: {remove_error}") from remove_error
-    print(f"\nProfile '{canon}' deleted.")
+    _safe_print(f"\nProfile '{canon}' deleted.")
     if not identity_settled:
         # Filesystem work and runtime teardown are done; the durable identity is not. Report the
         # partial settlement as a typed failure (still a RuntimeError for the CLI's handler)
@@ -1940,7 +1972,7 @@ def _stop_gateway_process(profile_dir: Path) -> None:
         # gateway — killing it starts a mutual SIGTERM restart loop.
         from gateway.status import get_process_start_time, recorded_gateway_home_conflicts, terminate_pid
         if recorded_gateway_home_conflicts(data, expected_home=profile_dir):
-            print(
+            _safe_print(
                 f"✗ Refusing to stop PID {pid}: its recorded HERMES_HOME "
                 f"belongs to a different profile than {profile_dir} "
                 "(stale/poisoned PID record, #89315)."
@@ -1953,13 +1985,13 @@ def _stop_gateway_process(profile_dir: Path) -> None:
             expected_start_time = get_process_start_time(pid)
         terminate_pid(pid)  # graceful first
         if _wait_then_force_kill([pid], {pid: expected_start_time}):
-            print(f"✓ Gateway stopped (PID {pid})")
+            _safe_print(f"✓ Gateway stopped (PID {pid})")
         else:
-            print(f"✓ Gateway force-stopped (PID {pid})")
+            _safe_print(f"✓ Gateway force-stopped (PID {pid})")
     except (ProcessLookupError, PermissionError):
-        print("✓ Gateway already stopped")
+        _safe_print("✓ Gateway already stopped")
     except Exception as e:
-        print(f"⚠ Could not stop gateway: {e}")
+        _safe_print(f"⚠ Could not stop gateway: {e}")
 
 
 # Active profile (sticky default)

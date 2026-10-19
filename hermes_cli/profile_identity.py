@@ -26,6 +26,12 @@ import sys
 from pathlib import Path
 
 
+def _safe_print(*args, **kwargs) -> None:
+    """print() that never raises on a broken stdout (Desktop serve: OSError 22)."""
+    with contextlib.suppress(OSError, ValueError):
+        print(*args, **kwargs)
+
+
 def migrate_profile_identity(old_name: str, new_name: str) -> bool:
     """Retry the durable identity migration of a rename that already completed.
 
@@ -107,7 +113,7 @@ def _purge_profile_identity(canon: str, live_mux: bool) -> bool:
             if answer is None and _gateway_accepts_profile_identity_verb(root):
                 reason += (" — the gateway is running but does not implement "
                            "'purge-profile-identity' (an older process than this CLI)")
-        print(
+        _safe_print(
             "⚠ Profile was deleted, but the live gateway could not purge its session identity"
             f" ({reason}). Restart the gateway, then run:\n"
             f"    hermes profile purge-identity {canon}",
@@ -128,7 +134,7 @@ def _purge_profile_identity(canon: str, live_mux: bool) -> bool:
             db.purge_profile_state(canon)
         except Exception as exc:
             purged = False
-            print(
+            _safe_print(
                 f"⚠ Profile was deleted, but identity purge failed for {db_path}: "
                 f"{type(exc).__name__}: {exc}",
                 file=sys.stderr)
@@ -170,10 +176,10 @@ def _migrate_checkpoint_identity(old_canon: str, new_canon: str) -> bool:
     new_dir = get_profile_dir(new_canon)
     result = migrate_profile_checkpoint_projects(old_dir, new_dir)
     if result["migrated"]:
-        print(f"✓ Checkpoint identity updated: {result['migrated']} project(s)")
+        _safe_print(f"✓ Checkpoint identity updated: {result['migrated']} project(s)")
     if not result["errors"]:
         return True
-    print(
+    _safe_print(
         "⚠ Profile was renamed, but checkpoint identity migration failed for "
         f"{result['errors']} project(s). Retry with:\n"
         f"    hermes profile migrate-identity {old_canon} {new_canon}",
@@ -207,7 +213,7 @@ def _migrate_profile_identity(old_canon: str, new_canon: str, live_mux: bool) ->
             if answer is None and _gateway_accepts_profile_identity_verb(root):
                 reason += (" — the gateway is running but does not implement "
                            "'migrate-profile-identity' (an older process than this CLI)")
-        print(
+        _safe_print(
             "⚠ Profile was renamed, but the live gateway could not migrate session identity"
             f" ({reason}). Restart the gateway, then run:\n"
             f"    hermes profile migrate-identity {old_canon} {new_canon}",
@@ -228,7 +234,7 @@ def _migrate_profile_identity(old_canon: str, new_canon: str, live_mux: bool) ->
             db.rekey_profile_state(old_canon, new_canon)
         except Exception as exc:
             migrated = False
-            print(
+            _safe_print(
                 f"⚠ Profile was renamed, but identity migration failed for {db_path}: "
                 f"{type(exc).__name__}: {exc}",
                 file=sys.stderr)
