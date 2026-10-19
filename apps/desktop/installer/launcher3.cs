@@ -200,6 +200,21 @@ class Launcher
         }
         string appDir = Path.GetDirectoryName(appExe);
 
+        // 4b. crab 0.20.5n: 清理旧名 exe。0.20.5m 换名后升级场景会在安装目录
+        // 留下旧 Qiji.exe（本次包只写 Crab.exe，不覆盖旧名文件），用户会看到
+        // 两个图标、且旧 exe 仍可启动旧版造成困惑。appExe 已解析为新名后才删，
+        // 若本次解压产物本身只有 Qiji.exe（brand 注入断链兜底），上面的 appExe
+        // 就指向它，不会自删。删除失败不阻塞安装（文件被占用时跳过，下次再清）。
+        try
+        {
+            var legacyExe = Path.Combine(appDir, "Qiji.exe");
+            if (File.Exists(legacyExe) && !string.Equals(appExe, legacyExe, StringComparison.OrdinalIgnoreCase))
+            {
+                File.Delete(legacyExe);
+            }
+        }
+        catch { /* 占用/权限失败不阻塞 */ }
+
         // 5. 安装 uninstall.exe
         reporter(88, "正在安装卸载程序...");
         var asm = Assembly.GetExecutingAssembly();

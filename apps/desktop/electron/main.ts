@@ -35,6 +35,7 @@ import {
 import type { Session } from 'electron'
 
 import { type ActiveRuntimeState, classifyActiveRuntime } from './active-runtime-state'
+import { isRuntimeOutdated } from './runtime-upgrade-gate'
 import {
   destroyKeepaliveAgents,
   htmlResponseError,
@@ -5075,7 +5076,22 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
 
   const activeRuntime: ActiveRuntimeState = activeRuntimeState(activeBackend)
 
-  if (activeBackend && !bootstrapRepairRequested) {
+  // crab 0.20.5n: engine-upgrade gate. A usable active runtime that was
+  // staged by an OLDER app build must be re-staged from this package's
+  // vendor tree before use — otherwise the machine runs the old engine
+  // forever and every engine fix needs a manual hot-patch (the "dual
+  // engine" bug). Only gate when a local vendor payload exists to restage
+  // from (packaged bootstrap builds); CI/dev source runs skip. On marker
+  // desktopVersion >= app version the runtime is current — use it.
+  const runtimeOutdated =
+    !!activeBackend &&
+    !bootstrapRepairRequested &&
+    installShape() === 'checkout' &&
+    IS_PACKAGED &&
+    fs.existsSync(path.join(process.resourcesPath, 'vendor', 'hermes-agent')) &&
+    isRuntimeOutdated(readBootstrapMarker(), app.getVersion())
+
+  if (activeBackend && !bootstrapRepairRequested && !runtimeOutdated) {
     if (!activeRuntime.hasValidMarker) {
       rememberLog(
         `[bootstrap] Active Hermes runtime at ${ACTIVE_HERMES_ROOT} is usable but the bootstrap marker is missing or stale; skipping first-run bootstrap.`
@@ -5083,6 +5099,14 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
     }
 
     return activeBackend
+  }
+
+  if (runtimeOutdated) {
+    rememberLog(
+      `[bootstrap] Active runtime at ${ACTIVE_HERMES_ROOT} predates app ${app.getVersion()} ` +
+        `(marker.desktopVersion=${(readBootstrapMarker() as any)?.desktopVersion || 'absent'}); ` +
+        `re-staging from packaged vendor tree`
+    )
   }
 
   if (bootstrapRepairRequested) {
@@ -5232,7 +5256,14 @@ async function ensureRuntime(
         }
       },
       writeMarker: writeBootstrapMarker,
-      gitBinary: resolveGitBinary()
+      gitBinary: resolveGitBinary(),
+      // crab 0.20.5n: offline upgrade channel — hand the runner the packaged
+      // resources (install.ps1 + vendor tree) and this app's version so the
+      // re-staged runtime lands at the exact build the package carries and
+      // the marker records it for the runtime-outdated gate.
+      resourcesPath: process.resourcesPath,
+      vendorDir: path.join(process.resourcesPath, 'vendor'),
+      desktopVersion: app.getVersion()
     })
 
     bootstrapAbortController = null

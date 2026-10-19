@@ -188,6 +188,27 @@ function installScriptKind() {
   return process.platform === 'win32' ? 'powershell' : 'posix'
 }
 
+// crab 0.20.5n: the packaged app ships its own install.ps1 in resources/
+// (extraResources in qiji-builder.config.cjs). Prefer it over the GitHub
+// download: it is the exact installer this build was QA'd with, and offline
+// machines (the whole point of the white-label vendor tree) have no raw
+// GitHub access. Falls back to the historical download path when absent.
+function resolveBundledInstallScript(resourcesPath) {
+  if (!resourcesPath || process.platform !== 'win32') {
+    return null
+  }
+
+  const candidate = path.join(resourcesPath, 'install.ps1')
+
+  try {
+    fs.accessSync(candidate, fs.constants.R_OK)
+
+    return candidate
+  } catch {
+    return null
+  }
+}
+
 function resolveLocalInstallScript(sourceRepoRoot) {
   if (!sourceRepoRoot) {
     return null
@@ -316,8 +337,22 @@ async function resolveInstallScript({
   hermesHome,
   emit,
   pinCommit = true,
+  resourcesPath = null,
   _download = downloadInstallScript
 }) {
+  // 0. crab 0.20.5n: packaged build — use the install.ps1 shipped in
+  //    resources/ (same bytes this package was built and QA'd with; works
+  //    offline). Dev keeps the local-checkout shortcut below.
+  if (!sourceRepoRoot) {
+    const bundled = resolveBundledInstallScript(resourcesPath)
+
+    if (bundled) {
+      emit({ type: 'log', line: `[bootstrap] using bundled install.ps1 at ${bundled}` })
+
+      return { path: bundled, source: 'bundled', kind: installScriptKind() }
+    }
+  }
+
   // 1. Dev shortcut: prefer a local checkout's installer so we can iterate
   //    without pushing. SOURCE_REPO_ROOT comes from main.ts (path.resolve
   //    of APP_ROOT/../..).
@@ -429,8 +464,15 @@ function cleanInstallerLogLine(raw: string): string {
 // The installer drives Hermes's own toolchain (install.sh takes a uv from PATH
 // when it is new enough), so store dirs already on PATH stay ahead of the
 // login-shell entries shell-path.ts merged in front of them.
-function installerEnv(hermesHome) {
-  const env = { ...process.env, HERMES_HOME: hermesHome || process.env.HERMES_HOME || '' }
+function installerEnv(hermesHome, desktopVersion = null) {
+  const env: NodeJS.ProcessEnv = { ...process.env, HERMES_HOME: hermesHome || process.env.HERMES_HOME || '' }
+
+  // crab 0.20.5n: install.ps1 stamps the bootstrap marker with this version
+  // so the desktop's runtime-outdated gate can compare marker vs app.
+  if (desktopVersion) {
+    env.CRAB_DESKTOP_VERSION = desktopVersion
+  }
+
   const key = pathEnvKey(env)
 
   env[key] = storeFirstPath(env[key] || '', { currentEnv: env })
@@ -438,7 +480,7 @@ function installerEnv(hermesHome) {
   return env
 }
 
-function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, hermesHome }: any = {}) {
+function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, hermesHome, desktopVersion }: any = {}) {
   return new Promise<any>((resolve, reject) => {
     const ps = process.platform === 'win32' ? resolveWindowsPowerShell() : 'pwsh'
     const fullArgs = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', scriptPath, ...args]
@@ -450,7 +492,7 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, herme
         stdio: ['ignore', 'pipe', 'pipe'],
         // Pass HERMES_HOME through so install.ps1 respects the caller's
         // choice rather than re-computing the default.
-        env: installerEnv(hermesHome)
+        env: installerEnv(hermesHome, desktopVersion)
       })
     )
 
@@ -758,12 +800,27 @@ async function runStage({
   activeRoot,
   abortSignal,
   installStamp,
-  pinCommit
+  pinCommit,
+  vendorDir = null,
+  keepVendor = false,
+  desktopVersion = null
 }) {
   const startedAt = Date.now()
   emit({ type: 'stage', name: stage.name, state: 'running' })
 
   const isPosix = installerKind === 'posix'
+
+  // crab 0.20.5n: vendor args — point install.ps1 at the packaged vendor
+  // tree (resources/vendor) so staging happens offline, keep the tree for
+  // future repairs, and stamp the marker with this app's version so
+  // isRuntimeOutdated() can gate future engine upgrades.
+  const vendorArgs = []
+  if (!isPosix && vendorDir) {
+    vendorArgs.push('-VendorDir', vendorDir)
+    if (keepVendor) {
+      vendorArgs.push('-KeepVendor')
+    }
+  }
 
   const args = isPosix
     ? [
@@ -773,13 +830,21 @@ async function runStage({
         '--json',
         ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit })
       ]
-    : ['-Stage', stage.name, '-NonInteractive', '-Json', ...buildPinArgs(installStamp, { pinCommit })]
+    : [
+        '-Stage',
+        stage.name,
+        '-NonInteractive',
+        '-Json',
+        ...buildPinArgs(installStamp, { pinCommit }),
+        ...vendorArgs
+      ]
 
   const result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
     emit,
     stageName: stage.name,
     abortSignal,
-    hermesHome
+    hermesHome,
+    desktopVersion
   })
 
   const durationMs = Date.now() - startedAt
@@ -863,7 +928,11 @@ async function runBootstrap(opts) {
     onEvent,
     abortSignal,
     writeMarker, // callback to write the bootstrap-complete marker; main.ts provides
-    gitBinary // probed git path from main.ts; bare 'git' when absent
+    gitBinary, // probed git path from main.ts; bare 'git' when absent
+    // crab 0.20.5n: offline upgrade channel — resources paths + version stamp
+    resourcesPath = null,
+    vendorDir = null,
+    desktopVersion = null
   } = opts
 
   // Bail before spawning anything if the user already cancelled — otherwise an
@@ -925,7 +994,7 @@ async function runBootstrap(opts) {
     }
 
     // 1. Resolve the platform installer.
-    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit, pinCommit })
+    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit, pinCommit, resourcesPath })
     abortSignal?.throwIfAborted()
 
     const installerKind = scriptInfo.kind || 'powershell'
@@ -970,7 +1039,10 @@ async function runBootstrap(opts) {
         activeRoot,
         abortSignal,
         installStamp,
-        pinCommit
+        pinCommit,
+        vendorDir,
+        keepVendor: true, // resources/vendor is the repair payload — never consume it away
+        desktopVersion
       })
 
       if (ev.state === 'failed') {
