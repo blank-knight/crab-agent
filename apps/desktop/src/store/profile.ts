@@ -3,7 +3,12 @@ import { atom, batch, computed } from 'nanostores'
 
 import type { HermesConnection } from '@/global'
 import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
-import { accountLockedProfile } from '@/lib/account-profile'
+import {
+  accountLockedProfile,
+  clearAccountLockExceptions,
+  isAccountLockException,
+  setAccountLockExceptions
+} from '@/lib/account-profile'
 import { sortByProfileOrder as sortProfilesByOrder } from '@/lib/profile-order'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import {
@@ -954,6 +959,52 @@ export const $showAllProfiles = atom<boolean>(storedBoolean(SHOW_ALL_PROFILES_ST
 
 $showAllProfiles.subscribe(value => persistBoolean(SHOW_ALL_PROFILES_STORAGE_KEY, value))
 
+// crab 0.20.5o: 账号锁的专家豁免集（本机专家档案）。
+//
+// 锁只该锁"跨登录账号"，不该把主人挡在自己建的 OPC 专家（独立 profile）
+// 门外（10-20 装机实锤：点专家档案被拽回 default，"试试这样用"闪一下即
+// 灭）。豁免集的存储/同步读取在 lib/account-profile（api 层拉取方也要
+// 用，放 store 会造成 api→store 反向依赖）；本层只负责用后端权威
+// /api/profiles 刷新它：本机存在、非 default、非锁定档案的 profile =
+// 专家集合。刷新失败 → 清空（保守：宁锁自己，不放别人）。
+//
+// $accountLockExceptions 是豁免集的 store 镜像，唯一用途是让
+// $profileScope 这个 computed 在集合变化时重算。
+export const $accountLockExceptions = atom<Set<string>>(new Set<string>())
+
+export async function refreshAccountLockExceptions(): Promise<void> {
+  const locked = accountLockedProfile()
+
+  if (!locked) {
+    clearAccountLockExceptions()
+    $accountLockExceptions.set(new Set())
+
+    return
+  }
+
+  try {
+    const { getProfiles } = await import('@/api/profiles')
+    const res = await getProfiles()
+    const lockedKey = locked.trim().toLowerCase()
+    const next = new Set<string>()
+
+    for (const p of res?.profiles || []) {
+      const key = String(p?.name || '').trim().toLowerCase()
+
+      if (key && key !== 'default' && key !== lockedKey) {
+        next.add(key)
+      }
+    }
+
+    setAccountLockExceptions(next)
+    $accountLockExceptions.set(next)
+  } catch {
+    // 后端不可达：豁免集清空回全锁态（保守）
+    clearAccountLockExceptions()
+    $accountLockExceptions.set(new Set())
+  }
+}
+
 // The profile context the sidebar is currently showing: a concrete profile key,
 // or ALL_PROFILES for the unified grouped view. Concrete scope is tied to the
 // gateway so opening/selecting a profile (which swaps the gateway) moves the
@@ -964,17 +1015,31 @@ $showAllProfiles.subscribe(value => persistBoolean(SHOW_ALL_PROFILES_STORAGE_KEY
 // 同一个真值，否则 boot 竞态下 $activeGatewayProfile 停在初值 'default'
 // 时，渲染过滤条件变成 行profile(acc_xxx) === 'default'，拉回的本人会话
 // 全部被滤掉，侧栏空列表。锁值与拉取收敛同源，不经过可竞态的网关变量。
-export const $profileScope = computed([$showAllProfiles, $activeGatewayProfile], (showAll, gateway) => {
-  const locked = accountLockedProfile()
+export const $profileScope = computed(
+  [$showAllProfiles, $activeGatewayProfile, $accountLockExceptions],
+  (showAll, gateway) => {
+    const locked = accountLockedProfile()
 
-  if (locked) {return locked}
+    if (locked) {
+      // crab 0.20.5o: 豁免集内的本机专家档案可达——网关实际在哪个档案，
+      // 侧栏就显示哪个（点专家档案不再被拽回 default）。
+      const gatewayKey = normalizeProfileKey(gateway)
 
-  return showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
-})
+      if (isAccountLockException(gatewayKey)) {
+        return gatewayKey
+      }
+
+      return locked
+    }
+
+    return showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
+  }
+)
 
 // qiji 账号隔离：已登录账号强制退出“所有 profile”聚合视图（localStorage
 // 粘性开关可能在锁定前留下），boot 收尾与会话列表刷新前调用，确保首屏
-// 不拉跨账号数据。
+// 不拉跨账号数据。crab 0.20.5o：同时刷一次专家豁免集（异步，不阻塞），
+// 豁免集更新后 $profileScope 自动重算。
 export function enforceAccountProfileLock(): void {
   try {
     if (accountLockedProfile() && $showAllProfiles.get()) {
@@ -983,6 +1048,8 @@ export function enforceAccountProfileLock(): void {
   } catch {
     // account-profile 依赖 localStorage/$auth，异常时宁可不锁也不炸
   }
+
+  void refreshAccountLockExceptions()
 }
 
 // Switch the active context to `name`: leave "All profiles" mode, point new

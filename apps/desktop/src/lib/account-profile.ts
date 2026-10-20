@@ -154,6 +154,78 @@ export function accountLockedProfile(): string | null {
   }
 }
 
+// crab 0.20.5o: 账号隔离锁的专家豁免。
+//
+// 锁的本意是"跨登录账号不可见"（profile=付费客户账号，跨账号可见会话=
+// 数据泄漏）。但 OPC 专家（hermes-bots roster 成员）也是独立 profile——
+// 账号 A 建的专家档案落在本机（profile.yaml ui_meta 随 saveBotMeta 写入
+// 该档案），B 登录后 roster 不含 A 的专家行。因此"本机存在的专家档案"
+// 就是本人的——锁不该把主人挡在自己专家门外（10-20 装机实锤：点专家
+// 档案被锁拽回 default，"试试这样用"闪一下即灭）。
+//
+// 判据两级（同 use-session-actions 0.20.5k-r3 的成熟模式）：roster 快照
+// 命中 → 本人；快照未命中（冷启动/未轮询）→ 后端权威 /api/profiles
+// （本地 profile 全集）。都查不到 → 不是本机档案，维持锁定。
+// default 档案永不豁免（它就是账号的家，谈不上豁免）。
+//
+// 查询注入式（lib 不反向依赖 store/api）：同步快照 + 异步权威两个回调
+// 由调用方传入，本函数只编排判定顺序与保守取向。
+export function isDefaultProfileKey(profile: string): boolean {
+  return profile.trim().toLowerCase() === 'default'
+}
+
+// crab 0.20.5o: 账号锁豁免集（本机专家档案）——存储与同步读取都在本层。
+// 放这里而不是 store/profile：api/sessions 等拉取方需要同步判定，若放
+// store 会形成 api→store 的依赖反转（sessions.test 实锤：store 链会把
+// 未 mock 的 client 函数拖进测试环境炸掉）。刷新动作（查后端权威）由
+// store 层的 refreshAccountLockExceptions 驱动，写回本集合。
+const LOCK_EXCEPTIONS_STORAGE_KEY = 'qiji.accountLockExceptions'
+
+function readLockExceptions(): Set<string> {
+  if (typeof window === 'undefined') return new Set()
+
+  try {
+    const raw = window.localStorage.getItem(LOCK_EXCEPTIONS_STORAGE_KEY) || '[]'
+    const parsed: unknown = JSON.parse(raw)
+
+    return new Set(Array.isArray(parsed) ? (parsed as string[]) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+let lockExceptions: Set<string> = readLockExceptions()
+
+export function setAccountLockExceptions(next: Iterable<string>): void {
+  lockExceptions = new Set([...next].map(k => k.trim().toLowerCase()))
+
+  try {
+    window.localStorage.setItem(LOCK_EXCEPTIONS_STORAGE_KEY, JSON.stringify([...lockExceptions]))
+  } catch {
+    // ignore
+  }
+}
+
+export function clearAccountLockExceptions(): void {
+  setAccountLockExceptions([])
+}
+
+/** target 是豁免集内的本机专家档案 → true（锁放行）。 */
+export function isAccountLockException(target: string): boolean {
+  return lockExceptions.has(target.trim().toLowerCase())
+}
+
+/**
+ * 锁语义下的"实际可见 scope"：豁免集内 → 目标本身；否则 → 锁定档案。
+ * 未启用锁（未登录）时原样返回。所有拉取侧的锁收敛统一走这里，与
+ * $profileScope 的显示收敛同源。
+ */
+export function accountLockedScopeFor(target: string, locked: string | null): string {
+  if (!locked) return target
+
+  return isAccountLockException(target) ? target : locked
+}
+
 /** 供单测直接重置 */
 export function _resetAccountProfileMapForTest() {
   if (typeof window === 'undefined') return

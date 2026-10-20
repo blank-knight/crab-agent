@@ -1,4 +1,4 @@
-import { accountLockedProfile } from '@/lib/account-profile'
+import { accountLockedProfile, accountLockedScopeFor } from '@/lib/account-profile'
 import { isMissingRestEndpoint } from '@/lib/gateway-rpc'
 import { maybeBackfillLegacySessionOwners } from '@/lib/legacy-session-owner-backfill'
 import { stampRowsWithOwningConnection } from '@/lib/session-owner-stamp'
@@ -146,7 +146,9 @@ export async function listAllProfileSessions(
   // 强制收敛到该账号。奇计的 profile = 付费客户账号，跨账号可见会话 =
   // 数据泄漏。锁不开启（未登录/未登记映射）则保持上游行为。
   const lockedProfile = accountLockedProfile()
-  const scopedProfile = lockedProfile ?? profile
+  // crab 0.20.5o: 豁免集内的本机专家档案不收敛——锁只锁"跨账号"，
+  // 专家档案属于创建它的账号（见 store/profile.ts 豁免集注释）。
+  const scopedProfile = lockedProfile ? accountLockedScopeFor(profile, lockedProfile) : profile
   const sourceParam = filter.source ? `&source=${encodeURIComponent(filter.source)}` : ''
 
   const excludeParam = filter.excludeSources?.length
