@@ -88,11 +88,27 @@ export function appVersionInfo(
 
   const build = stamp.channelBuild
 
+  // crab 0.20.5o: bootstrap 形态下 runtimeVersion 优先是上游语义，但对
+  // vendor 快照安装是错的——快照树的 git 自报 "git.<stub-sha>"（无真实
+  // 版本号），覆盖了真桌面版本 0.20.5-n。两起实锤事故：
+  // ①客户端更新检查把 git.df89ea2 报给服务端，compareVersion 数字化
+  //   git=0 → 被判远古版本 → 命中 0.18.2 强推弹窗（点了=降级）；
+  // ②About 页同样显示 git.df89ea2 而非 0.20.5-n。
+  // 修法：git.* 形态的 runtimeVersion（开发/快照构建）不参与 firstRealVersion
+  // 竞争，让 displayVersion 顶上。带真实版本号的 runtime（正式安装）不受影响。
+  const isSnapshotRuntimeVersion =
+    !build && stamp.payload === 'bootstrap' && /^git\./.test(String(runtimeVersion || ''))
+
   return {
     appVersion: build
       ? `${build.sourceVersion} (${build.channel} #${build.sequence}, ${build.commit.slice(0, 8)})`
       : stamp.payload === 'bootstrap'
-        ? firstRealVersion([runtimeVersion, stamp.displayVersion, stamp.baseVersion, packageVersion])
+        ? firstRealVersion([
+            ...(isSnapshotRuntimeVersion ? [] : [runtimeVersion]),
+            stamp.displayVersion,
+            stamp.baseVersion,
+            packageVersion
+          ])
         : firstRealVersion([stamp.displayVersion, stamp.baseVersion, packageVersion, runtimeVersion]),
     baseVersion: build?.sourceVersion ?? stamp.baseVersion ?? undefined,
     sequence: build?.sequence,

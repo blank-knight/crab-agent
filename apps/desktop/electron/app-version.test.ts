@@ -122,4 +122,36 @@ describe('artifact version identity', (): void => {
     expect(nativeAboutVersion({ appVersion: '0.0.0', baseVersion: '1.2.3' })).toBe('1.2.3')
     expect(nativeAboutVersion({ appVersion: '' })).toBe('unknown')
   })
+
+  // crab 0.20.5o: vendor 快照安装（0.20.5n 重铺）的 runtime 自报 git.<sha>，
+  // 不能盖掉桌面包版本——否则客户端更新检查把 git.df89ea2 报给服务端，
+  // compareVersion 数字化 git=0 被判远古版本命中强推弹窗（2026-10-20 实锤）。
+  it('a bootstrap install with a git.* snapshot runtime reports the desktop version, not the stub sha', (): void => {
+    const stamp: InstallStamp = {
+      payload: 'bootstrap',
+      tag: null,
+      displayVersion: '0.20.5-n',
+      baseVersion: '0.20.5',
+      commit: '4a73fac4ef',
+      branch: null,
+      dirty: false,
+      source: 'ci',
+      updateMechanism: 'self'
+    } as InstallStamp
+
+    expect(appVersionInfo(stamp, 'git.df89ea2', '0.20.5').appVersion).toBe('0.20.5-n')
+  })
+
+  it('a bootstrap install with a real versioned runtime still prefers the runtime version', (): void => {
+    const stamp: InstallStamp = {
+      payload: 'bootstrap',
+      tag: null,
+      displayVersion: '0.20.5-n',
+      baseVersion: '0.20.5',
+      source: 'ci',
+      updateMechanism: 'self'
+    } as InstallStamp
+
+    expect(appVersionInfo(stamp, '0.21.0', '0.20.5').appVersion).toBe('0.21.0')
+  })
 })
