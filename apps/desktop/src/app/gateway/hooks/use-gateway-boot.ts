@@ -21,6 +21,7 @@ import {
   LIVENESS_REPROBE_DELAY_MS
 } from '@/lib/gateway-liveness-policy'
 import { resolveDesktopGatewayWsUrl } from '@/lib/gateway-ws-url'
+import { withInstallAwareTimeout } from '@/lib/install-aware-timeout'
 import { BACKEND_BOOT_WAIT_TIMEOUT_MS, RECONNECT_ATTEMPT_TIMEOUT_MS, withTimeout } from '@/lib/with-timeout'
 import { $auth, isAuthenticated } from '@/store/auth'
 import {
@@ -1380,10 +1381,15 @@ export function useGatewayBoot({
         // round-trip must not hang "Starting Hermes…" forever. Initial boot
         // rides out a full backend cold spawn, so it gets the shared 45s
         // backend-boot budget, not the 20s reconnect budget.
-        const conn = await withTimeout(
+        // crab 0.20.5o: 首装/引擎重铺期间主进程在跑 install.ps1（3-10
+        // 分钟），180s 一刀切会把正在安装的用户弹到超时报错页。安装事件
+        // 流持续时自动续期窗口（见 withInstallAwareTimeout），停摆仍超时。
+        const conn = await withInstallAwareTimeout(
           getWindowBackend(true),
           BACKEND_BOOT_WAIT_TIMEOUT_MS,
-          'Timed out connecting to Hermes backend'
+          'Timed out connecting to Hermes backend',
+          // 任何 bootstrap 事件（manifest/stage/log/complete）都算安装活动
+          desktop?.onBootstrapEvent
         )
 
         if (cancelled) {
