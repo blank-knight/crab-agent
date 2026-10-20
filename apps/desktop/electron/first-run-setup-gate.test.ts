@@ -132,3 +132,29 @@ test('remote apply without a waiter has no first-run side effects', async () => 
   assert.equal(hidden, 0)
   assert.equal(gate.isLocalBootstrapConfirmed(), true)
 })
+
+// crab 0.20.5o: 引擎升级重铺（runtimeUpgrade 标记）不走首装选择门——
+// 0.20.5n 装机实锤：升级用户被选择卡拦住干等，渲染层 180s 超时报
+// couldn't start。
+test('first-run setup gate does not stop an engine-upgrade re-stage', async () => {
+  const prompts: unknown[] = []
+  const gate = createFirstRunSetupGate({ promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+
+  const decision = await gate.wait({ ...bootstrapBackend, runtimeUpgrade: true })
+
+  assert.equal(decision, 'continue-local')
+  assert.deepEqual(prompts, [])
+  assert.equal(gate.hasWaiter(), false)
+})
+
+test('a plain first-run still prompts (regression guard)', async () => {
+  const prompts: unknown[] = []
+  const gate = createFirstRunSetupGate({ promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+
+  const pending = gate.wait(bootstrapBackend)
+  const state = await settledState(pending)
+
+  assert.equal(state, 'pending')
+  assert.equal(prompts.length, 1)
+  gate.resetForRetry()
+})

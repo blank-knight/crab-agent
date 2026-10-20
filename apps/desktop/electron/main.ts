@@ -5136,7 +5136,12 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
     installStamp: INSTALL_STAMP, // may be null in dev
     isPackaged: IS_PACKAGED,
     platform: process.platform,
-    local: 'none'
+    local: 'none',
+    // crab 0.20.5o: 引擎升级重铺（老 runtime 被版本闸门判旧）不是首装——
+    // 用户早就装好并用过，重铺是本包自带的既定动作，无需首装选择卡确认。
+    // first-run-setup-gate 见此标记直接放行（0.20.5n 装机实锤：升级用户被
+    // 选择卡拦住干等，渲染层 180s 超时报 couldn't start）。
+    runtimeUpgrade: runtimeOutdated || bootstrapRepairRequested
   }
 }
 

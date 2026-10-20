@@ -4,6 +4,13 @@ interface FirstRunSetupBackend {
   platform?: string
   /** What the local setup card represents: 'none' = installer offer, the rest = use existing. */
   local?: 'none' | 'installed' | 'bundled'
+  /**
+   * crab 0.20.5o: this bootstrap-needed sentinel is an ENGINE UPGRADE
+   * re-stage of an existing install, not a first run — the gate must not
+   * stop and ask (0.20.5n: upgrade users stalled on the choice card until
+   * the renderer's 180s boot budget timed out with "couldn't start").
+   */
+  runtimeUpgrade?: boolean
 }
 
 interface FirstRunSetupGateOptions {
@@ -60,7 +67,12 @@ export function createFirstRunSetupGate({
   }
 
   const shouldGate = (backend?: FirstRunSetupBackend | null) =>
-    Boolean(backend && backend.kind === 'bootstrap-needed' && !localBootstrapConfirmed)
+    Boolean(
+      backend &&
+        backend.kind === 'bootstrap-needed' &&
+        !backend.runtimeUpgrade &&
+        !localBootstrapConfirmed
+    )
 
   const wait = async (backend?: FirstRunSetupBackend | null) => {
     if (!shouldGate(backend)) {
