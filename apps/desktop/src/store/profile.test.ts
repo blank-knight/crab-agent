@@ -47,6 +47,7 @@ const {
   invalidateProfileListFetches,
   newSessionInProfile,
   prewarmProfileBackend,
+  profileLabel,
   refreshProfiles,
   selectProfile
 } = await import('./profile')
@@ -414,5 +415,21 @@ describe("profile switch leaves the previous profile's project (#54990)", () => 
     newSessionInProfile('default')
 
     expect(resolveNewSessionCwd()).toBe('/work/app1')
+  })
+})
+
+// crab 0.20.5o: profileLabel 的 bot_title 兜底——OPC 专家中文名在
+// bot_title，display_name 恒空；无兜底时切换器显示裸技术 ID（pmvagpyyc）。
+describe('profileLabel bot_title fallback', (): void => {
+  it('uses bot_title when display_name is empty (OPC expert profiles)', (): void => {
+    expect(profileLabel({ name: 'pmvagpyyc', display_name: '', bot_title: '作文专家' })).toBe('作文专家')
+  })
+
+  it('prefers display_name over bot_title (user rename wins)', (): void => {
+    expect(profileLabel({ name: 'pmvagpyyc', display_name: '我的名字', bot_title: '作文专家' })).toBe('我的名字')
+  })
+
+  it('falls back to the canonical name when both are empty', (): void => {
+    expect(profileLabel({ name: 'default', display_name: '', bot_title: '' })).toBe('default')
   })
 })

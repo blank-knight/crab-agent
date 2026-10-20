@@ -47,8 +47,18 @@ export function normalizeProfileKey(name: string | null | undefined): string {
 // Presentation-only label: the display_name from profile.yaml when set (e.g. a
 // renamed default profile), else the canonical name. Never used for
 // comparison or routing — canonical `name` remains the identity everywhere.
-export function profileLabel(profile: Pick<ProfileInfo, 'display_name' | 'name'>): string {
-  return (profile.display_name ?? '').trim() || profile.name
+// crab 0.20.5o: OPC 专家（Bot Mode roster 成员）的中文名存在 bot_title
+// （profile.yaml ui_meta['hermes-bots'].title），display_name 恒为空——不加
+// 这级兜底，切换器/侧栏对专家档案显示裸技术 ID（pmvagpyyc），用户认不出
+// 自己建的专家（10-20 装机实锤）。display_name（用户手改的名）仍优先。
+export function profileLabel(
+  profile: Pick<ProfileInfo, 'display_name' | 'bot_title' | 'name'>
+): string {
+  return (
+    (profile.display_name ?? '').trim() ||
+    (profile.bot_title ?? '').trim() ||
+    profile.name
+  )
 }
 
 // The profile the running local backend is actually scoped to (mirrors
