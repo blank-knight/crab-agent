@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react'
 import { setWorkspaceOwnerLabel } from '@/components/pane-shell/workspace-scope'
 import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
+import { refreshFleetRoster } from '@/store/fleet-roster'
 
 import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
 import { $botMeta, useRoster } from '../../plugins/hermes-bots/data'
@@ -161,6 +162,9 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
 
     try {
       await deleteBot({ name: expert.name } as RosterRow)
+      // crab 0.20.5o-r2: 删除后立刻刷 fleet roster——侧栏「专家会话」分组
+      // 的数据源就是它，不刷则已删专家残留到下次窗口聚焦。
+      void refreshFleetRoster({ force: true })
       setConfirming(false)
     } catch (e) {
       setConfirmError(e instanceof Error ? e.message : String(e))
