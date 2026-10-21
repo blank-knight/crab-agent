@@ -44,7 +44,6 @@ import { requestGatewayForProfile } from '@/store/gateway'
 import { revealFileInTree } from '@/store/layout'
 import { $onboardingGate, guidedOnboardingActive } from '@/store/onboarding-gate'
 import { $activeGatewayProfile } from '@/store/profile'
-import { $profileRailVisible } from '@/store/profile-rail-prefs'
 import { $projectTree, projectNameForCwd } from '@/store/projects'
 import {
   $activeSessionId,
@@ -126,7 +125,6 @@ export function useStatusbarItems({
   // minimized zone, which lit the button for a pane the user couldn't see.
   const terminalShowing = useStore($paneVisible('terminal'))
   const sessionsShowing = useStore($paneVisible('sessions'))
-  const profileRailVisible = useStore($profileRailVisible)
   const botsShowing = useStore($paneVisible('hermes-bots:pane'))
   const primaryBusy = useStore($busy)
   // Draft / primary composer atom — used only while the focused surface is the
@@ -492,7 +490,11 @@ export function useStatusbarItems({
       {
         // The rail's stand-in: the profile picker moves down here while the
         // colored strip is hidden, so switching profiles always has a door.
-        hidden: !sessionsShowing || profileRailVisible,
+        // crab 0.20.5o-r2 (10-21): 常驻隐藏——侧栏专家会话分组已是切档案的
+        // 正门（点会话行 resume 即 ensureGatewayProfile），rail 默认藏后这个
+        // 补位下拉与专家分组概念重复（用户拍板）。组件保留：显式开回 rail
+        // 的用户仍按原逻辑拿到补位门。
+        hidden: true,
         id: 'profile-switcher',
         lockedVisible: true,
         render: () => <ProfileSwitcher compact />
@@ -652,7 +654,6 @@ export function useStatusbarItems({
       inferenceReady,
       inferenceStatus?.reason,
       openAgents,
-      profileRailVisible,
       projectName,
       sessionsShowing,
       subagentsFailed,
