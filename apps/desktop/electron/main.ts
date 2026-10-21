@@ -5160,6 +5160,8 @@ interface ResolvedHermesBackend {
   isPackaged?: boolean
   platform?: NodeJS.Platform
   readyFile?: boolean
+  /** crab 0.20.5o: 引擎升级重铺中（版本闸门判旧/修复触发）——首装选择门见此直接放行。 */
+  runtimeUpgrade?: boolean
 }
 
 async function ensureRuntime(

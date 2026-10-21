@@ -20,7 +20,20 @@ declare const __HERMES_PRODUCT_IDENTITY__: ProductIdentity
 /** The baked identity of this artifact (dev bundles derive it live). */
 export const PRODUCT_IDENTITY: Readonly<ProductIdentity> =
   typeof __HERMES_PRODUCT_IDENTITY__ === 'undefined'
-    ? Object.freeze(nodeCreateRequire(import.meta.url)('../product-identity.cjs') as ProductIdentity)
+    ? Object.freeze(
+        nodeCreateRequire(
+          // crab 0.20.5o-r2: CJS 打包(esbuild QIJI_CJS_MAIN 分支)把 import.meta
+          // 垫成空对象——createRequire(undefined) 直接炸；electron dev 的
+          // argv[1] 又是 '.'(cwd 相对)。两级兜底后用 CJS 真实存在的
+          // __filename（esbuild 保留），与 .cjs 同目录解析 ../product-identity.cjs。
+          // ESM 分支(打包/dev 默认)不受影响，仍走 import.meta.url。
+          typeof import.meta.url === 'string'
+            ? import.meta.url
+            : typeof __filename === 'string'
+              ? __filename
+              : process.argv[1]!
+        )('../product-identity.cjs') as ProductIdentity
+      )
     : Object.freeze(__HERMES_PRODUCT_IDENTITY__)
 
 /** Pin before the first userData lookup and single-instance lock. Electron's
