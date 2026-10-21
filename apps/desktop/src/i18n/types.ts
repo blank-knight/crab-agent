@@ -3171,6 +3171,14 @@ export interface Translations {
     review: string
     logs: string
     cronJobs: string
+    expertSessions: {
+      /** Section header label (collapsed group at the sidebar bottom). */
+      label: string
+      /** Per-expert sub-section toggle. */
+      toggleProfile: (label: string, open: boolean) => string
+      loading: string
+      noSessions: string
+    }
     groupAriaGrouped: string
     groupAriaUngrouped: string
     showProjects: string

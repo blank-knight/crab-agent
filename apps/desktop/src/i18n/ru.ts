@@ -2778,6 +2778,12 @@ export const ru = defineLocale({
     review: 'Проверка',
     logs: 'Журналы',
     cronJobs: 'Cron-задачи',
+    expertSessions: {
+      label: 'Сессии экспертов',
+      toggleProfile: (label, open) => `${open ? 'Развернуть' : 'Свернуть'} сессии: ${label}`,
+      loading: 'Загрузка…',
+      noSessions: 'Сессий пока нет'
+    },
     groupAriaGrouped: 'Показать сеансы одним списком',
     groupAriaUngrouped: 'Сгруппировать сеансы по рабочим пространствам',
     showProjects: 'Показать проекты',

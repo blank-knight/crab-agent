@@ -4031,6 +4031,12 @@ export const esOverrides = {
     review: 'Revisión',
     logs: 'Registros',
     cronJobs: 'Tareas cron',
+    expertSessions: {
+      label: 'Sesiones de expertos',
+      toggleProfile: (label, open) => `${open ? 'Expandir' : 'Plegar'} las sesiones de ${label}`,
+      loading: 'Cargando…',
+      noSessions: 'Aún no hay sesiones'
+    },
     groupAriaGrouped: 'Mostrar sesiones como una sola lista',
     groupAriaUngrouped: 'Agrupar sesiones por espacio de trabajo',
     showProjects: 'Mostrar proyectos',

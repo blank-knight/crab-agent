@@ -3752,6 +3752,12 @@ export const en: Translations = {
     review: 'Review',
     logs: 'Logs',
     cronJobs: 'Cron jobs',
+    expertSessions: {
+      label: 'Expert sessions',
+      toggleProfile: (label, open) => `${open ? 'Expand' : 'Collapse'} expert sessions for ${label}`,
+      loading: 'Loading…',
+      noSessions: 'No sessions yet'
+    },
     groupAriaGrouped: 'Show sessions as a single list',
     groupAriaUngrouped: 'Group sessions by workspace',
     showProjects: 'Show projects',

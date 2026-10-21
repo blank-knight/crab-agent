@@ -2585,6 +2585,12 @@ export const ja = defineLocale({
     review: 'レビュー',
     logs: 'ログ',
     cronJobs: 'Cronジョブ',
+    expertSessions: {
+      label: 'エージェント会話',
+      toggleProfile: (label, open) => `${label} の会話を${open ? '展開' : '折りたたむ'}`,
+      loading: '読み込み中…',
+      noSessions: '会話はまだありません'
+    },
     groupAriaGrouped: 'セッションを単一リストとして表示',
     groupAriaUngrouped: 'ワークスペースごとにセッションをグループ化',
     showProjects: 'プロジェクトを表示',

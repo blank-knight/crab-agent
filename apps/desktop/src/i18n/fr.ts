@@ -4051,6 +4051,12 @@ export const frOverrides = {
     review: 'Revue',
     logs: 'Journaux',
     cronJobs: 'Tâches cron',
+    expertSessions: {
+      label: "Sessions d'experts",
+      toggleProfile: (label, open) => `${open ? 'Déplier' : 'Replier'} les sessions de ${label}`,
+      loading: 'Chargement…',
+      noSessions: 'Aucune session pour le moment'
+    },
     groupAriaGrouped: 'Afficher les sessions en une seule liste',
     groupAriaUngrouped: 'Grouper les sessions par espace de travail',
     showProjects: 'Afficher les projets',

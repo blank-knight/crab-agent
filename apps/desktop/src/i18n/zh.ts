@@ -4045,6 +4045,12 @@ export const zh = defineLocale({
     review: '审查',
     logs: '日志',
     cronJobs: '定时任务',
+    expertSessions: {
+      label: '专家会话',
+      toggleProfile: (label, open) => `${open ? '展开' : '收起'} ${label} 的会话`,
+      loading: '加载中…',
+      noSessions: '暂无会话'
+    },
     groupAriaGrouped: '以单一列表显示会话',
     groupAriaUngrouped: '按工作区分组会话',
     showProjects: '显示项目',

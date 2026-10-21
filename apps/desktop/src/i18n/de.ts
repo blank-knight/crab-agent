@@ -4041,6 +4041,12 @@ export const deOverrides = {
     review: 'Review',
     logs: 'Logs',
     cronJobs: 'Cron-Jobs',
+    expertSessions: {
+      label: 'Experten-Sitzungen',
+      toggleProfile: (label, open) => `Sitzungen von ${label} ${open ? 'ausklappen' : 'einklappen'}`,
+      loading: 'Lädt…',
+      noSessions: 'Noch keine Sitzungen'
+    },
     groupAriaGrouped: 'Sessions als einzelne Liste anzeigen',
     groupAriaUngrouped: 'Sessions nach Workspace gruppieren',
     showProjects: 'Projekte anzeigen',

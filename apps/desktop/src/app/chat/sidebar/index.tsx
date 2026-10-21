@@ -40,6 +40,7 @@ import {
   $pinnedSessionIds,
   $sidebarCardRows,
   $sidebarCronOpen,
+  $sidebarExpertSessionsOpen,
   $sidebarFiltersActive,
   $sidebarGrouping,
   $sidebarMessagingOpenIds,
@@ -63,6 +64,7 @@ import {
   SESSION_SEARCH_FOCUS_EVENT,
   setPinnedSessionOrder,
   setSidebarCronOpen,
+  setSidebarExpertSessionsOpen,
   setSidebarPinsOpen,
   setSidebarProjectOrderIds,
   setSidebarRecentsOpen,
@@ -151,6 +153,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 
 import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
+import { SidebarExpertSessionsSection } from './expert-sessions-section'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
 import { SidebarLoadMoreRow } from './load-more-row'
@@ -483,6 +486,7 @@ export function ChatSidebar({
   const pinsOpen = useStore($sidebarPinsOpen)
   const agentsOpen = useStore($sidebarRecentsOpen)
   const cronOpen = useStore($sidebarCronOpen)
+  const expertSessionsOpen = useStore($sidebarExpertSessionsOpen)
   // The sidebar highlight tracks the FOCUSED session — the interacted tile's
   // tab, else the main selection — so it stays 1:1 with whatever tab is active.
   const selectedSessionId = useStore($focusedStoredSessionId)
@@ -2066,6 +2070,17 @@ export function ChatSidebar({
                   />
                 )
               })}
+
+            {/* crab 0.20.5o: 专家会话折叠分组（用户拍板：底部、默认收起、localStorage
+                记住状态）。无本机专家（豁免集空）时组件自隐藏。 */}
+            {!trimmedQuery && !worktreeGroupingActive && (
+              <SidebarExpertSessionsSection
+                activeSessionId={activeSidebarSessionId}
+                onResumeSession={onResumeSession}
+                onToggle={() => setSidebarExpertSessionsOpen(!expertSessionsOpen)}
+                open={expertSessionsOpen}
+              />
+            )}
 
             {!trimmedQuery && !worktreeGroupingActive && showsAdvancedChrome && cronJobs.length > 0 && (
               <SidebarCronJobsSection

@@ -2801,6 +2801,12 @@ export const zhHant = defineLocale({
     review: '審查',
     logs: '記錄',
     cronJobs: '排程任務',
+    expertSessions: {
+      label: '專家會話',
+      toggleProfile: (label, open) => `${open ? '展開' : '收起'} ${label} 的會話`,
+      loading: '載入中…',
+      noSessions: '暫無會話'
+    },
     groupAriaGrouped: '以單一清單顯示工作階段',
     groupAriaUngrouped: '依工作區分組工作階段',
     showProjects: '顯示專案',

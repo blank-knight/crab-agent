@@ -2208,6 +2208,12 @@ export const ar = defineLocale({
     review: 'المراجعة',
     logs: 'السجلات',
     cronJobs: 'المهام المجدولة',
+    expertSessions: {
+      label: 'جلسات الخبراء',
+      toggleProfile: (label, open) => `${open ? 'توسيع' : 'طي'} جلسات ${label}`,
+      loading: 'جار التحميل…',
+      noSessions: 'لا توجد جلسات بعد'
+    },
     groupAriaGrouped: 'الجلسات مجمعة حسب مساحة العمل',
     groupAriaUngrouped: 'الجلسات غير مجمعة',
     showProjects: 'عرض المشاريع',
