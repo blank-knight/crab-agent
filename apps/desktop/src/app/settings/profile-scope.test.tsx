@@ -22,7 +22,7 @@ vi.mock('@/store/starmap', () => ({ resetStarmapGraph: vi.fn() }))
 
 const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
 const { $settingsScopeOverride } = await import('@/store/settings-scope')
-const { ActiveProfileNote, SettingsProfileScope } = await import('./profile-scope')
+const { ActiveProfileNote, hideScopeSelectorEntirely, SettingsProfileScope } = await import('./profile-scope')
 
 const profile = (name: string, isDefault = false, extra: Partial<ProfileInfo> = {}): ProfileInfo =>
   ({ has_env: false, is_default: isDefault, model: null, name, ...extra }) as ProfileInfo
@@ -34,6 +34,30 @@ beforeEach(() => {
 })
 
 afterEach(cleanup)
+
+describe('hideScopeSelectorEntirely (crab 0.20.5p-r2)', () => {
+  // qiji 打包形态：PROD+已登录+账号档<=1 → 整个选择器隐藏（概念泄漏修复）
+  it('hides when prod+authed with a single account profile', () => {
+    const profiles = [profile('default', true), profile('acc_13800002026')]
+    expect(hideScopeSelectorEntirely(profiles, { prod: true, authed: true })).toBe(true)
+  })
+
+  it('shows when multiple account profiles exist (multi-account machine)', () => {
+    const profiles = [profile('default', true), profile('acc_13800002026'), profile('acc_13711112222')]
+    expect(hideScopeSelectorEntirely(profiles, { prod: true, authed: true })).toBe(false)
+  })
+
+  it('never hides in the upstream OSS shape (dev build or logged out)', () => {
+    const profiles = [profile('default', true), profile('acc_13800002026')]
+    expect(hideScopeSelectorEntirely(profiles, { prod: false, authed: true })).toBe(false)
+    expect(hideScopeSelectorEntirely(profiles, { prod: true, authed: false })).toBe(false)
+  })
+
+  it('experts do not count as account profiles', () => {
+    const profiles = [profile('default', true), profile('pmvagpyyc', false, { bot_title: '算命专家' })]
+    expect(hideScopeSelectorEntirely(profiles, { prod: true, authed: true })).toBe(true)
+  })
+})
 
 describe('SettingsProfileScope', () => {
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
+import { isAuthenticated } from '@/store/auth'
 import { $activeGatewayProfile, $profiles, normalizeProfileKey, profileLabel, refreshProfiles } from '@/store/profile'
 import {
   $settingsScopeEditsNonDefault,
@@ -18,6 +19,29 @@ import type { ProfileInfo } from '@/types/hermes'
  *  bot_title 为空的档案（default + acc_*）全部保留。 */
 function isExpertProfile(profile: ProfileInfo): boolean {
   return (profile.bot_title ?? '').trim() !== ''
+}
+
+/** crab 0.20.5p-r2: qiji 打包形态下整个"应用于"选择器隐藏——账号隔离场景
+ *  用户只有自己一个账号档（acc_*），default 是本机档不跟账号走，让用户
+ *  在两者间选"写到哪"没有正确答案（选 default = 换机/换号全丢），纯概念
+ *  泄漏。登录后账号档 ≤1 时设置全部直写当前档案，所见即所得。上游 OSS
+ *  形态（非 PROD 或未登录）不受影响，多 profile 用户照旧有选择器。
+ *  prod/authed 参数化仅为可测性，调用点传真实值。 */
+function isAccountProfile(profile: ProfileInfo): boolean {
+  return profile.name.startsWith('acc_')
+}
+
+export function hideScopeSelectorEntirely(
+  profiles: ProfileInfo[],
+  opts: { prod?: boolean; authed?: boolean } = {}
+): boolean {
+  const { prod = import.meta.env.PROD, authed = isAuthenticated() } = opts
+
+  if (!prod || !authed) {
+    return false
+  }
+
+  return profiles.filter(isAccountProfile).length <= 1
 }
 
 /** Settings-chip label: the Bot Mode title the Bots roster shows when set
@@ -84,7 +108,7 @@ export function SettingsProfileScope({ className }: { className?: string }) {
   // rules-of-hooks（lint 实抓）。
   const [open, setOpen] = useState(false)
 
-  if (profiles.length < 2) {
+  if (profiles.length < 2 || hideScopeSelectorEntirely(profiles)) {
     return null
   }
 
