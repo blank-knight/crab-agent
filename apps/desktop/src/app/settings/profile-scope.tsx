@@ -77,13 +77,17 @@ export function SettingsProfileScope({ className }: { className?: string }) {
     void refreshProfiles().catch(() => undefined)
   }, [])
 
+  // qiji 螃蟹OPC: 默认收起为单行紧凑选择器（下拉展开），只有显式点开才见全量 chips
+  // ——上游的常驻全量 chip 行在多身份场景下过于喧宾夺主。
+  // crab 0.20.5p-r2: useState 必须在下方 early return 之前——专家过滤后
+  // "仅剩 1 个账号档案"成为常态可达路径，条件返回后再调 hooks 违反
+  // rules-of-hooks（lint 实抓）。
+  const [open, setOpen] = useState(false)
+
   if (profiles.length < 2) {
     return null
   }
 
-  // qiji 螃蟹OPC: 默认收起为单行紧凑选择器（下拉展开），只有显式点开才见全量 chips
-  // ——上游的常驻全量 chip 行在多身份场景下过于喧宾夺主。
-  const [open, setOpen] = useState(false)
   const selectedChip = profiles.find(profile => normalizeProfileKey(profile.name) === selected)
 
   return (
