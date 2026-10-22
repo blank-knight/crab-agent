@@ -45,6 +45,7 @@ function expandChips() {
   expect(toggle).toBeTruthy()
   fireEvent.click(toggle!)
 }
+
   it('renders nothing with fewer than two profiles', () => {
     $profiles.set([profile('default', true)])
 
@@ -108,37 +109,40 @@ function expandChips() {
     expect(note?.hasAttribute('data-scope-loud')).toBe(false)
   })
 
-  it('labels chips with the bot title, else the display name, else the slug', () => {
+  it('labels chips with the display name, else the slug — bot/expert profiles are hidden', () => {
     $profiles.set([
       profile('default', true, { bot_title: 'JordyV', display_name: 'JordieF' }),
       profile('default-2', false, { display_name: 'Copy' }),
-      profile('weather-man')
+      profile('weather-man'),
+      profile('pmv-expert', false, { bot_title: '算命专家' })
     ])
 
     render(<SettingsProfileScope />)
 
-    // Bot Mode title wins over display_name and the slug — same identity the
-    // Bots roster shows.
+    // crab 0.20.5p-r2: 专家档案（bot_title 非空）从选择器剔除——"应用于算命
+    // 专家"是概念泄漏，专家不是用户可配的工作区。default 带 bot_title 是
+    // fixture 构造，同规则命中即隐藏。
     expandChips()
-    // 折叠按钮与 chip 同名 JordyV —— getAllBy（两者都在 = 折叠态显示当前项 + chip）
-    expect(screen.getAllByRole('button', { name: 'JordyV' }).length).toBeGreaterThanOrEqual(2)
-    // display_name (profile.yaml) when no Bot Mode title exists.
+    // Non-bot profiles: display_name (profile.yaml) when set.
     expect(screen.getByRole('button', { name: 'Copy' })).toBeTruthy()
     // Canonical slug when neither is set.
     expect(screen.getByRole('button', { name: 'weather-man' })).toBeTruthy()
+    // Bot/expert profiles never render a chip.
+    expect(screen.queryByRole('button', { name: '算命专家' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'JordyV' })).toBeNull()
   })
 
   it('keeps selection keyed on the canonical name while showing the presentation label', () => {
-    $profiles.set([profile('default', true), profile('coder', false, { bot_title: 'JordyV' })])
+    $profiles.set([profile('default', true), profile('coder', false, { display_name: 'Coder Bay' })])
 
     render(<SettingsProfileScope />)
 
     expandChips()
-    fireEvent.click(screen.getByRole('button', { name: 'JordyV' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Coder Bay' }))
     // The label changed, the identity did not: the override stores the slug.
     expect($settingsScopeOverride.get()).toBe('coder')
     // The "applies to" note names the target the way its chip does.
-    expect(document.querySelector('[role="status"]')?.textContent).toContain('JordyV')
+    expect(document.querySelector('[role="status"]')?.textContent).toContain('Coder Bay')
     expect(document.querySelector('[role="status"]')?.textContent).not.toContain('coder')
   })
 })

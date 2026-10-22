@@ -12,10 +12,18 @@ import {
 } from '@/store/settings-scope'
 import type { ProfileInfo } from '@/types/hermes'
 
-// Settings-chip label: the Bot Mode title the Bots roster shows when set
-// (ui_meta['hermes-bots'].title), else the app-wide profileLabel
-// (display_name → slug). Scoped to this selector on purpose — the profile
-// rail and Profiles page keep naming profiles by display_name.
+/** crab 0.20.5p-r2: 专家档案（Bot Mode 成员，bot_title 非空）在设置作用域
+ *  选择器里隐藏——专家是"人格"不是用户可配的工作区（用户拍板 10-22），
+ *  "应用于算命专家"是概念泄漏。专家的配置走专家模板自带，不进设置页。
+ *  bot_title 为空的档案（default + acc_*）全部保留。 */
+function isExpertProfile(profile: ProfileInfo): boolean {
+  return (profile.bot_title ?? '').trim() !== ''
+}
+
+/** Settings-chip label: the Bot Mode title the Bots roster shows when set
+ * (ui_meta['hermes-bots'].title), else the app-wide profileLabel
+ * (display_name → slug). Scoped to this selector on purpose — the profile
+ * rail and Profiles page keep naming profiles by display_name. */
 export function settingsScopeLabel(profile: Pick<ProfileInfo, 'bot_title' | 'display_name' | 'name'>): string {
   return (profile.bot_title ?? '').trim() || profileLabel(profile)
 }
@@ -53,7 +61,10 @@ export function SettingsProfileScope({ className }: { className?: string }) {
   const override = useStore($settingsScopeOverride)
   const selected = useStore($settingsScopeProfile)
   const editingNonDefault = useStore($settingsScopeEditsNonDefault)
-  const profiles = useStore($profiles)
+  // crab 0.20.5p-r2: 过滤专家档案（见 isExpertProfile 注释）——选择器只列
+  // 账号工作区。若当前 scope 恰好停在专家档案上（历史遗留），selected 的
+  // chip 找不到对应行，回落裸名显示，不额外跳转。
+  const profiles = useStore($profiles).filter(p => !isExpertProfile(p))
   // The note names the edit target with the same presentation label as its
   // chip (Bot title → display_name → slug); the slug alone can name a bot the
   // user has never seen called that.
