@@ -1,46 +1,28 @@
 import { useStore } from '@nanostores/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { SidebarPanelLabel } from '@/app/shell/sidebar-label'
 import { DisclosureCaret } from '@/components/ui/disclosure-caret'
 import { SidebarGroup, SidebarGroupContent } from '@/components/ui/sidebar'
-import { listAllProfileSessions, type SessionInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
+import { openBotCanonicalChat } from '@/plugins/hermes-bots/canonical-chat'
 import { $fleetRoster, refreshFleetRoster } from '@/store/fleet-roster'
-import { $sessionsLimit, $sidebarWorkspaceNodeOpen, setWorkspaceNodeOpen } from '@/store/layout'
-
-import { SidebarSessionRow } from './session-row'
+import { notifyError } from '@/store/notifications'
 
 /**
- * crab 0.20.5o-r2: 侧栏「专家会话」折叠分组。
+ * 侧栏「专家会话」分组 —— crab 0.20.5o-r2（10-21 产品定稿）：一专家一线程。
  *
- * 普通会话列表原样；底部多一个"▸ 专家会话"分组头（可折叠、默认收起、
- * localStorage 记住状态）。组内按专家分节，各节显示该专家档案的历史会话。
+ * 模型对齐（用户拍板）：OPC 专家页承诺的就是"永续对话"——每个专家一条
+ * 常驻 canonical 会话（openBotCanonicalChat，hermes-bots 现成机制），点
+ * 名字永远进他那条线，今天接着昨天聊。首版按通用档案模型列 N 条历史，
+ * 与 OPC 承诺互相矛盾（"专家会话下挂一堆对话"），且暴露了"档案"概念。
  *
- * 数据源（r2 修正，10-21 装机实锤：新建算命专家对话后分组里没有他——
- * 旧实现用账号锁豁免集当专家集合，而豁免集只在启动/登录刷一次）：
- * 改用 $fleetRoster（Electron 枚举的本机连接 profile 全集），挂载时
- * force 刷新一次——新建专家立即可见；中文名同行带（profileMetadata:
- * display_name → title → ui_meta['hermes-bots'].title），不再单独拉
- * /api/profiles。与 OPC 专家页同一身份体系（profile name），概念不再
- * 与"配置档案"分叉：本机非 default 的 profile 就是 OPC 专家，一对一。
+ * 数据源：$fleetRoster（本机连接、非 default 档案 = 专家，与 OPC 专家页
+ * 同一身份体系）。点击 = openBotCanonicalChat(profileName)：已有常驻线则
+ * resume，没有则建（kickoffOnCreate 与 OPC 专家卡一致）。
  *
- * 会话拉取走 listAllProfileSessions（锁收敛在它内部统一做，0.20.5o
- * 已接豁免），行带 profile/connection 戳，resume 走 owner-aware
- * openStoredSession（点开即钉住行的档案）。
- *
- * 折叠态读法（nanostores 订阅纪律）：per-expert 折叠存共享的
- * $sidebarWorkspaceNodeOpen（key expert-sessions:<profile>）。必须
- * useStore 订阅整张 map 再按 nodeId 取值——直调 workspaceNodeOpen()
- * 只是普通函数读，折叠状态变更不会触发本组件重渲染。
+ * 挂载时强刷一次 roster：新删专家立即可见（roster 平时只按需拉取）。
  */
-
-// One page of sessions per expert, revealed on first expand. Same budget the
-// flat recents list uses, so a busy expert mirrors what its own scope shows.
-function expertSessionNodeId(profile: string): string {
-  return `expert-sessions:${profile}`
-}
-
 function expertProfileKey(profile: string): string {
   return profile.trim().toLowerCase()
 }
@@ -79,19 +61,11 @@ function localExpertsFromRoster(roster: { agents?: Array<{ connectionKind?: stri
 }
 
 interface ExpertSessionsSectionProps {
-  activeSessionId: null | string
-  /** Owner-aware resume door (openStoredSession). */
-  onResumeSession: (sessionId: string, session?: SessionInfo) => void
   onToggle: () => void
   open: boolean
 }
 
-export function SidebarExpertSessionsSection({
-  activeSessionId,
-  onResumeSession,
-  onToggle,
-  open
-}: ExpertSessionsSectionProps) {
+export function SidebarExpertSessionsSection({ onToggle, open }: ExpertSessionsSectionProps) {
   const { t } = useI18n()
   const e = t.sidebar.expertSessions
   const roster = useStore($fleetRoster)
@@ -127,13 +101,7 @@ export function SidebarExpertSessionsSection({
       {open && (
         <SidebarGroupContent className="flex flex-col gap-px pb-1.75">
           {experts.map(expert => (
-            <ExpertProfileSessions
-              activeSessionId={activeSessionId}
-              key={expert.key}
-              label={expert.label}
-              onResumeSession={onResumeSession}
-              profile={expert.key}
-            />
+            <ExpertRow key={expert.key} label={expert.label} profile={expert.key} />
           ))}
         </SidebarGroupContent>
       )}
@@ -141,87 +109,28 @@ export function SidebarExpertSessionsSection({
   )
 }
 
-interface ExpertProfileSessionsProps {
-  activeSessionId: null | string
+interface ExpertRowProps {
   label: string
   profile: string
-  onResumeSession: (sessionId: string, session?: SessionInfo) => void
 }
 
-function ExpertProfileSessions({ activeSessionId, label, profile, onResumeSession }: ExpertProfileSessionsProps) {
-  const { t } = useI18n()
-  const e = t.sidebar.expertSessions
-  // Section default: collapsed (user-approved design). Persisted on the
-  // shared workspace-node map, absolute value (see layout.ts rationale).
-  // Subscribed read (useStore) — see the subscription note up top.
-  const nodeId = expertSessionNodeId(profile)
-  const nodeOpen = useStore($sidebarWorkspaceNodeOpen)
-  const open = nodeOpen[nodeId] ?? false
-
-  // null = not loaded yet (loading); [] = loaded, empty.
-  const [sessions, setSessions] = useState<null | SessionInfo[]>(null)
-
-  useEffect(() => {
-    if (!open) {return}
-
-    let cancelled = false
-
-    setSessions(null)
-
-    listAllProfileSessions($sessionsLimit.get(), 1, 'exclude', 'recent', profile)
-      .then(res => {
-        if (!cancelled) {setSessions(res?.sessions ?? [])}
-      })
-      .catch(() => {
-        if (!cancelled) {setSessions([])}
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [open, profile])
+/** 一专家一行：点击 = 进他的常驻对话（canonical chat）。 */
+function ExpertRow({ label, profile }: ExpertRowProps) {
+  const openCanonical = () => {
+    // 与 OPC 专家卡同链路：已有常驻线 resume，没有则建。openBotCanonicalChat
+    // 接受 RosterRow | string（档案名）；kickoffOnCreate 让新建线立即就绪。
+    openBotCanonicalChat(profile, { kickoffOnCreate: true }).catch(err => {
+      notifyError(err, `无法打开 ${label} 的对话`)
+    })
+  }
 
   return (
-    <div>
-      <button
-        aria-expanded={open}
-        aria-label={e.toggleProfile(label, !open)}
-        className="flex w-full min-w-0 items-center gap-1 rounded-sm px-1 py-0.5 text-left leading-none hover:bg-(--chrome-action-hover)"
-        onClick={() => setWorkspaceNodeOpen(nodeId, !open)}
-        type="button"
-      >
-        <DisclosureCaret className="shrink-0 text-(--ui-text-tertiary)" open={open} />
-        <span className="truncate text-[0.75rem] font-medium text-(--ui-text-secondary)">{label}</span>
-        {sessions !== null && sessions.length > 0 && (
-          <span className="ml-auto shrink-0 text-[0.6875rem] text-(--ui-text-tertiary) tabular-nums">
-            {sessions.length}
-          </span>
-        )}
-      </button>
-      {open && (
-        <div className="ml-[1.375rem] flex flex-col gap-px">
-          {sessions === null ? (
-            <div className="py-1 pl-1 text-[0.6875rem] text-(--ui-text-tertiary)">{e.loading}</div>
-          ) : sessions.length === 0 ? (
-            <div className="py-1 pl-1 text-[0.6875rem] text-(--ui-text-tertiary)">{e.noSessions}</div>
-          ) : (
-            sessions.map(session => (
-              <SidebarSessionRow
-                isPinned={false}
-                isSelected={session.id === activeSessionId}
-                key={`${session.profile ?? ''}::${session.id}`}
-                onArchive={() => undefined}
-                onDelete={() => undefined}
-                onPin={() => undefined}
-                onResume={() => onResumeSession(session.id, session)}
-                onToggleUnread={() => undefined}
-                session={session}
-                unread={session.unread === true}
-              />
-            ))
-          )}
-        </div>
-      )}
-    </div>
+    <button
+      className="flex w-full min-w-0 items-center gap-1.5 rounded-sm px-1 py-1 text-left leading-none hover:bg-(--chrome-action-hover)"
+      onClick={openCanonical}
+      type="button"
+    >
+      <span className="truncate text-[0.75rem] font-medium text-(--ui-text-secondary)">{label}</span>
+    </button>
   )
 }

@@ -2,6 +2,7 @@ import { useStore } from '@nanostores/react'
 import { type MutableRefObject, useCallback, useEffect, useRef } from 'react'
 import type { NavigateFunction } from 'react-router'
 
+import { getProfiles } from '@/api/profiles'
 import { NO_PROJECT_ID } from '@/app/chat/sidebar/projects/workspace-groups'
 import {
   extendRefreshPageToOverlap,
@@ -19,9 +20,7 @@ import {
   setSessionArchived
 } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { accountLockedProfile } from '@/lib/account-profile'
-import { getProfiles } from '@/api/profiles'
-import { $lastRoster } from '@/plugins/hermes-bots/data'
+import { accountLockedProfile, isAccountLockException } from '@/lib/account-profile'
 import {
   type ChatMessage,
   preserveLocalAssistantErrors,
@@ -35,6 +34,7 @@ import { isMissingRpcMethod } from '@/lib/gateway-rpc'
 import { recoverInFlightTurnJournal } from '@/lib/inflight-turn-journal'
 import { latestSessionTodoSnapshot } from '@/lib/todos'
 import { setSessionYolo } from '@/lib/yolo-session'
+import { $lastRoster } from '@/plugins/hermes-bots/data'
 import { $clarifyRequests, clearClarifyRequest } from '@/store/clarify'
 import { announceGoneSessionDraft, announceNewSessionDraftKey, migrateSessionDraft } from '@/store/composer'
 import { clearQueuedPrompts, migrateQueuedPrompts } from '@/store/composer-queue'
@@ -348,16 +348,23 @@ async function desktopSessionCreateParams(
   }
 
   // qiji 账号隔离兜底：boot 深处 $activeGatewayProfile 才被校正，此前
-  // atom 初值是 'default'——这个窗口里创建的会话会被错盖 default 戳，
-  // 恢复时被账号锁误拦。登录账号锁定的 profile 就是创建路径真正落库
-  // 的 profile，锁值优先。
+  // atom 初值是 'default'——这个窗口里创建的会话会被错盖 default 戳， 恢
+  // 复时被账号锁误拦。锁只兜底"无显式意图"的场景——crab 0.20.5o-r2：
+  // 用户从专家分组/档案门切到专家档后发消息，显式意图（capturedRoute/
+  // requestedProfile/newChat pin）必须压过锁值，否则专家会话全部错落
+  // default（装机实测：切算命专家发消息落 default，侧栏历史也显示
+  // default——锁值无条件置顶把显式意图全吃了）。锁的本义是拦"跨账号"
+  // 泄漏，不是拦用户主动选择的档案；豁免集（本机专家档）在拉取侧另行
+  // 放行，创建侧同理——显式意图指向豁免集内档案时锁不参与。
   const lockedProfile = accountLockedProfile()
+  const explicitIntent = capturedRoute?.profile || requestedProfile || $newChatProfile.get()
 
   const profile =
+    (explicitIntent && (!lockedProfile || isAccountLockException(explicitIntent))
+      ? explicitIntent
+      : undefined) ||
     lockedProfile ||
-    capturedRoute?.profile ||
-    requestedProfile ||
-    $newChatProfile.get() ||
+    explicitIntent ||
     normalizeProfileKey($activeGatewayProfile.get())
 
   if (capturedRoute) {

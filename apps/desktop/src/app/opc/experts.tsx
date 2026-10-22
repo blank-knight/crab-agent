@@ -19,6 +19,7 @@ import { setWorkspaceOwnerLabel } from '@/components/pane-shell/workspace-scope'
 import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
 import { refreshFleetRoster } from '@/store/fleet-roster'
+import { refreshAccountLockExceptions } from '@/store/profile'
 
 import { openBotCanonicalChat } from '../../plugins/hermes-bots/canonical-chat'
 import { $botMeta, useRoster } from '../../plugins/hermes-bots/data'
@@ -165,6 +166,9 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
       // crab 0.20.5o-r2: 删除后立刻刷 fleet roster——侧栏「专家会话」分组
       // 的数据源就是它，不刷则已删专家残留到下次窗口聚焦。
       void refreshFleetRoster({ force: true })
+      // 同步刷账号锁豁免集：被删档案退出豁免集，拉取侧收敛回锁定档，
+      // 已删专家的孤儿会话不再出现在任何 scope。
+      void refreshAccountLockExceptions()
       setConfirming(false)
     } catch (e) {
       setConfirmError(e instanceof Error ? e.message : String(e))

@@ -12,19 +12,16 @@ import { exitProjectScope } from '@/store/project-scope'
 import {
   $unreadFinishedSessionIds,
   setActiveSessionId,
-  setCronSessions,
   setCurrentBranch,
   setCurrentCwdTransient,
   setFreshDraftReady,
   setMessages,
   setMessagingListServer,
   setMessagingPlatformTotals,
-  setMessagingSessions,
   setMessagingTruncated,
   setSelectedStoredSessionId,
   setSessionProfilesTruncated,
   setSessionProfilesUsage,
-  setSessions,
   setSessionsLoadError,
   setSessionsLoading
 } from '@/store/session'
@@ -42,6 +39,12 @@ import { clearTranscriptTails } from '@/store/transcript-tail-cache'
 // when startHermes re-emits boot progress, and tells the resume path that a
 // "session not found" mid-switch means "retry once things settle", not "gone".
 export const $gatewaySwitching = atom(false)
+
+// crab 0.20.5o-r2 延迟清空：切档案的侧栏闪烁治本——wipe 不再当场清空
+// 会话列表（旧列表顶住显示），改立此旗；首次针对新 scope 的
+// refreshSessions 发布时替换而非合并，随即落旗。中断安全：旗是持久
+// 状态，没被消费前任何一次发布都会替换。
+export const $pendingGatewaySessionWipe = atom(false)
 
 /**
  * Renderer-side cleanup a connection switch must run before the next gateway
@@ -200,13 +203,15 @@ export function wipeSessionListsForGatewaySwitch(): void {
   // Project ids belong to the outgoing backend's projects.db; a scope left
   // entered would root the next draft's cwd in the old source's project.
   exitProjectScope()
-  setSessions([])
+  // crab 0.20.5o-r2: 会话三列表不再当场清空——那是切档案侧栏闪烁的根
+  // （清空→skeleton→新数据到达才重绘，装机实测"闪烁一下才加载完"）。
+  // 改立延迟清空旗，由 refreshSessions 首次发布时替换语义消费（见
+  // use-session-list-actions）。元数据 map 无 UI 骨架效应，保持原样即清。
+  $pendingGatewaySessionWipe.set(true)
   setSessionProfilesTruncated({})
   setSessionProfilesUsage({})
-  setCronSessions([])
   invalidateCronJobsRequests()
   setCronJobs([])
-  setMessagingSessions([])
   setMessagingListServer(null)
   setMessagingPlatformTotals({})
   setMessagingTruncated(false)

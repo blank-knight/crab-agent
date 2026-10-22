@@ -4,11 +4,9 @@ import { $sessionsLimit, resetSessionsLimit, SIDEBAR_SESSIONS_PAGE_SIZE } from '
 import { $projectScope, ALL_PROJECTS } from '@/store/project-scope'
 import {
   $activeSessionId,
-  $cronSessions,
   $currentBranch,
   $currentCwd,
   $freshDraftReady,
-  $messagingSessions,
   $sessionProfilesTruncated,
   $sessions,
   $sessionsLoading,
@@ -33,6 +31,7 @@ import {
 
 import {
   $gatewaySwitching,
+  $pendingGatewaySessionWipe,
   beginGatewaySwitch,
   endGatewaySwitch,
   recoverActiveSourceAfterFailedGatewaySwitch,
@@ -92,10 +91,11 @@ describe('wipeSessionListsForGatewaySwitch', () => {
 
     expect($retainedTodosBySession.get().s1).toBeUndefined()
 
-    expect($sessions.get()).toEqual([])
+    // crab 0.20.5o-r2: 会话列表延迟清空（防切档闪烁）——wipe 只立旗，
+    // $sessions/$cronSessions/$messagingSessions 保留旧值顶住显示，由
+    // refreshSessions 首次发布以替换语义消费（见 use-session-list-actions）。
+    expect($pendingGatewaySessionWipe.get()).toBe(true)
     expect($sessionProfilesTruncated.get()).toEqual({})
-    expect($cronSessions.get()).toEqual([])
-    expect($messagingSessions.get()).toEqual([])
     expect($stalledSessionIds.get()).toEqual([])
     expect($sessionsLoading.get()).toBe(true)
     expect($sessionsLimit.get()).toBe(SIDEBAR_SESSIONS_PAGE_SIZE)
@@ -186,7 +186,8 @@ describe('beginGatewaySwitch / endGatewaySwitch — the shared switch commit poi
     expect($gatewaySwitching.get()).toBe(true)
     // The previous backend's runtime binding is gone before anything can dial.
     expect($activeSessionId.get()).toBeNull()
-    expect($sessions.get()).toEqual([])
+    // 0.20.5o-r2: 列表延迟清空——旧行保留顶住显示，旗由 refreshSessions 消费
+    expect($pendingGatewaySessionWipe.get()).toBe(true)
     expect($sessionsLoading.get()).toBe(true)
 
     endGatewaySwitch()
@@ -315,7 +316,7 @@ describe('beginGatewaySwitch / endGatewaySwitch — the shared switch commit poi
     const newer = beginGatewaySwitch()
 
     expect(beforeConnectionSwitch).toHaveBeenCalledTimes(2)
-    expect($sessions.get()).toEqual([])
+    expect($pendingGatewaySessionWipe.get()).toBe(true)
     expect($activeSessionId.get()).toBeNull()
 
     endGatewaySwitch(older)
@@ -330,7 +331,7 @@ describe('beginGatewaySwitch / endGatewaySwitch — the shared switch commit poi
 
     expect($gatewaySwitching.get()).toBe(true)
     expect($activeSessionId.get()).toBeNull()
-    expect($sessions.get()).toEqual([])
+    expect($pendingGatewaySessionWipe.get()).toBe(true)
 
     endGatewaySwitch()
     expect($gatewaySwitching.get()).toBe(false)

@@ -13,6 +13,7 @@
 
 import { useState } from 'react'
 
+import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { Codicon } from '@/components/ui/codicon'
 import {
   Dialog,
@@ -21,12 +22,13 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { cn } from '@/lib/utils'
+import { refreshAccountLockExceptions } from '@/store/profile'
 
-import { GeneratePromptButton } from './user-agent-cards'
 import { saveBotMeta } from '../../plugins/hermes-bots/data'
 import { composeSoul } from '../../plugins/hermes-bots/soul'
+
+import { GeneratePromptButton } from './user-agent-cards'
 
 /** profile id：合法字符集内且几乎不撞名（同秒重复提交由调用方串行化）。 */
 function generateProfileId(): string {
@@ -46,6 +48,7 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
     if (!valid || busy) {return}
     setBusy(true)
     setError(null)
+
     try {
       // 1) 建 profile（id 自动生成）+ 人设直达后端。crab 0.20.5k 修正：
       //    人设必须随 profiles.create 落到 description + SOUL.md
@@ -70,7 +73,12 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
         title: title.trim(),
         description: personaText
       })
-      // roster 5s 轮询会自动带出新专家；无需手动失效
+      // 3) crab 0.20.5o-r2：立即刷账号锁豁免集——豁免集只在启动/登录刷
+      //    （use-gateway-boot/login-overlay），新建的专家档不进集则拉取侧
+      //    accountLockedScopeFor 把他的会话收敛回锁定档（default），侧栏
+      //    专家分组看不到他、发消息也落错档。等 5s roster 轮询太慢且
+      //    豁免集根本不跟 roster 走，创建落定即补一发。
+      void refreshAccountLockExceptions()
       onClose(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))

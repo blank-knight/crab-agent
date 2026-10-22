@@ -9,6 +9,7 @@ import {
   normalizeSessionSource
 } from '@/lib/session-source'
 import { gatewayActivationEpoch } from '@/store/gateway'
+import { $pendingGatewaySessionWipe } from '@/store/gateway-switch'
 import {
   $pinnedSessionIds,
   $sessionsLimit,
@@ -419,18 +420,31 @@ export function useSessionListActions({ profileScope }: UseSessionListActionsArg
           // that returns content-identical rows must keep the previous array
           // identity, or every sidebar memo keyed on $sessions recomputes and the
           // whole list re-renders once per turn/broadcast for nothing.
+          // crab 0.20.5o-r2: 延迟清空旗消费点——gateway 切换不再当场清列表
+          // （防闪烁），此处旗立则以空列表为基底（替换语义）并落旗，旧档
+          // 行不可能经 mergeSessionPage 残留进新 scope。
+          const wipingGatewayLeftover = $pendingGatewaySessionWipe.get()
           setSessions(prev => {
+            const base = wipingGatewayLeftover ? [] : prev
+
             const incoming = dropTombstoned(
-              carryForwardFailedProfileSessions(prev, recents.sessions ?? [], recents.errors ?? result.errors)
+              carryForwardFailedProfileSessions(base, recents.sessions ?? [], recents.errors ?? result.errors)
             )
 
             // Filter AFTER the merge: the guard must also catch survivors
             // (a stale previous slice can still hold the doomed row through
             // the keep set once the tombstone prune has cleared membership).
-            const next = dropRemovalRaced(mergeSessionPage(prev, incoming, sessionsToKeep()), removalSnapshot)
+            const next = dropRemovalRaced(mergeSessionPage(base, incoming, wipingGatewayLeftover ? [] : sessionsToKeep()), removalSnapshot)
 
             return sameCronSignature(prev, next) ? prev : next
           })
+
+          // 旗在此消费完毕：$sessions 已以替换语义重建，落旗让后续刷新回
+          // 到合并在地列表的正常语义。
+          if (wipingGatewayLeftover) {
+            $pendingGatewaySessionWipe.set(false)
+          }
+
           // "Is there another page?" instead of an exact total: the backend
           // reports which profiles filled their window, which costs nothing on
           // top of the rows it already read (the old exact totals ran a COUNT(*)

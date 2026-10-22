@@ -2072,11 +2072,10 @@ export function ChatSidebar({
               })}
 
             {/* crab 0.20.5o: 专家会话折叠分组（用户拍板：底部、默认收起、localStorage
-                记住状态）。无本机专家（豁免集空）时组件自隐藏。 */}
+                记住状态）。无本机专家时组件自隐藏。0.20.5o-r2: 一专家一线程——
+                只列专家名，点击进常驻对话，不再列 N 条历史。 */}
             {!trimmedQuery && !worktreeGroupingActive && (
               <SidebarExpertSessionsSection
-                activeSessionId={activeSidebarSessionId}
-                onResumeSession={onResumeSession}
                 onToggle={() => setSidebarExpertSessionsOpen(!expertSessionsOpen)}
                 open={expertSessionsOpen}
               />
