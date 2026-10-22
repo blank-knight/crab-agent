@@ -264,6 +264,19 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
       const currentProfile = normalizeProfileKey($activeGatewayProfile.get())
 
       if (accountProfile !== currentProfile) {
+        // crab 0.20.5p-r2: 首登热切换早退前必须把 api_key 先落进新档案——
+        // setEnvVar 不带显式 profile 时走 $apiRequestScope（此时还指旧档
+        // 案），等切换完成再写=写进旧档案，新档案 .env 无 key，引擎抛
+        // no_provider_configured（英文原文直泄 UI）。首登必坏、二登自愈的
+        // 根因。写失败不阻塞切换（与下方 catch 同策略）。
+        if (data.api_key) {
+          try {
+            await setEnvVar('OPENAI_API_KEY', data.api_key, accountProfile)
+          } catch {
+            // 新档案后端可能还没起——切换完成后下方还会补写一次
+          }
+        }
+
         selectProfile(accountProfile)
         // 热切换后立即刷新配置/模型/会话列表，避免登录层收起后短暂显示
         // 上一个账号的残留数据
@@ -348,6 +361,16 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
       const currentProfile = normalizeProfileKey($activeGatewayProfile.get())
 
       if (accountProfile !== 'default' && accountProfile !== currentProfile) {
+        // crab 0.20.5p-r2: 注册即首登同款——早退前先落 key 进新档案（见
+        // doLogin 同位置注释），否则新账号首进必抛 no_provider_configured。
+        if (data.api_key) {
+          try {
+            await setEnvVar('OPENAI_API_KEY', data.api_key, accountProfile)
+          } catch {
+            // 不阻塞注册
+          }
+        }
+
         selectProfile(accountProfile)
         onLoggedIn?.()
 
