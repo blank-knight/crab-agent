@@ -47,6 +47,7 @@ import { onGatewayEvent } from '@/contrib/events'
 import { registry } from '@/contrib/registry'
 import type { WorkspaceMode } from '@/contrib/types'
 import { deleteProfile, getLogs, getStatus, hermesApi, type HermesGateway } from '@/hermes'
+import { accountLockedProfile } from '@/lib/account-profile'
 import { completeMcpDesktopOAuth } from '@/lib/mcp-dashboard-oauth'
 import {
   $gateway,
@@ -1084,8 +1085,20 @@ export const host = {
       // view; a local bot open keeps the planner's decision, unchanged from
       // before the synthesized-route addition. A refreshInPlace wake never
       // touches the view at all.
+      //
+      // crab 0.20.5p-r3: qiji 账号锁定下跳过一切 all-profiles 视图翻转——
+      // 专家行点击(dialWithoutSwitching,active 仍是账号档)走 plan.
+      // showAllProfiles=true → setShowAllProfiles(true),而 enforceAccount
+      // ProfileLock 在 boot/列表刷新时又把它打回 false:$showAllProfiles
+      // 真假横跳 → $profileScope 在 ALL↔acc_* 震荡 → 侧栏历史消失+闪烁
+      // (10-23 装机实锤)。锁定时 scope 恒为锁值(豁免集只放网关档,拨号
+      // 不切网关),视图翻转对这个形态只有害处。
+      const accountLocked = Boolean(accountLockedProfile())
+
       if (options.refreshInPlace) {
         // no view change — the refresh inherits whatever is showing
+      } else if (accountLocked) {
+        // no view change — the lock owns the scope
       } else if (explicitRoute) {
         setShowAllProfiles(true)
       } else if (plan.showAllProfiles !== null) {
