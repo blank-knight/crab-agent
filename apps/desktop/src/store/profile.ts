@@ -6,7 +6,6 @@ import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_M
 import {
   accountLockedProfile,
   clearAccountLockExceptions,
-  isAccountLockException,
   setAccountLockExceptions
 } from '@/lib/account-profile'
 import { sortByProfileOrder as sortProfilesByOrder } from '@/lib/profile-order'
@@ -1021,14 +1020,12 @@ export const $profileScope = computed(
     const locked = accountLockedProfile()
 
     if (locked) {
-      // crab 0.20.5o: 豁免集内的本机专家档案可达——网关实际在哪个档案，
-      // 侧栏就显示哪个（点专家档案不再被拽回 default）。
-      const gatewayKey = normalizeProfileKey(gateway)
-
-      if (isAccountLockException(gatewayKey)) {
-        return gatewayKey
-      }
-
+      // crab 0.20.5p-r3: 锁定下侧栏 scope 恒为账号档——进专家对话会激活
+      // 专家网关($activeGatewayProfile 翻到专家档),0.20.5o 的豁免集跟随
+      // 会让侧栏拉专家档的隐藏会话 → 历史全空(10-23 三轮实锤:侧栏入口/
+      // OPC入口/视图翻转锁判后仍复现,病灶在 scope 跟随而非入口)。专家
+      // 对话是 tile 不依赖侧栏 scope;列表由各档 state.db 只读服务,与活
+      // 动网关无关。豁免集机制保留(网关可达性判定仍用),仅侧栏不再跟随。
       return locked
     }
 
