@@ -40,7 +40,6 @@ import {
   $pinnedSessionIds,
   $sidebarCardRows,
   $sidebarCronOpen,
-  $sidebarExpertSessionsOpen,
   $sidebarFiltersActive,
   $sidebarGrouping,
   $sidebarMessagingOpenIds,
@@ -64,7 +63,6 @@ import {
   SESSION_SEARCH_FOCUS_EVENT,
   setPinnedSessionOrder,
   setSidebarCronOpen,
-  setSidebarExpertSessionsOpen,
   setSidebarPinsOpen,
   setSidebarProjectOrderIds,
   setSidebarRecentsOpen,
@@ -153,7 +151,6 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 
 import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
-import { SidebarExpertSessionsSection } from './expert-sessions-section'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
 import { SidebarLoadMoreRow } from './load-more-row'
@@ -486,7 +483,6 @@ export function ChatSidebar({
   const pinsOpen = useStore($sidebarPinsOpen)
   const agentsOpen = useStore($sidebarRecentsOpen)
   const cronOpen = useStore($sidebarCronOpen)
-  const expertSessionsOpen = useStore($sidebarExpertSessionsOpen)
   // The sidebar highlight tracks the FOCUSED session — the interacted tile's
   // tab, else the main selection — so it stays 1:1 with whatever tab is active.
   const selectedSessionId = useStore($focusedStoredSessionId)
@@ -2071,16 +2067,11 @@ export function ChatSidebar({
                 )
               })}
 
-            {/* crab 0.20.5o: 专家会话折叠分组（用户拍板：底部、默认收起、localStorage
-                记住状态）。无本机专家时组件自隐藏。0.20.5o-r2: 一专家一线程——
-                只列专家名，点击进常驻对话，不再列 N 条历史。 */}
-            {!trimmedQuery && !worktreeGroupingActive && (
-              <SidebarExpertSessionsSection
-                onToggle={() => setSidebarExpertSessionsOpen(!expertSessionsOpen)}
-                open={expertSessionsOpen}
-              />
-            )}
-
+            {/* crab 0.20.5p-r3: 专家会话分组整段移除（用户拍板 10-23）——点专家
+                常驻对话触发 openSession 的视图翻转与账号锁震荡（历史消失+
+                闪烁，装机两轮实锤），且侧栏双入口与 OPC 智能体面板重复。
+                专家会话单一入口 = OPC 智能体面板。组件与 store 保留，
+                upstream 形态如需恢复仅还原此段。 */}
             {!trimmedQuery && !worktreeGroupingActive && showsAdvancedChrome && cronJobs.length > 0 && (
               <SidebarCronJobsSection
                 jobs={cronJobs}
