@@ -24,6 +24,11 @@ from typing import Any, Callable, Optional, Protocol, runtime_checkable
 # outside this set re-raises so it surfaces in the crash log instead of looking like a clean disconnect.
 _PEER_GONE_ERRNOS = frozenset({
     errno.EPIPE, errno.ECONNRESET, errno.EBADF, errno.ESHUTDOWN,
+    # qiji 0.20.5q: Windows 写"对端已关"的管道常报 EINVAL(22) 而非 EPIPE——serve 进程
+    # 的 stdout 管道随 spawner 死亡后,每个后台线程的 stdio 帧写入都崩(tui_gateway_crash.log
+    # 实锤:reaped 会话的 turn/_build 线程连环 OSError Errno 22)。EINVAL 在此语义下唯一
+    # 现实来源就是死管道(stdout 只写不读,不存在"对只读文件写"的编程错路径)。
+    errno.EINVAL,
     getattr(errno, "WSAECONNRESET", -1), getattr(errno, "WSAESHUTDOWN", -1),  # win32 (no-op on POSIX)
 } - {-1})
 
