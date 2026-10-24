@@ -244,9 +244,20 @@ def list_archived_skill_names() -> List[str]:
 
 
 def _read_skill_name(skill_md: Path, fallback: str) -> str:
-    """The frontmatter ``name:`` field of a SKILL.md (first 4000 chars), else *fallback*."""
+    """The frontmatter ``name:`` field of a SKILL.md (first 4000 chars), else *fallback*.
+
+    qiji 0.20.5q: SKILL.md.enc(出厂加密技能)经 decrypt_file 兼容读——明文照旧,
+    密文解密(密钥片段缺失/解密失败按 OSError 同路降级 fallback,repo/dev 树
+    无片段时行为不变)。"""
     try:
-        lines = [line.strip() for line in skill_md.read_text(encoding="utf-8-sig", errors="replace")[:4000].split("\n")]
+        try:
+            from tools.skill_crypto import decrypt_file
+            text = decrypt_file(skill_md)
+        except ImportError:
+            text = None
+        if text is None:
+            text = skill_md.read_text(encoding="utf-8-sig", errors="replace")
+        lines = [line.strip() for line in text[:4000].split("\n")]
     except OSError:
         return fallback
     if "---" not in lines:

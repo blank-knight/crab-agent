@@ -30,6 +30,43 @@ _PROFILE_RESCAN_INTERVAL_SECS = 30.0
 _PROFILE_SIGNATURE_FILES = ("config.yaml", ".env")
 
 
+def maybe_seed_profile_skills(profile_home: "Path", *, timeout: float = 90.0) -> Optional[dict]:
+    """qiji 0.20.5q: Seed bundled skills into a served profile that has none.
+
+    Desktop's ``ensureNamedProfileDir`` mkdirs an EMPTY skeleton for account profiles and never
+    seeds — that profile then resolves zero skills (``/qiji-geo`` Unknown command on acc_*).
+    Fire-and-forget repair at serve time: seed ONLY when the profile has no skills tree AND no
+    sync manifest (a deleted manifest with live skills means "user manages this"), reusing the
+    same subprocess isolation ``hermes profile create`` uses (``seed_profile_skills`` runs
+    sync_skills with HERMES_HOME pinned, which is manifest-driven and idempotent).
+    """
+    try:
+        from hermes_cli.profiles import seed_profile_skills
+    except Exception:
+        logger.debug("seed_profile_skills unavailable; skipping skill seed", exc_info=True)
+        return None
+    home = Path(profile_home)
+    skills_dir = home / "skills"
+    # 已有内容(或用户自管: manifest 存在但 skills 被清空)不碰;Desktop 的
+    # ensureNamedProfileDir 会 mkdir 一个空 skills/ 骨架——空目录必须照样 seed。
+    if (skills_dir / ".bundled_manifest").exists():
+        return None  # already seeded (or deliberately user-managed)
+    try:
+        if skills_dir.exists() and any(skills_dir.iterdir()):
+            return None  # non-empty tree the user (or an earlier seed) owns
+    except OSError:
+        return None
+    try:
+        result = seed_profile_skills(home, quiet=True)
+    except Exception:
+        logger.warning("Skill seeding failed for profile home %s", home, exc_info=True)
+        return None
+    if result and result.get("total_bundled"):
+        logger.info("Seeded %s bundled skill(s) into profile home %s",
+                    result.get("total_bundled"), home)
+    return result
+
+
 def profile_serve_signature(home: "Path") -> tuple:
     """Cheap change detector for a served profile's credentials/config: file signature per file."""
     sig = []
@@ -196,7 +233,8 @@ class GatewayProfileReconcileMixin:
         return claimed
 
     async def _after_profiles_added(self, profile_homes) -> None:
-        """Per-profile startup side effects for hot-added profiles: log routing + scoped MCP discovery."""
+        """Per-profile startup side effects for hot-added profiles: log routing + scoped MCP discovery
+        + qiji skill seeding (0.20.5q: Desktop-created account profiles start with an empty skeleton)."""
         from gateway.run import _enable_multiplex_log_routing, _profile_runtime_scope
         from contextvars import copy_context
         with _log_suppressed(logging.DEBUG, "log routing refresh failed", exc_info=True):
@@ -204,6 +242,12 @@ class GatewayProfileReconcileMixin:
         from tools.mcp_oauth import suppress_interactive_oauth
         loop = asyncio.get_running_loop()
         for profile_name, profile_home in profile_homes:
+            # qiji 0.20.5q: fire-and-forget seed on the executor — a 90s subprocess
+            # must never block the reconcile loop that just accepted the profile.
+            try:
+                await loop.run_in_executor(None, maybe_seed_profile_skills, Path(profile_home))
+            except Exception:
+                logger.warning("Skill seeding failed for profile '%s'", profile_name, exc_info=True)
             try:
                 from tools.mcp_tool_discovery import discover_mcp_tools
                 with _profile_runtime_scope(Path(profile_home)), suppress_interactive_oauth():

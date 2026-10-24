@@ -1234,9 +1234,18 @@ def _build_snapshot_entry(skill_file: Path, skills_dir: Path, frontmatter: dict,
 
 
 def _parse_skill_file(skill_file: Path) -> tuple[bool, dict, str]:
-    """Read a SKILL.md once -> (is_compatible, frontmatter, description); errors yield (True, {}, "")."""
+    """Read a SKILL.md once -> (is_compatible, frontmatter, description); errors yield (True, {}, "").
+
+    qiji 0.20.5q: SKILL.md.enc 兼容——密文经 decrypt_file(失败 None 触发原有
+    except 路径,行为不变)。"""
     try:
-        raw = skill_file.read_text(encoding="utf-8-sig")
+        try:
+            from tools.skill_crypto import decrypt_file
+            raw = decrypt_file(skill_file)
+        except ImportError:
+            raw = None
+        if raw is None:
+            raw = skill_file.read_text(encoding="utf-8-sig")
         frontmatter, _ = parse_frontmatter(raw)
         # Host-platform / runtime-environment gates are offer-time only; explicit loads bypass them.
         if not skill_matches_platform(frontmatter) or not skill_matches_environment(frontmatter) or not skill_matches_apps(frontmatter):

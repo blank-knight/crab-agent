@@ -778,24 +778,39 @@ def is_skill_description_truncated_for_prompt(frontmatter: Dict[str, Any]) -> bo
     return len(_normalize_skill_description(frontmatter)) > SKILL_PROMPT_DESC_LIMIT
 
 
+# qiji 0.20.5q: 索引文件候选——明文 SKILL.md 与出厂加密 SKILL.md.enc 同为技能索引。
+# 加密技能(qiji-geo)出厂树只放 .enc，按单一精确名扫描永远漏掉它(/qiji-geo Unknown
+# command 的第一层根因)。消费方通过 read_decrypted_skill_text() 统一解密读。
+SKILL_INDEX_FILENAMES = ("SKILL.md", "SKILL.md.enc")
+
+
 def iter_skill_index_files(skills_dir: Path, filename: str):
-    """Walk skills_dir yielding sorted paths matching *filename*; prunes
-    EXCLUDED_SKILL_DIRS and support dirs of skill roots. Org mirrors are
-    TOKEN-GATED: only the active org's subdir is walked, so leaving an org
-    stops its skills resolving without manual cleanup."""
+    """Walk skills_dir yielding sorted paths matching *filename* (or its ``.enc``
+    twin, for qiji-encrypted index files); prunes EXCLUDED_SKILL_DIRS and support
+    dirs of skill roots. Org mirrors are TOKEN-GATED: only the active org's
+    subdir is walked, so leaving an org stops its skills resolving without
+    manual cleanup."""
     skills_dir_str = str(skills_dir)
     active_org = read_active_org_id(skills_dir)
     org_root = os.path.join(skills_dir_str, ORG_MIRROR_DIR_NAME)
+    # qiji: DESCRIPTION.md 等非技能索引的调用方仍按单一精确名匹配;只有 SKILL.md
+    # 索引扫描接受 .enc 孪生(出厂加密技能)。明文存在时 .enc 不再匹配,防双文件态。
+    wanted = SKILL_INDEX_FILENAMES if filename == "SKILL.md" else (filename,)
     matches: list[str] = []
     for root, dirs, files in os.walk(skills_dir_str, followlinks=True):
-        has_skill_md = "SKILL.md" in files
+        has_plain = "SKILL.md" in files
+        has_skill_md = has_plain or "SKILL.md.enc" in files
         if root == skills_dir_str and ORG_MIRROR_DIR_NAME in dirs and active_org is None:
             dirs.remove(ORG_MIRROR_DIR_NAME)
         elif root == org_root:
             dirs[:] = [d for d in dirs if d == active_org]
         dirs[:] = [d for d in dirs if d not in EXCLUDED_SKILL_DIRS and not (has_skill_md and d in SKILL_SUPPORT_DIRS)]
-        if filename in files:
-            matches.append(os.path.join(root, filename))
+        enc_shadowed = "SKILL.md.enc" in files and has_plain
+        for name in wanted:
+            if name == "SKILL.md.enc" and enc_shadowed:
+                continue  # 明文优先:同一目录明文+enc 并存时只认明文
+            if name in files:
+                matches.append(os.path.join(root, name))
     yield from map(Path, sorted(matches))
 
 

@@ -868,7 +868,7 @@ class GatewayAdapterLifecycleMixin:
         Each profile connects under its own HERMES_HOME + secret scope; credential/listener collisions
         are refused here — the only point seeing every profile's credentials together."""
         from gateway.run import MultiplexConfigError, _multiplex_profile_homes
-        from gateway.run_profile_reconcile import profile_serve_signature
+        from gateway.run_profile_reconcile import maybe_seed_profile_skills, profile_serve_signature
         if not self._multiplex_on():
             # Runtime-status publication re-stamps the previous writer's record in place, so a multiplexer's
             # ``served_profiles`` would outlive it into this single-profile run and `hermes -p X ...`
@@ -898,6 +898,14 @@ class GatewayAdapterLifecycleMixin:
         for profile_name, profile_home in profile_homes:
             if profile_name == active:
                 continue  # handled by the primary startup loop
+            # qiji 0.20.5q: Desktop-created account profiles (ensureNamedProfileDir) start as
+            # empty skeletons — seed bundled skills at boot serve time. Executor hop: the seed
+            # is a 90s subprocess and this coroutine drives adapter connects.
+            try:
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, maybe_seed_profile_skills, Path(profile_home))
+            except Exception:
+                logger.warning("Skill seeding failed for profile '%s' at boot", profile_name, exc_info=True)
             # Preserve changes made while the initial connection is awaiting I/O.
             scan_signature = profile_serve_signature(profile_home)
             try:

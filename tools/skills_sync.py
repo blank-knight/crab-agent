@@ -85,11 +85,22 @@ def _rel_skills_posix(path: Path) -> str:
 
 
 def _iter_skill_mds(root: Path, sort: bool = False) -> Iterator[Path]:
-    """Yield every non-excluded SKILL.md under ``root`` (nothing when it does not exist)."""
-    found = root.rglob("SKILL.md") if root.exists() else iter(())
-    for skill_md in sorted(found) if sort else found:
+    """Yield every non-excluded SKILL.md under ``root`` (nothing when it does not exist).
+
+    qiji 0.20.5q: 同目录明文与 SKILL.md.enc 并存只认明文(防双文件态);目录仅有
+    .enc 时它是有效索引——出厂加密技能(qiji-geo)从此可被同步/枚举发现。"""
+    if not root.exists():
+        return
+    found_enc: list[Path] = []
+    for skill_md in (sorted(root.rglob("SKILL.md")) if sort else root.rglob("SKILL.md")):
         if not is_excluded_skill_path(skill_md):
             yield skill_md
+    for enc_md in root.rglob("SKILL.md.enc"):
+        if enc_md.parent.joinpath("SKILL.md").exists():
+            continue  # 明文优先
+        if not is_excluded_skill_path(enc_md):
+            found_enc.append(enc_md)
+    yield from (sorted(found_enc) if sort else found_enc)
 
 
 def _iter_active_skill_mds(sort: bool = False) -> Iterator[Path]:
@@ -170,12 +181,15 @@ def _write_manifest(entries: Dict[str, str]):
 def _discover_bundled_skills(bundled_dir: Path) -> List[Tuple[str, Path]]:
     """``(skill_name, skill_dir)`` per SKILL.md under the bundled dir. Exclusions are evaluated
     relative to the bundled tree: the install prefix itself may contain ``venv``/``site-packages``
-    (which once made wheel installs discover zero skills)."""
+    (which once made wheel installs discover zero skills).
+
+    qiji 0.20.5q: 走 _iter_skill_mds,出厂加密技能(SKILL.md.enc,qiji-geo)同样
+    被发现并同步进各 profile——此前 rglob("SKILL.md") 对 enc 全隐形。"""
     if not bundled_dir.exists():
         return []
     return [
         (_read_skill_name(md, md.parent.name), md.parent)
-        for md in bundled_dir.rglob("SKILL.md")
+        for md in _iter_skill_mds(bundled_dir, sort=True)
         if not is_excluded_skill_path(md.relative_to(bundled_dir), root=bundled_dir)]
 
 

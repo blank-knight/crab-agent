@@ -32,7 +32,19 @@ def _fail(error: str, **extra) -> str:
 
 def _read_skill_text(path: Path) -> str:
     """utf-8-sig + errors="replace": user-authored SKILL.md may carry a Notepad BOM or stray
-    bytes; pinning UTF-8 keeps skill_view deterministic across host locales."""
+    bytes; pinning UTF-8 keeps skill_view deterministic across host locales.
+
+    qiji 0.20.5q: SKILL.md.enc(出厂加密技能)兼容——密文走 decrypt_file(密钥片段
+    缺失/解密失败时降级为原样读,repo/dev 树行为不变)。"""
+    try:
+        from tools.skill_crypto import decrypt_file
+        text = decrypt_file(path)
+        if text is not None:
+            return text
+    except ImportError:
+        pass
+    except Exception:
+        pass  # 解密路径异常降级明文读(密文会以 replace 占位呈现,上层 frontmatter 判空)
     return path.read_text(encoding="utf-8-sig", errors="replace")
 
 

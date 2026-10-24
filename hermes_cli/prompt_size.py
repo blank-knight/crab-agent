@@ -80,9 +80,14 @@ def _skill_md_paths_by_name() -> Dict[str, Path]:
         for skill_file in iter_skill_index_files(skills_dir, "SKILL.md"):
             dir_name = skill_file.parent.name
             try:
-                frontmatter, _ = parse_frontmatter(
-                    skill_file.read_text(encoding="utf-8-sig")
-                )
+                try:  # qiji 0.20.5q: SKILL.md.enc 兼容(密钥缺失/失败按异常降级 dir 名)
+                    from tools.skill_crypto import decrypt_file
+                    text = decrypt_file(skill_file)
+                except ImportError:
+                    text = None
+                if text is None:
+                    text = skill_file.read_text(encoding="utf-8-sig")
+                frontmatter, _ = parse_frontmatter(text)
                 frontmatter_name = str(frontmatter.get("name") or dir_name)
             except Exception:
                 frontmatter_name = dir_name
