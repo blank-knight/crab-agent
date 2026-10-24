@@ -18,6 +18,7 @@ import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
+import { queueSkillInsert } from '@/store/composer'
 import type { SkillInfo } from '@/types/hermes'
 
 import { parseFrontmatter } from '../skills/frontmatter'
@@ -189,10 +190,11 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
   const version = parsed?.meta.find(([k]) => k === 'version')?.[1]
 
   const onUse = () => {
+    // qiji 0.20.5q: 直派 qiji:insert-skill 事件在 navigate('/') 后同步派发——
+    // 聊天页 composer 尚未挂载、监听器不存在，芯片静默丢失（用户实锤"点了没反应"）。
+    // 改走 OPC 0.20.5c 同款闩锁队列：主 composer 挂载且 workspace 回聊天态后领取。
     navigate('/')
-    window.dispatchEvent(
-      new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: skillNameZh(name, name) } })
-    )
+    queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name) })
   }
 
   return (
