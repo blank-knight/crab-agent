@@ -53,10 +53,11 @@ export function SkillDetail({
 
   // qiji 0.20.5e: 「使用」按钮——技能不是配置项，是能力入口。点击 = 回聊天页
   // 预填 /技能名 （与主页快捷技能卡、OPC 卡同一 queueSkillInsert 闩锁队列协议，
-  // 不依赖 URL、不怕 composer 重挂载）。用户补一句需求发送即可调用。
+  // 不依赖 URL、不怕 composer 重挂载）。0.20.5r: 点了就算用——autoSend 直发，
+  // 用户补需求改为在对话里说（用户反馈：还要手动发一次像没生效）。
   const onUse = () => {
     navigate(NEW_CHAT_ROUTE)
-    queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: false })
+    queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: true })
   }
 
   return (

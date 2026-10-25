@@ -10,6 +10,7 @@ on (``Session busy``) are part of the wire contract — keep them.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 # Provider-layer failure codes → (title, hint). Codes are ``agent.error_classifier.FailoverReason``
@@ -47,6 +48,21 @@ _TURN_ERROR_LAYER_COPY: dict[str, tuple[str, str]] = {
 
 _TURN_ERROR_DEFAULT = ("The request failed", "Send /retry, or switch with /model.")
 
+# Pre-turn AuthError bodies whose remediation names CLI-only surface flows
+# (`hermes model`, `/login`, `hermes auth add`) —Desktop renders `payload.error`
+# verbatim in the card's dimmed details block, so the raw sentence must not ship.
+# Classified as layer=runtime by build_error_surface_from_exception; the card's
+# localized runtime title/body is the whole story the user needs.
+_CLI_ONLY_AUTH_ERROR_RE = re.compile(r"hermes (model|auth add)|is not connected to any AI provider")
+
+
+def sanitize_terminal_error_detail(message: str) -> str:
+    """Replace CLI-only AuthError remediation text with a neutral, surface-agnostic phrase."""
+    text = " ".join(str(message or "").split())
+    if text and _CLI_ONLY_AUTH_ERROR_RE.search(text):
+        return "No AI provider is configured for this session yet."
+    return text
+
 _DETAIL_LIMIT = 400
 
 
@@ -73,7 +89,9 @@ def turn_error_hint(surface: dict | None, recoverable: bool = True) -> str:
 def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: bool = True) -> str:
     """The assistant-slot text for a turn that produced no reply: title, what it means for the
     user, the raw provider detail on its own dimmed-able line, and the next step."""
-    detail = " ".join(str(error or "").split())
+    detail = " ".join(str(error or "").splitlines())
+    if _CLI_ONLY_AUTH_ERROR_RE.search(detail):
+        detail = "No AI provider is configured for this session yet."
     if len(detail) > _DETAIL_LIMIT:
         detail = detail[:_DETAIL_LIMIT - 1] + "…"
     lines = [f"{turn_error_title(surface)}. Your message was not answered."]

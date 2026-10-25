@@ -199,6 +199,15 @@ def build_error_surface_from_exception(
         message = str(exc) or type(exc).__name__
         if _disk_full(exc):
             return _surface(LAYER_DISK, "disk_full", False, provider, model)
+        # A pre-turn AuthError (e.g. no_provider_configured: "Hermes is not connected to any AI
+        # provider yet. Run `hermes model` …") carries CLI-only English remediation the Desktop
+        # card must not render verbatim; classify it as a runtime-layer failure so the frontend
+        # glosses it with the localized runtime title/body and keeps the raw text as the dimmed
+        # detail. AuthError.code rides in as the surface code (auth-like codes keep their table row).
+        auth_code = getattr(exc, "code", None)
+        if isinstance(auth_code, str) and auth_code:
+            layer = "auth" if auth_code.startswith("auth") else LAYER_RUNTIME
+            return _surface(layer, auth_code, True, provider, model)
         api_like = (type(exc).__module__ or "").split(".")[0] in _API_EXC_MODULE_PREFIXES or hasattr(exc, "status_code")
         if not api_like or not isinstance(exc, Exception):
             return _surface(LAYER_GATEWAY, type(exc).__name__, True, provider, model)

@@ -26,7 +26,7 @@ import { useIncrementalExternalStoreRuntime } from '@/lib/incremental-external-s
 import { currentModelCapabilities, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
-import { migrateSessionDraft } from '@/store/composer'
+import { migrateSessionDraft, queueSkillInsert } from '@/store/composer'
 import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
 import { $introSplash } from '@/store/intro-splash'
 import { $pinnedSessionIds } from '@/store/layout'
@@ -790,7 +790,9 @@ const ChatViewContent = memo(function ChatViewContent({
           }
         : undefined,
       onSkillPick: (name: string, title?: string) => {
-        window.dispatchEvent(new CustomEvent('qiji:insert-skill', { detail: { command: `/${name} `, label: title } }))
+        // 0.20.5r: 首页快捷技能卡 = 点了就算用——走闩锁队列+autoSend 直发（与 OPC
+        // 卡同协议），不再往 composer 派裸事件（无监听时静默丢失）。
+        queueSkillInsert({ command: `/${name} `, label: title, autoSend: true })
       },
       onInstallSkill: () => {
         navigateForMarket('/skills?tab=market')

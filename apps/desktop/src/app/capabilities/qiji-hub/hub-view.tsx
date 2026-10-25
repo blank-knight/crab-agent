@@ -193,8 +193,9 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
     // qiji 0.20.5q: 直派 qiji:insert-skill 事件在 navigate('/') 后同步派发——
     // 聊天页 composer 尚未挂载、监听器不存在，芯片静默丢失（用户实锤"点了没反应"）。
     // 改走 OPC 0.20.5c 同款闩锁队列：主 composer 挂载且 workspace 回聊天态后领取。
+    // 0.20.5r: 点「使用」= 就算用了——autoSend 直发，与首页快捷卡/技能详情页一致。
     navigate('/')
-    queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name) })
+    queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name), autoSend: true })
   }
 
   return (

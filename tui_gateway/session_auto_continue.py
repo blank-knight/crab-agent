@@ -532,6 +532,9 @@ def _emit_terminal_turn_error(
         _fail_inflight_turn(session, error, error_surface=error_surface)
         turn = session.get("inflight_turn") or {}
         message, partial = str(turn.get("error") or "turn failed"), str(turn.get("assistant") or "")
+        # payload.error renders verbatim in Desktop's dimmed details block; strip CLI-only
+        # remediation (hermes model / /login / hermes auth add) before it ships.
+        message = sanitize_terminal_error_detail(message)
         cols = int(session.get("cols", 80))
     text = partial or turn_error_text(message, error_surface)
     rendered = ""
