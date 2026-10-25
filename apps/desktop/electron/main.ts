@@ -5241,7 +5241,15 @@ async function ensureRuntime(
     const bootstrapResult = await runBootstrap({
       installStamp: backend.installStamp,
       activeRoot: backend.activeRoot,
-      sourceRepoRoot: SOURCE_REPO_ROOT,
+      // crab 0.20.5q: packaged runs must resolve the BUNDLED install.ps1
+      // (resources/install.ps1, offline-safe). SOURCE_REPO_ROOT is a
+      // path.resolve(APP_ROOT, '../..') that exists only in dev checkouts;
+      // passing it unconditionally made resolveInstallScript skip its
+      // bundled fast-path (which requires !sourceRepoRoot) and fall through
+      // to the GitHub download — ECONNRESET on every offline/China upgrade
+      // of an existing checkout (0.20.5p+r install incident). Dev keeps the
+      // local-checkout shortcut.
+      sourceRepoRoot: IS_PACKAGED ? null : SOURCE_REPO_ROOT,
       hermesHome: HERMES_HOME,
       logRoot: path.join(HERMES_HOME, 'logs'),
       abortSignal: bootstrapAbortController.signal,
