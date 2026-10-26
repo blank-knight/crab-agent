@@ -202,6 +202,12 @@ export default defineConfig(({ command }) => ({
     host: '127.0.0.1',
     port: 5174,
     strictPort: true,
+    watch: {
+      // crab 0.20.5s-r3: release/win-unpacked 里 vendored 的 tsconfig 会触发
+      // vite 全量重载死循环(10-26 装机验证实锤: 5174 连不出/import 全超时),
+      // 打包产物不该进 dev watcher。
+      ignored: ['**/release/**']
+    },
     fs: {
       allow: fsAllow
     }
