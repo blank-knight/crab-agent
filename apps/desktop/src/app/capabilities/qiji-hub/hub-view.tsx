@@ -17,9 +17,9 @@ import type { IconComponent } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { cn } from '@/lib/utils'
-import { notify, notifyError } from '@/store/notifications'
 import { queueSkillInsert } from '@/store/composer'
-import { normalizeProfileKey, pinNewChatProfile, selectProfile, $activeGatewayProfile } from '@/store/profile'
+import { notify, notifyError } from '@/store/notifications'
+import { $activeGatewayProfile, normalizeProfileKey, pinNewChatProfile, selectProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
 
 import { parseFrontmatter } from '../skills/frontmatter'
@@ -197,9 +197,11 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
     // 0.20.5r: 点「使用」= 就算用了——autoSend 直发，与首页快捷卡/技能详情页一致。
     // crab 0.20.5s: 先钉回 default——防专家档残留吞掉新会话（Unknown command 病根）。
     pinNewChatProfile('default')
+
     if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
       selectProfile('default')
     }
+
     navigate('/')
     queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name), autoSend: true })
   }

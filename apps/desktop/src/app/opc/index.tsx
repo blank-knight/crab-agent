@@ -3,12 +3,12 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { NEW_CHAT_ROUTE } from '@/app/routes'
-import { queueSkillInsert } from '@/store/composer'
 import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
-import { normalizeProfileKey, pinNewChatProfile, selectProfile, $activeGatewayProfile } from '@/store/profile'
+import { queueSkillInsert } from '@/store/composer'
+import { $activeGatewayProfile, normalizeProfileKey, pinNewChatProfile, selectProfile } from '@/store/profile'
 
 import { OpcExpertsSection } from './experts'
 import { AddAgentCard, notifyUserAgentsChanged, UserAgentCard, UserAgentDialog } from './user-agent-cards'
@@ -186,9 +186,11 @@ export function OpcView(_: OpcViewProps) {
       // pinNewChatProfile 只钉新会话归属不动当前视图;若 active 已在专家档,
       // 再 selectProfile 拉回 default 让网关也回主档(预热+技能页 scope 同步归位)。
       pinNewChatProfile('default')
+
       if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
         selectProfile('default')
       }
+
       navigate(NEW_CHAT_ROUTE)
       // 0.20.5c: 「立即使用」= 点击即发送（用户反馈：填入不发送，切页回来
       // 芯片躺在输入框像没生效）。autoSend 让主 composer 领取后直接提交。
@@ -203,9 +205,11 @@ export function OpcView(_: OpcViewProps) {
     (agent: UserAgent) => {
       // crab 0.20.5s: 同 onLaunch——先钉回 default，防专家档残留吞掉新会话。
       pinNewChatProfile('default')
+
       if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
         selectProfile('default')
       }
+
       navigate(NEW_CHAT_ROUTE)
       const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
       queueSkillInsert({ command, label: agent.title, autoSend: true })
