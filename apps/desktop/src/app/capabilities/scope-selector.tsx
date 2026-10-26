@@ -8,7 +8,7 @@ import { getProfiles, type ProfileScope, profileScopeKey } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { activeGatewayConnectionId } from '@/store/gateway'
-import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
+import { $activeGatewayProfile, normalizeProfileKey, profileLabel } from '@/store/profile'
 
 import { useOnProfileSwitch } from '../hooks/use-on-profile-switch'
 
@@ -127,7 +127,10 @@ export function useCapabilityScope({
     return (profilesData?.profiles ?? []).map(p => ({
       key: p.name,
       // qiji 0.20.4: 默认 profile 不再显示上游品牌名——统一「默认」。
-      label: p.is_default ? '默认' : p.name,
+      // crab 0.20.5s: 专家档走 profileLabel 兜底链（display_name→bot_title→
+      // name）——0.20.5o 只修了切换器/侧栏，这里漏了，技能页「正在配置：
+      // pmvagpyyc」裸技术 ID 泄漏（10-26 装机实锤）。
+      label: p.is_default ? '默认' : profileLabel(p),
       value: p.name
     }))
   }, [multiConnection, profilesData, rosterData])

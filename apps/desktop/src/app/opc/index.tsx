@@ -8,6 +8,7 @@ import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
+import { normalizeProfileKey, pinNewChatProfile, selectProfile, $activeGatewayProfile } from '@/store/profile'
 
 import { OpcExpertsSection } from './experts'
 import { AddAgentCard, notifyUserAgentsChanged, UserAgentCard, UserAgentDialog } from './user-agent-cards'
@@ -179,6 +180,15 @@ export function OpcView(_: OpcViewProps) {
   // 不怕 pane 架构 composer 常驻被路由提交冲掉。
   const onLaunch = useCallback(
     (agent: OpcAgent) => {
+      // crab 0.20.5s: 技能/智能体入口先把新会话钉回 default——进过专家对话后
+      // $activeGatewayProfile 停在专家档,不钉的话新会话全落专家档(冷网关+
+      // 市场技能缺失,/命令 Unknown command、"过一会才进流程"的病根)。
+      // pinNewChatProfile 只钉新会话归属不动当前视图;若 active 已在专家档,
+      // 再 selectProfile 拉回 default 让网关也回主档(预热+技能页 scope 同步归位)。
+      pinNewChatProfile('default')
+      if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
+        selectProfile('default')
+      }
       navigate(NEW_CHAT_ROUTE)
       // 0.20.5c: 「立即使用」= 点击即发送（用户反馈：填入不发送，切页回来
       // 芯片躺在输入框像没生效）。autoSend 让主 composer 领取后直接提交。
@@ -191,6 +201,11 @@ export function OpcView(_: OpcViewProps) {
   // 提示词型直接预填全文。与 onLaunch 同一闩锁队列协议。
   const onLaunchUser = useCallback(
     (agent: UserAgent) => {
+      // crab 0.20.5s: 同 onLaunch——先钉回 default，防专家档残留吞掉新会话。
+      pinNewChatProfile('default')
+      if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
+        selectProfile('default')
+      }
       navigate(NEW_CHAT_ROUTE)
       const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
       queueSkillInsert({ command, label: agent.title, autoSend: true })

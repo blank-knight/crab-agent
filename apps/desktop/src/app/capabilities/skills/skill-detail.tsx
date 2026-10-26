@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { getSkillContent, type ProfileScope, profileScopeKey } from '@/hermes'
 import { useI18n } from '@/i18n'
 import { queueSkillInsert } from '@/store/composer'
+import { normalizeProfileKey, pinNewChatProfile, selectProfile, $activeGatewayProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
 
 import { skillDescZh, skillNameZh } from '../zh-display'
@@ -56,6 +57,12 @@ export function SkillDetail({
   // 不依赖 URL、不怕 composer 重挂载）。0.20.5r: 点了就算用——autoSend 直发，
   // 用户补需求改为在对话里说（用户反馈：还要手动发一次像没生效）。
   const onUse = () => {
+    // crab 0.20.5s: 先钉回 default——进过专家对话后 active 停在专家档,不钉的话
+    // 新会话落专家档(技能不在那档 → Unknown command)。
+    pinNewChatProfile('default')
+    if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
+      selectProfile('default')
+    }
     navigate(NEW_CHAT_ROUTE)
     queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: true })
   }

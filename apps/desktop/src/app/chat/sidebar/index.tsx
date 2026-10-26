@@ -40,6 +40,7 @@ import {
   $pinnedSessionIds,
   $sidebarCardRows,
   $sidebarCronOpen,
+  $sidebarExpertSessionsOpen,
   $sidebarFiltersActive,
   $sidebarGrouping,
   $sidebarMessagingOpenIds,
@@ -63,6 +64,7 @@ import {
   SESSION_SEARCH_FOCUS_EVENT,
   setPinnedSessionOrder,
   setSidebarCronOpen,
+  setSidebarExpertSessionsOpen,
   setSidebarPinsOpen,
   setSidebarProjectOrderIds,
   setSidebarRecentsOpen,
@@ -151,6 +153,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 
 import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
+import { SidebarExpertSessionsSection } from './expert-sessions-section'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
 import { SidebarLoadMoreRow } from './load-more-row'
@@ -483,6 +486,7 @@ export function ChatSidebar({
   const pinsOpen = useStore($sidebarPinsOpen)
   const agentsOpen = useStore($sidebarRecentsOpen)
   const cronOpen = useStore($sidebarCronOpen)
+  const expertSessionsOpen = useStore($sidebarExpertSessionsOpen)
   // The sidebar highlight tracks the FOCUSED session — the interacted tile's
   // tab, else the main selection — so it stays 1:1 with whatever tab is active.
   const selectedSessionId = useStore($focusedStoredSessionId)
@@ -2067,11 +2071,19 @@ export function ChatSidebar({
                 )
               })}
 
-            {/* crab 0.20.5p-r3: 专家会话分组整段移除（用户拍板 10-23）——点专家
-                常驻对话触发 openSession 的视图翻转与账号锁震荡（历史消失+
-                闪烁，装机两轮实锤），且侧栏双入口与 OPC 智能体面板重复。
-                专家会话单一入口 = OPC 智能体面板。组件与 store 保留，
-                upstream 形态如需恢复仅还原此段。 */}
+            {/* crab 0.20.5s: 专家会话分组恢复（用户 10-26 拍板：skill/专家/智能体会话
+                统一在左侧可见）。0.20.5p-r3 移除它的两个病灶已被根治——
+                ①视图翻转/账号锁震荡: 96078d4668(openSession 锁定下跳过视图翻转)+
+                c307049f51(侧栏 scope 恒锁账号档) 都在本 HEAD;
+                ②与 OPC 面板重复: 用户现在明确要左侧统一入口。一专家一线程,
+                点击进常驻对话。无本机专家时组件自隐藏。 */}
+            {!trimmedQuery && !worktreeGroupingActive && (
+              <SidebarExpertSessionsSection
+                onToggle={() => setSidebarExpertSessionsOpen(!expertSessionsOpen)}
+                open={expertSessionsOpen}
+              />
+            )}
+
             {!trimmedQuery && !worktreeGroupingActive && showsAdvancedChrome && cronJobs.length > 0 && (
               <SidebarCronJobsSection
                 jobs={cronJobs}

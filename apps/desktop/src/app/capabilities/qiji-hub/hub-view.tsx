@@ -19,6 +19,7 @@ import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { cn } from '@/lib/utils'
 import { notify, notifyError } from '@/store/notifications'
 import { queueSkillInsert } from '@/store/composer'
+import { normalizeProfileKey, pinNewChatProfile, selectProfile, $activeGatewayProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
 
 import { parseFrontmatter } from '../skills/frontmatter'
@@ -194,6 +195,11 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
     // 聊天页 composer 尚未挂载、监听器不存在，芯片静默丢失（用户实锤"点了没反应"）。
     // 改走 OPC 0.20.5c 同款闩锁队列：主 composer 挂载且 workspace 回聊天态后领取。
     // 0.20.5r: 点「使用」= 就算用了——autoSend 直发，与首页快捷卡/技能详情页一致。
+    // crab 0.20.5s: 先钉回 default——防专家档残留吞掉新会话（Unknown command 病根）。
+    pinNewChatProfile('default')
+    if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
+      selectProfile('default')
+    }
     navigate('/')
     queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name), autoSend: true })
   }

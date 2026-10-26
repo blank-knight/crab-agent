@@ -34,7 +34,7 @@ import { brandText } from '@/store/oem-brand'
 import { $guideOpening, $onboardingGate } from '@/store/onboarding-gate'
 import { $petActive } from '@/store/pet'
 import { $petOverlayActive } from '@/store/pet-overlay'
-import { $activeGatewayProfile, $gatewaySwapTarget, $hydrationSyncProfile, $profiles } from '@/store/profile'
+import { $activeGatewayProfile, $gatewaySwapTarget, $hydrationSyncProfile, $profiles, normalizeProfileKey, pinNewChatProfile, selectProfile } from '@/store/profile'
 import {
   $connection,
   $contextSuggestions,
@@ -792,6 +792,12 @@ const ChatViewContent = memo(function ChatViewContent({
       onSkillPick: (name: string, title?: string) => {
         // 0.20.5r: 首页快捷技能卡 = 点了就算用——走闩锁队列+autoSend 直发（与 OPC
         // 卡同协议），不再往 composer 派裸事件（无监听时静默丢失）。
+        // crab 0.20.5s: 空态主页就在新会话,同样先钉回 default——防专家档残留
+        // active 吞掉直发命令（点了技能卡 → Unknown command 病根）。
+        pinNewChatProfile('default')
+        if (normalizeProfileKey($activeGatewayProfile.get()) !== 'default') {
+          selectProfile('default')
+        }
         queueSkillInsert({ command: `/${name} `, label: title, autoSend: true })
       },
       onInstallSkill: () => {
