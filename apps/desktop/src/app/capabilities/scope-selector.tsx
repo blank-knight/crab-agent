@@ -54,14 +54,32 @@ export function useCapabilityScope({
   const activeProfile = useStore($activeGatewayProfile)
   const [scopeOverride, setScopeOverride] = useState<null | string | { connectionId: string; profile: string }>(null)
 
+  const { data: profilesData } = useQuery({
+    queryKey: ['capabilities-profiles'],
+    queryFn: () => getProfiles(),
+    staleTime: 60_000,
+    // Pinned scope never shows the selector, so don't fetch the roster for it.
+    enabled: !fixedProfile
+  })
+
+  // crab 0.20.5s-r3: 专家档是密封预设(bot_title 标记),不可配置。active 停在
+  // 专家档时(用户刚跟专家聊完),配置 scope 不得跟随——回落 default。
+  const activeIsExpert = useMemo(() => {
+    if (!activeProfile || !profilesData?.profiles) {return false}
+
+    const row = profilesData.profiles.find(p => normalizeProfileKey(p.name) === normalizeProfileKey(activeProfile))
+
+    return Boolean(row?.bot_title?.trim())
+  }, [activeProfile, profilesData])
+
   const scopeProfile: ProfileScope = useMemo(
     () =>
       fixedProfile
         ? fixedConnection
           ? { connectionId: fixedConnection, profile: fixedProfile }
           : fixedProfile
-        : (scopeOverride ?? activeProfile ?? null),
-    [activeProfile, fixedConnection, fixedProfile, scopeOverride]
+        : ((scopeOverride ?? (activeIsExpert ? 'default' : activeProfile)) ?? null),
+    [activeProfile, activeIsExpert, fixedConnection, fixedProfile, scopeOverride]
   )
 
   const scopeKey = profileScopeKey(scopeProfile)
@@ -70,14 +88,6 @@ export function useCapabilityScope({
   // active-profile path and for fixed-profile pins without a connection.
   const scopeConnectionId =
     scopeProfile && typeof scopeProfile === 'object' ? (scopeProfile.connectionId ?? '').trim() || 'local' : null
-
-  const { data: profilesData } = useQuery({
-    queryKey: ['capabilities-profiles'],
-    queryFn: () => getProfiles(),
-    staleTime: 60_000,
-    // Pinned scope never shows the selector, so don't fetch the roster for it.
-    enabled: !fixedProfile
-  })
 
   // v2 multi-connection registry: cheap local IPC to learn whether more than
   // one gateway is registered. Only then is the (heavier) union agent roster
@@ -124,15 +134,20 @@ export function useCapabilityScope({
       }))
     }
 
-    return (profilesData?.profiles ?? []).map(p => ({
-      key: p.name,
-      // qiji 0.20.4: 默认 profile 不再显示上游品牌名——统一「默认」。
-      // crab 0.20.5s: 专家档走 profileLabel 兜底链（display_name→bot_title→
-      // name）——0.20.5o 只修了切换器/侧栏，这里漏了，技能页「正在配置：
-      // pmvagpyyc」裸技术 ID 泄漏（10-26 装机实锤）。
-      label: p.is_default ? '默认' : profileLabel(p),
-      value: p.name
-    }))
+    // crab 0.20.5s-r3: 专家档是密封预设(bot),不可配置——用户拍板(10-26 装机
+    // 再次确认"为什么能配置各个专家")。有 bot_title 的档=专家,从配置下拉
+    // 排除;default 档不排除。list 是纯展示不影响——scope 页只该编辑账号档。
+    return (profilesData?.profiles ?? [])
+      .filter(p => !p.bot_title?.trim())
+      .map(p => ({
+        key: p.name,
+        // qiji 0.20.4: 默认 profile 不再显示上游品牌名——统一「默认」。
+        // crab 0.20.5s: 专家档走 profileLabel 兜底链（display_name→bot_title→
+        // name）——0.20.5o 只修了切换器/侧栏，这里漏了，技能页「正在配置：
+        // pmvagpyyc」裸技术 ID 泄漏（10-26 装机实锤）。
+        label: p.is_default ? '默认' : profileLabel(p),
+        value: p.name
+      }))
   }, [multiConnection, profilesData, rosterData])
 
   // The selector's current value must match one option's value exactly. On the

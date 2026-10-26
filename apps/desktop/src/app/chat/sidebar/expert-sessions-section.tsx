@@ -129,6 +129,11 @@ function ExpertRow({ label, profile }: ExpertRowProps) {
     // 与 OPC 专家卡同链路：已有常驻线 resume，没有则建。openBotCanonicalChat
     // 接受 RosterRow | string（档案名）；kickoffOnCreate 让新建线立即就绪。
     openBotCanonicalChat(profile, { kickoffOnCreate: true }).catch(err => {
+      // crab 0.20.5s-r3: superseded 不是错误——专家后端冷启动慢,用户连点两个
+      // 专家,先点的 open 被后点的选择取代是正常竞态(10-26 装机:连点被弹
+      // "无法打开 数据分析师的对话"误报)。静默即可,最终态=用户最后点的那个。
+      if (/superseded/i.test(String((err as Error)?.message || ''))) {return}
+
       notifyError(err, `无法打开 ${label} 的对话`)
     })
   }
