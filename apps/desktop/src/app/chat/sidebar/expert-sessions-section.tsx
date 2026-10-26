@@ -33,7 +33,7 @@ interface LocalExpert {
 }
 
 /** fleetRoster 行 → 本机专家（local 连接、非 default）。名字链与 OPC 专家卡一致。 */
-function localExpertsFromRoster(roster: { agents?: Array<{ connectionKind?: string; profile?: string; profileMetadata?: { display_name?: string; title?: string; ui_meta?: Record<string, unknown> } }> } | null): LocalExpert[] {
+function localExpertsFromRoster(roster: { agents?: Array<{ connectionKind?: string; profile?: string; profileMetadata?: { display_name?: string; title?: string; bot_title?: string; ui_meta?: Record<string, unknown> } }> } | null): LocalExpert[] {
   const out = new Map<string, LocalExpert>()
 
   for (const agent of roster?.agents || []) {
@@ -41,17 +41,26 @@ function localExpertsFromRoster(roster: { agents?: Array<{ connectionKind?: stri
 
     const key = expertProfileKey(agent.profile || '')
 
-    if (!key || key === 'default') {continue}
-
-    if (out.has(key)) {continue}
-
+    // crab 0.20.5s: 账号档不是专家——账号隔离档(acc_*)与本机专家共用"local 非
+    // default"特征,不排除会把登录账号档列进专家分组(装机实锤 acc_13800002026
+    // 混入)。以 bot 身份判定:专家档必有 bot_title(/api/profiles 只回它),acc 档
+    // 和 default 无 bot_title(roster 实测 meta:[])。无 bot_title 即不是专家。
     const meta = agent.profileMetadata
     const botMeta = meta?.ui_meta?.['hermes-bots'] as { title?: string } | undefined
 
+    if (!key || key === 'default') {continue}
+
+    if (!(meta?.bot_title || botMeta?.title)) {continue}
+
+    if (out.has(key)) {continue}
+
+    // crab 0.20.5s: bot_title 补进兜底链——专家档通常只有 bot_title(无
+    // display_name),缺这档 roster 兜底裸 ID(侧栏显示 pmvagpyyc)。
     const label =
       (meta?.display_name || '').trim() ||
       (meta?.title || '').trim() ||
       (botMeta?.title || '').trim() ||
+      (meta?.bot_title || '').trim() ||
       key
 
     out.set(key, { key, label })

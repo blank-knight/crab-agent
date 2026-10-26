@@ -16349,6 +16349,13 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
                         metadata.title = profile.title.trim()
                       }
 
+                      // crab 0.20.5s: /api/profiles 只回 bot_title 不回 ui_meta
+                      // (profiles.py:95)——专家档恰恰只有 bot_title(无 display_name),
+                      // 不收它 roster 全兜底裸 ID(pmvagpyyc),侧栏专家行/OPC 卡同源。
+                      if (typeof profile?.bot_title === 'string' && profile.bot_title.trim()) {
+                        metadata.bot_title = profile.bot_title.trim()
+                      }
+
                       if (profile?.ui_meta && typeof profile.ui_meta === 'object') {
                         metadata.ui_meta = profile.ui_meta
                       }

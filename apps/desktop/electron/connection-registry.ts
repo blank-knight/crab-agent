@@ -642,6 +642,7 @@ export interface RosterAgent {
 export interface RosterProfileMetadata {
   display_name?: string
   title?: string
+  bot_title?: string
   ui_meta?: Record<string, unknown>
   has_avatar?: boolean
 }

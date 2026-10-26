@@ -115,6 +115,10 @@ export interface RosterRow {
   /** Nullable: the gateway sends `null` for a profile with no configured role,
    *  and the create form threads its own optional title through the same shape. */
   title?: null | string
+  /** Bot Mode title from profile.yaml (ui_meta['hermes-bots'].title, surfaced
+   *  by /api/profiles as bot_title) — the only human title an expert profile
+   *  usually carries. crab 0.20.5s: roster label chain consumes it. */
+  bot_title?: string
   /** Canonical ids this profile was previously known by (`hermes profile
    *  rename` records them in profile.yaml; the gateway surfaces them on
    *  profiles.list). Lets group chats re-link persisted member descriptors
