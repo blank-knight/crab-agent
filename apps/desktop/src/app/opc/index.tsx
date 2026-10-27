@@ -2,12 +2,14 @@ import type * as React from 'react'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { openSession } from '@/app/open-session'
 import { NEW_CHAT_ROUTE } from '@/app/routes'
 import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
 import { queueSkillInsert } from '@/store/composer'
+import { requestGatewayForProfile } from '@/store/gateway'
 import { pinNewChatProfile } from '@/store/profile'
 
 import { OpcExpertsSection } from './experts'
@@ -171,6 +173,48 @@ export function OpcView(_: OpcViewProps) {
   const [agentDialogOpen, setAgentDialogOpen] = useState(false)
   const [editingAgent, setEditingAgent] = useState<UserAgent | null>(null)
 
+  // crab 0.20.5s-r4: OPC 技能卡先建会话再直跳（专家卡同款时序）。
+  // 旧路径 navigate('/') 先渲染空态主页,composer 领取+submitDraft 触发的
+  // session.create 网络往返期间空态主页整页可见——用户看到"闪回新建会话页
+  // 才进会话"(10-26 GEO 卡反馈)。新路径:原地等 session.create 返回
+  // stored id → openSession('main') 直跳会话路由 → 芯片队列交给会话页
+  // composer 领取(工作区已是会话态,$workspaceIsPage=false,领取条件满足),
+  // autoSend 原语义不变。任何一步失败:回退旧行为(跳新会话页+入队),
+  // 卡片永远有出路。
+  const launchIntoFreshChat = useCallback(
+    async (command: string, label: string) => {
+      let storedId: string | null = null
+
+      try {
+        const res = await requestGatewayForProfile<{ stored_session_id?: string; session_id?: string }>(
+          'default',
+          'session.create',
+          { profile: 'default' },
+          undefined,
+          undefined,
+          { spawnPriority: 'foreground' }
+        )
+        storedId = res?.stored_session_id ?? res?.session_id ?? null
+      } catch {
+        storedId = null
+      }
+
+      if (!storedId) {
+        // 回退旧行为:空态主页路径仍能走通(芯片在队列里等 composer)。
+        navigate(NEW_CHAT_ROUTE)
+        queueSkillInsert({ command, label, autoSend: true })
+
+        return
+      }
+
+      openSession(storedId, navigate, 'main')
+      // 会话页 composer 挂载后领取芯片并 autoSend;先入队再跳转,顺序无关
+      // (队列是闩锁,领取条件=主 composer+工作区回会话态)。
+      queueSkillInsert({ command, label, autoSend: true })
+    },
+    [navigate]
+  )
+
   // 点击可用卡片：回聊天新会话，等主 composer 挂载后领取预填队列。
   // ⚠️ 别用「navigate 后轮询 window.location.pathname==='/' 再派发事件」——
   // 应用是 HashRouter，打包版跑 file:// 下 pathname 是文档路径永远不是 '/'，
@@ -178,6 +222,12 @@ export function OpcView(_: OpcViewProps) {
   // queueSkillInsert 入队（store/composer.ts），主 composer 挂载且 workspace
   // 回聊天态（$workspaceIsPage=false）后 rAF 领取——不依赖 URL、不怕重挂载、
   // 不怕 pane 架构 composer 常驻被路由提交冲掉。
+  // crab 0.20.5s-r4: 先建会话→直跳会话页→composer 再领取提交（专家卡同款时序）。
+  // r3 及之前是 navigate('/') 先跳空态主页,等 composer 领取+submitDraft 的
+  // session.create 网络往返期间空态主页整页渲染出来=用户看到的"闪回新建会话
+  // 页"(10-26 装机反馈:GEO/技能卡点击闪屏,test/炒股专家不闪——专家就是
+  // 先建会话直跳的)。主技能入口(onLaunch)与用户自建卡(onLaunchUser)同修;
+  // 主页五张技能卡(chat/index.tsx onSkillPick)不走此路径,不改。
   const onLaunch = useCallback(
     (agent: OpcAgent) => {
       // crab 0.20.5s: 技能/智能体入口先把新会话钉回 default——进过专家对话后
@@ -189,12 +239,9 @@ export function OpcView(_: OpcViewProps) {
       // pin 路由会话本身已落 default 档,无需动 active。
       pinNewChatProfile('default')
 
-      navigate(NEW_CHAT_ROUTE)
-      // 0.20.5c: 「立即使用」= 点击即发送（用户反馈：填入不发送，切页回来
-      // 芯片躺在输入框像没生效）。autoSend 让主 composer 领取后直接提交。
-      queueSkillInsert({ command: `/${agent.name} `, label: agent.title, autoSend: true })
+      void launchIntoFreshChat(`/${agent.name} `, agent.title)
     },
-    [navigate]
+    [launchIntoFreshChat]
   )
 
   // qiji 0.20.5b: 用户自定义智能体（方案A 本地启动器）——技能型同 /技能名 预填，
@@ -204,11 +251,10 @@ export function OpcView(_: OpcViewProps) {
       // crab 0.20.5s-r3: 同 onLaunch——pin-only,不切 active(切网关=卡顿+吞autoSend)。
       pinNewChatProfile('default')
 
-      navigate(NEW_CHAT_ROUTE)
       const command = agent.kind === 'skill' ? `/${agent.target} ` : agent.target
-      queueSkillInsert({ command, label: agent.title, autoSend: true })
+      void launchIntoFreshChat(command, agent.title)
     },
-    [navigate]
+    [launchIntoFreshChat]
   )
 
   return (
