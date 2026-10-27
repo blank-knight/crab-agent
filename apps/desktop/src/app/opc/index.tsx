@@ -2,12 +2,12 @@ import type * as React from 'react'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import { openSession } from '@/app/open-session'
 import { NEW_CHAT_ROUTE } from '@/app/routes'
 import type { SetStatusbarItemGroup } from '@/app/shell/statusbar-controls'
 import { Codicon } from '@/components/ui/codicon'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { cn } from '@/lib/utils'
+import { host } from '@/sdk'
 import { queueSkillInsert } from '@/store/composer'
 import { requestGatewayForProfile } from '@/store/gateway'
 import { pinNewChatProfile } from '@/store/profile'
@@ -207,7 +207,17 @@ export function OpcView(_: OpcViewProps) {
         return
       }
 
-      openSession(storedId, navigate, 'main')
+      // crab 0.20.5s-r5: 直跳必须带 profile 归属。裸 openSession(…,'main') 只导航,
+      // 会话页挂载后的 session.resume 打到 active 网关——active 档是专家档时,
+      // 那条连接从没听说过 default 档建的会话,回 "session not found" →
+      // goneSessionVerdict 判死 → startFreshSessionDraft 把路由顶回 '#/'(=闪屏
+      // 本体),芯片再被主页 composer 领走自建会话B(10-27 GEO 卡实锤,A成孤儿行)。
+      // 修法=专家卡同款(canonical-chat.ts openFreshCanonical):sdk host.openSession
+      // 带 profile:'default'——planPluginOpenSession 走 dialWithoutSwitching 拨对
+      // 后端(不偷 chrome),setSessionOwnerHint 落归属元数据,session-request-router
+      // 据此把 resume/submit 派发到建会话的那个后端。类级规则:会话归属必须随
+      // id 传递(谁建的会话,后续 RPC 拨谁)。
+      await host.openSession(storedId, { profile: 'default', intent: 'main' })
       // 会话页 composer 挂载后领取芯片并 autoSend;先入队再跳转,顺序无关
       // (队列是闩锁,领取条件=主 composer+工作区回会话态)。
       queueSkillInsert({ command, label, autoSend: true })
