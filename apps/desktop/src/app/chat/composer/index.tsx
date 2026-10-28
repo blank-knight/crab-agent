@@ -91,6 +91,7 @@ import {
   composerPlainText,
   deleteChipBeforeCaret,
   deleteSelectionInEditor,
+  dropEmptyEditorPlaceholderBr,
   insertComposerContentsAtCaret,
   normalizeComposerEditorDom,
   placeCaretEnd,
@@ -563,6 +564,9 @@ export function ChatBar({
 
     // 归一化：命令自身去尾空格，分隔统一由后面的空格节点承担（避免双空格）
     const cmd = command.replace(/\s+$/, '')
+    // crab 0.20.5s-r8: 清掉浏览器给空 contenteditable 自动补的占位 <br>——
+    // 不清的话芯片 append 在它后面,渲染出"芯片上方多一个空行"(10-28 用户报)。
+    dropEmptyEditorPlaceholderBr(editor)
     const current = composerPlainText(editor)
     const needsSpace = current.trim() && !/\s$/.test(current)
     editor.append(

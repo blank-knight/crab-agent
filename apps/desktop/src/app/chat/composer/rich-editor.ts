@@ -76,6 +76,18 @@ function composerCollapsedSelectionContainer(editor: HTMLElement): Node | null {
  *  Zero-length text nodes don't count as contents. Chromium leaves them behind
  *  whenever an edit lands next to a `contenteditable=false` chip, and counting
  *  them left an editor the user had emptied looking occupied. */
+/** Drop the browser's auto-inserted placeholder <br> on an "empty" contenteditable.
+ *  Only meaningful when it's the sole child — a real mid-text <br> (user Enter)
+ *  is never touched. Returns true when something was removed. */
+export function dropEmptyEditorPlaceholderBr(editor: HTMLElement): boolean {
+  const solo = editor.childNodes.length === 1 && editor.firstChild instanceof HTMLBRElement
+  if (!solo) {
+    return false
+  }
+  editor.firstChild.remove()
+  return true
+}
+
 export function markEditorEmptiness(editor: HTMLElement) {
   if (Array.from(editor.childNodes).every(isEmptyTextNode)) {
     editor.dataset.empty = ''
