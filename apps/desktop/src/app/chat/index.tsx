@@ -26,10 +26,8 @@ import { useIncrementalExternalStoreRuntime } from '@/lib/incremental-external-s
 import { currentModelCapabilities, modelOptionsQueryKey, requestModelOptions } from '@/lib/model-options'
 import { useStoreSelector } from '@/lib/use-session-slice'
 import { cn } from '@/lib/utils'
-import { host } from '@/sdk'
 import { migrateSessionDraft, queueSkillInsert } from '@/store/composer'
 import { migrateQueuedPrompts, parkQueuedPrompts } from '@/store/composer-queue'
-import { requestGatewayForProfile } from '@/store/gateway'
 import { $introSplash } from '@/store/intro-splash'
 import { $pinnedSessionIds } from '@/store/layout'
 import { brandText } from '@/store/oem-brand'
@@ -791,37 +789,16 @@ const ChatViewContent = memo(function ChatViewContent({
             skills: introSkills
           }
         : undefined,
-      onSkillPick: async (name: string, title?: string) => {
-        // crab 0.20.5s-r6: 主页快捷技能卡与 OPC 卡协议对齐——先建会话+带归属
-        // 直跳,再入队 autoSend。旧版(r~r5)只入队不导航:主页 composer 立即领取
-        // 直发,后台建会话但路由死钉 '#/'——用户视角"点了没反应",侧栏静默多出
-        // 裸命令英文标题会话(/pptx-maker — /pptx-maker);陈年芯片还会混进之后
-        // 手动开的会话(10-27 实测 /docx-writer 混入文本会话)。
-        const command = `/${name} `
-        let storedId: string | null = null
-        try {
-          const res = await requestGatewayForProfile<{ stored_session_id?: string; session_id?: string }>(
-            'default',
-            'session.create',
-            { profile: 'default' },
-            undefined,
-            undefined,
-            { spawnPriority: 'foreground' }
-          )
-          storedId = res?.stored_session_id ?? res?.session_id ?? null
-        } catch {
-          storedId = null
-        }
-        if (!storedId) {
-          // 回退:建不了会话仍走老闩锁路径(芯片等主页 composer 领取)。
-          pinNewChatProfile('default')
-          queueSkillInsert({ command, label: title, autoSend: true })
-          return
-        }
-        // 归属直跳(同 opc launchIntoFreshChat/r5):不带 profile 的导航会让
-        // 会话页 resume 打到 active 网关,专家档 active 时判死顶回闪屏。
-        await host.openSession(storedId, { profile: 'default', intent: 'main' })
-        queueSkillInsert({ command, label: title, autoSend: true })
+      onSkillPick: (name: string, title?: string) => {
+        // crab 0.20.5s-r7: 主页六卡 = 填入等待(无「立即使用」按钮≠点击即发送)。
+        // 三入口三语义:OPC卡/技能广场带「立即使用·使用」按钮→点击即发送
+        // (launchIntoFreshChat 协议);主页六卡无按钮→只填入 composer,用户补
+        // 内容后自己回车,发送走正常路径(路由跟随已验证)。r6 曾一刀切对齐
+        // OPC 协议,用户澄清语义错误,回退。旧病(autoSend 直发混灌/裸命令会话)
+        // 随 autoSend:false 一并消除;芯片被主页 composer 即时领取展示,不再有
+        // 陈年芯片排队。
+        pinNewChatProfile('default')
+        queueSkillInsert({ command: `/${name} `, label: title, autoSend: false })
       },
       onInstallSkill: () => {
         navigateForMarket('/skills?tab=market')
