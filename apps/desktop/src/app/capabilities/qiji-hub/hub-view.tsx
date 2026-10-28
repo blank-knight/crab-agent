@@ -341,7 +341,10 @@ function SkillsPane({
         {ordered.length === 0 ? (
           <p className="px-5 py-8 text-[0.8rem] text-(--ui-text-tertiary)">此分组暂无技能。</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-2.5 px-5 pb-5">
+          // crab 0.20.5s-r9: items-start——grid 默认 stretch 把同行卡拉等高,展开卡
+          // 282px 时右侧未展开卡被拉到 282px 底部 172px 空白,用户看成"也跟着打开
+          // 了但一片空白"(10-28 报)。items-start=各卡自然高度,展开只撑自己。
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] items-start gap-2.5 px-5 pb-5">
             {ordered.map(skill => (
               <SkillCard
                 key={skill.name}
