@@ -113,7 +113,14 @@ export async function refreshExpertSessions(): Promise<void> {
             id: String(row.id),
             input_tokens: 0,
             is_active: false,
-            last_active: (row.started_at ?? 0) * 1000 || Date.now(),
+            // crab 0.20.5s-r11: 先来后到——title 精确查的行摘要只有 started_at
+            // (无 last_active),用 started_at 参与排序;绝不拿 Date.now() 兜底,
+            // 那会把所有专家行打成"刚刚"浮顶(10-29 用户实锤:全会话沉在专家
+            // 行下面)。⚠️ SessionInfo 时间轴是 Unix **秒**(session-row 的
+            // formatAge/new Date(ts*1000)、后端 time.time() 都是秒)——r10 首版
+            // 误乘 1000 成毫秒,13位数秒值碾压一切正常行(10位数),排序+标签
+            // 双错。行没有 started_at 就 0 沉底。
+            last_active: row.started_at ?? 0,
             message_count: row.message_count ?? 0,
             model: null,
             output_tokens: 0,
