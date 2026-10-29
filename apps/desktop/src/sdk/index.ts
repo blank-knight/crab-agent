@@ -1111,9 +1111,13 @@ export const host = {
         throw new Error('Session open was superseded by a newer selection.')
       }
 
-      if (options.awaitHydration) {
+      if (options.awaitHydration && !plan.dialWithoutSwitching) {
         // Keep the target-specific overlay visible through transcript hydration,
         // not merely through the gateway/profile activation that precedes it.
+        // crab 0.20.5-t-r2: dialWithoutSwitching(专家行点击——拨专家后端但
+        // chrome/active 保持账号档不动)不设 swapTarget:那个形态没有"切换"
+        // 发生,闪「正在唤醒 pmvagpyyc…」是纯噪声(10-29 用户定调:这种闪烁
+        // 都不能出现)。overlay 只配真切换(switchWorkspace/explicitRoute)。
         $gatewaySwapTarget.set(targetProfile)
         gatewaySwapTargetOwnerGeneration = generation
       }

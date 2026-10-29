@@ -791,7 +791,10 @@ describe('profile-aware plugin session opens', () => {
 
     expect(openSessionCore).toHaveBeenCalledWith('bot-chat', expect.any(Function), 'in-place')
     expect(resolved).toBe(false)
-    expect($gatewaySwapTarget.get()).toBe('hyoseob')
+    // crab 0.20.5-t-r2: dialWithoutSwitching 形态（拨 bot 后端但不切 chrome）
+    // 不再设 swapTarget——「正在唤醒」overlay 只配真切换。拨号仍进行
+    // （openGatewayForProfile 已调），只是不闪切换浮层。
+    expect($gatewaySwapTarget.get()).toBeNull()
 
     setMockAtom($focusedStoredSessionId, 'bot-chat')
     setMockAtom($focusedRuntimeId, 'runtime-tile')
