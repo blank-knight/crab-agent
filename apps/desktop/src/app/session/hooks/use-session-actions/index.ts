@@ -359,13 +359,25 @@ async function desktopSessionCreateParams(
   const lockedProfile = accountLockedProfile()
   const explicitIntent = capturedRoute?.profile || requestedProfile || $newChatProfile.get()
 
+  // crab 0.20.5-t-r1: 锁值只在两种显式意图下让位——豁免集成员（专家档）或
+  // 意图==当前 active 档。后者是 0.20.5o-r2 漏的场景：登录账号锁 acc_* 时，
+  // 用户在主页（active=default）点技能卡发送，pinNewChatProfile('default')
+  // 的显式意图不在豁免集（豁免集排除 default）→ 锁值 acc_* 赢 → 网关被拨去
+  // acc 档，ChatSwapOverlay 闪「正在唤醒 acc_…」且会话错落 acc 档（10-29
+  // 用户实锤"发送闪烁"）。锁的本义是拦"无显式意图的跨账号泄漏"——用户
+  // 正看着 default 发消息不存在泄漏，意图==active 时锁不参与。
+  const activeKey = normalizeProfileKey($activeGatewayProfile.get())
+  const intentWinsLock =
+    explicitIntent &&
+    (!lockedProfile ||
+      isAccountLockException(explicitIntent) ||
+      normalizeProfileKey(explicitIntent) === activeKey)
+
   const profile =
-    (explicitIntent && (!lockedProfile || isAccountLockException(explicitIntent))
-      ? explicitIntent
-      : undefined) ||
+    (intentWinsLock ? explicitIntent : undefined) ||
     lockedProfile ||
     explicitIntent ||
-    normalizeProfileKey($activeGatewayProfile.get())
+    activeKey
 
   if (capturedRoute) {
     await ensureGatewayAgent(capturedRoute.connectionId, profile)
