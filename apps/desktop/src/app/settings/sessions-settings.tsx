@@ -34,6 +34,12 @@ const DEFAULT_AUTO_ARCHIVE_DAYS = 3
 
 const ARCHIVED_FETCH_LIMIT = 200
 
+// crab 0.20.5-t-r3: 已归档会话列表的模块级缓存——设置子页每次切换都会
+// 重挂载组件,useState 归零 + load 的 setLoading(true) 把整页打回骨架再换
+// 回内容,用户看到"进会话页闪一下"(10-29 用户实锤)。缓存让重挂载首帧就有
+// 旧数据直渲染,load 在后台静默刷新;骨架只在真正首载(无缓存)时显示。
+let archivedSessionsCache: SessionInfo[] | null = null
+
 interface SessionsSettingsProps {
   subpage?: string
 }
@@ -55,15 +61,16 @@ export function SessionsSettings({ subpage }: SessionsSettingsProps = {}) {
 function ArchivedSessionsSettings({ includeDefaultDirectory }: { includeDefaultDirectory: boolean }) {
   const { t } = useI18n()
   const s = t.settings.sessions
-  const [sessions, setLocalSessions] = useState<SessionInfo[]>([])
-  const [loading, setLoading] = useState(true)
+  const [sessions, setLocalSessions] = useState<SessionInfo[]>(() => archivedSessionsCache ?? [])
+  const [loading, setLoading] = useState(() => archivedSessionsCache === null)
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    setLoading(true)
-
+    // crab 0.20.5-t-r3: 有缓存(重挂载)不清 loading 语义——骨架只在首载出现,
+    // 刷新在内容保持原位的情况下后台进行。
     try {
       const result = await listAllProfileSessions(ARCHIVED_FETCH_LIMIT, 0, 'only')
+      archivedSessionsCache = result.sessions
       setLocalSessions(result.sessions)
     } catch (err) {
       notifyError(err, s.failedLoad)
@@ -82,7 +89,11 @@ function ArchivedSessionsSettings({ includeDefaultDirectory }: { includeDefaultD
 
       try {
         await setSessionArchived(session.id, false, session.profile)
-        setLocalSessions(prev => prev.filter(s => s.id !== session.id))
+        setLocalSessions(prev => {
+          const next = prev.filter(s => s.id !== session.id)
+          archivedSessionsCache = next
+          return next
+        })
         // Surface it again in the sidebar without waiting for a full refresh, and
         // lift any optimistic eviction so the grouped tree shows it again too.
         untombstoneSessions([session.id, session._lineage_root_id])
@@ -117,7 +128,11 @@ function ArchivedSessionsSettings({ includeDefaultDirectory }: { includeDefaultD
         // Permanent delete bypasses removeSession, so retire the persisted
         // unread state here too rather than leaving it to rot.
         forgetSessionUnread([session.id, session._lineage_root_id], session.profile)
-        setLocalSessions(prev => prev.filter(s => s.id !== session.id))
+        setLocalSessions(prev => {
+          const next = prev.filter(s => s.id !== session.id)
+          archivedSessionsCache = next
+          return next
+        })
         triggerHaptic('warning')
       } catch (err) {
         notifyError(err, s.deleteFailed)
