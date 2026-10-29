@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 // qiji 0.20.4: 「技能与工具」自研页 — 视觉 v2（design-preview 设计语言落地）。
 //
 // 设计语言 = 珊瑚螃蟹（暖黑窄栏 + 大圆角卡片 + 软阴影 + 悬浮上浮）。
@@ -11,7 +10,7 @@ import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { getSkillContent, type ProfileScope, profileScopeKey, setSkillEnabled } from '@/hermes'
+import { type ProfileScope, setSkillEnabled } from '@/hermes'
 import { useI18n } from '@/i18n'
 import type { IconComponent } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
@@ -22,7 +21,6 @@ import { notify, notifyError } from '@/store/notifications'
 import { pinNewChatProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
 
-import { parseFrontmatter } from '../skills/frontmatter'
 import { skillsQueryKey, usageOf } from '../skills/skills-data'
 import { categoryZh, skillDescZh, skillNameZh } from '../zh-display'
 
@@ -124,9 +122,20 @@ function SkillCard({
   profile?: ProfileScope
   skill: SkillInfo
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const { t } = useI18n()
+  const navigate = useNavigate()
   const zhName = skillNameZh(skill.name, skill.name)
   const zhDesc = skillDescZh(skill.name, skill.description || '')
+
+  // crab 0.20.5s-r10 (10-28 用户拍板): 卡片去展开——展开区(详情+使用按钮)砍掉,
+  // 「使用」固定在右下角,所有卡等高对齐(r9 的 items-start 后自然高度仍参差,
+  // 用户嫌乱)。使用语义不变:点击=回聊天直发(与三入口语义表一致)。
+  const onUse = () => {
+    // 与 SkillFullBody.onUse 同链路(0.20.5q 闩锁队列,点了就算用)。
+    pinNewChatProfile('default')
+    navigate('/')
+    queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: true })
+  }
 
   return (
     <div
@@ -137,11 +146,7 @@ function SkillCard({
       )}
     >
       <div className="flex items-start gap-3">
-        <button
-          className="min-w-0 flex-1 text-left"
-          onClick={() => setExpanded(v => !v)}
-          type="button"
-        >
+        <div className="min-w-0 flex-1 text-left">
           <div className="flex items-center gap-2">
             <p className="truncate text-[0.95rem] font-bold text-(--ui-text-primary)">{zhName}</p>
             {usageOf(skill) > 0 && (
@@ -151,7 +156,7 @@ function SkillCard({
             )}
           </div>
           <p className="mt-1 line-clamp-2 text-[0.76rem] leading-relaxed text-(--ui-text-tertiary)">{zhDesc}</p>
-        </button>
+        </div>
         <Switch
           aria-label={zhName}
           checked={skill.enabled}
@@ -159,63 +164,9 @@ function SkillCard({
           size="xs"
         />
       </div>
-      {expanded && (
-        <div className="mt-3 border-t border-(--ui-border)/50 pt-3">
-          <div className="rounded-xl bg-(--ui-muted)/60 px-3 py-2">
-            <p className="text-[0.74rem] leading-relaxed text-(--ui-text-secondary)">
-              {zhDesc || '暂无描述。'}
-            </p>
-          </div>
-          <SkillFullBody name={skill.name} profile={profile} />
-        </div>
-      )}
-    </div>
-  )
-}
-
-/** 详情展开区：qiji 0.20.5f — 不再展示英文 SKILL.md 原文（它是给模型的操作
- * 手册，不是给用户的）。只留中文摘要 + 技能名/版本元数据 + 「使用」按钮
- * （预填 /技能名 到聊天输入框，用户补一句需求即可调用）。
- * getSkillContent 仅用于取 frontmatter 的版本号，正文丢弃。 */
-function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope }) {
-  const { t } = useI18n()
-  const navigate = useNavigate()
-
-  const { data } = useQuery({
-    queryKey: ['skill-content', name, profileScopeKey(profile)],
-    queryFn: () => getSkillContent(name, profile),
-    staleTime: 60_000
-  })
-
-  const parsed = useMemo(() => (data ? parseFrontmatter(data.content) : null), [data])
-  const version = parsed?.meta.find(([k]) => k === 'version')?.[1]
-
-  const onUse = () => {
-    // qiji 0.20.5q: 直派 qiji:insert-skill 事件在 navigate('/') 后同步派发——
-    // 聊天页 composer 尚未挂载、监听器不存在，芯片静默丢失（用户实锤"点了没反应"）。
-    // 改走 OPC 0.20.5c 同款闩锁队列：主 composer 挂载且 workspace 回聊天态后领取。
-    // 0.20.5r: 点「使用」= 就算用了——autoSend 直发，与首页快捷卡/技能详情页一致。
-    // crab 0.20.5s-r3: pin-only,不切 active(切网关=卡顿+吞autoSend)。
-    pinNewChatProfile('default')
-    navigate('/')
-    queueSkillInsert({ command: `/${name} `, label: skillNameZh(name, name), autoSend: true })
-  }
-
-  return (
-    <div className="mt-2.5 space-y-2">
-      <div className="flex items-center justify-between gap-3 rounded-xl bg-(--ui-muted)/60 px-3 py-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-[0.7rem] text-(--ui-text-tertiary)">
-          <span>
-            {t.skills.skillMetaName}：<code className="font-mono">{name}</code>
-          </span>
-          {version ? (
-            <span>
-              {t.skills.skillMetaVersion}：{version}
-            </span>
-          ) : null}
-        </div>
+      <div className="mt-3 flex items-center justify-end border-t border-(--ui-border)/50 pt-2.5">
         <Button
-          className="h-7 shrink-0 rounded-lg px-3 text-[0.74rem]"
+          className="h-7 rounded-lg px-3 text-[0.74rem]"
           onClick={onUse}
           size="sm"
           type="button"
@@ -223,9 +174,6 @@ function SkillFullBody({ name, profile }: { name: string; profile?: ProfileScope
           {t.skills.useSkill}
         </Button>
       </div>
-      <p className="px-1 text-[0.68rem] leading-relaxed text-(--ui-text-quaternary)">
-        {t.skills.useSkillHint.replace('{name}', name)}
-      </p>
     </div>
   )
 }

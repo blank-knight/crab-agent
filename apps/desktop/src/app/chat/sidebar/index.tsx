@@ -40,7 +40,6 @@ import {
   $pinnedSessionIds,
   $sidebarCardRows,
   $sidebarCronOpen,
-  $sidebarExpertSessionsOpen,
   $sidebarFiltersActive,
   $sidebarGrouping,
   $sidebarMessagingOpenIds,
@@ -64,7 +63,6 @@ import {
   SESSION_SEARCH_FOCUS_EVENT,
   setPinnedSessionOrder,
   setSidebarCronOpen,
-  setSidebarExpertSessionsOpen,
   setSidebarPinsOpen,
   setSidebarProjectOrderIds,
   setSidebarRecentsOpen,
@@ -153,7 +151,7 @@ import { type NewSessionSplitHandler, startNewSessionDrag } from '../new-session
 
 import { SidebarSectionAddButton } from './chrome'
 import { SidebarCronJobsSection } from './cron-jobs-section'
-import { SidebarExpertSessionsSection } from './expert-sessions-section'
+import { $expertSessions, refreshExpertSessions } from '@/store/expert-sessions'
 import { SidebarFilterMenu } from './filter-menu'
 import { buildGatewaySessionGroups, scopeGatewaySessionGroups, useGatewaySessionGroups } from './gateway-group-model'
 import { SidebarLoadMoreRow } from './load-more-row'
@@ -486,7 +484,6 @@ export function ChatSidebar({
   const pinsOpen = useStore($sidebarPinsOpen)
   const agentsOpen = useStore($sidebarRecentsOpen)
   const cronOpen = useStore($sidebarCronOpen)
-  const expertSessionsOpen = useStore($sidebarExpertSessionsOpen)
   // The sidebar highlight tracks the FOCUSED session — the interacted tile's
   // tab, else the main selection — so it stays 1:1 with whatever tab is active.
   const selectedSessionId = useStore($focusedStoredSessionId)
@@ -496,6 +493,9 @@ export function ChatSidebar({
   const cronSessions = useStore($cronSessions)
   const cronJobs = useStore($cronJobs)
   const messagingSessions = useStore($messagingSessions)
+  // crab 0.20.5s-r10 (方案A): 专家常驻线行——与普通会话同一列表,见
+  // store/expert-sessions.ts。挂载/聚焦时刷一次(拉取内部自带去重闩)。
+  const expertSessions = useStore($expertSessions)
   const messagingPlatformTotals = useStore($messagingPlatformTotals)
   const messagingTruncated = useStore($messagingTruncated)
   const sessionsLoading = useStore($sessionsLoading)
@@ -575,6 +575,27 @@ export function ChatSidebar({
     return () => window.removeEventListener(SESSION_SEARCH_FOCUS_EVENT, onFocus)
   }, [])
 
+  // crab 0.20.5s-r10: 专家常驻线行刷新——挂载一次 + 窗口回来一次(与项目树/
+  // PR 同款节奏;拉取内部有 inflight 闩 + roster staleness,连点不放大流量)。
+  // 发送后行会动:live 轮询把 $sessions 刷新时这里跟着刷,线行 preview/时间跟上。
+  useEffect(() => {
+    void refreshExpertSessions()
+
+    const onActive = () => {
+      if (document.visibilityState !== 'hidden') {
+        void refreshExpertSessions()
+      }
+    }
+
+    window.addEventListener('focus', onActive)
+    document.addEventListener('visibilitychange', onActive)
+
+    return () => {
+      window.removeEventListener('focus', onActive)
+      document.removeEventListener('visibilitychange', onActive)
+    }
+  }, [])
+
   // Flash the ⌘N hint full-opacity (no transition) for the press, so hitting
   // the shortcut visibly pings its affordance in the sidebar.
   useEffect(() => {
@@ -613,10 +634,14 @@ export function ChatSidebar({
   // its own set rather than a filter over this one — a flat list of archived
   // rows, no project tree, no date or status dividers.
   const scopedSessions = useMemo(() => {
-    const pool = showArchived ? archivedSessions : sessions
+    const scoped = filterSessionsByProfileScope(showArchived ? archivedSessions : sessions, profileScope)
 
-    return filterSessionsByProfileScope(pool, profileScope)
-  }, [sessions, archivedSessions, showArchived, profileScope])
+    // crab 0.20.5s-r10 (方案A): 专家常驻线行并进列表,但**绕过 profile-scope
+    // 过滤**——scope=default 时专家行(profile=各专家档)会被整体滤掉,而用户
+    // 心智是"所有会话都在一个列表"(旧专家分组同样不受 scope 影响)。专家行
+    // 始终可见,点击由 owner 梯子按行 profile 路由到该专家后端。
+    return showArchived ? scoped : [...scoped, ...expertSessions]
+  }, [sessions, archivedSessions, showArchived, profileScope, expertSessions])
 
   // One predicate for the status/project filters, so the flat list and the
   // project lanes narrow by the same rule. A project lane holds rows the loaded
@@ -2071,18 +2096,11 @@ export function ChatSidebar({
                 )
               })}
 
-            {/* crab 0.20.5s: 专家会话分组恢复（用户 10-26 拍板：skill/专家/智能体会话
-                统一在左侧可见）。0.20.5p-r3 移除它的两个病灶已被根治——
-                ①视图翻转/账号锁震荡: 96078d4668(openSession 锁定下跳过视图翻转)+
-                c307049f51(侧栏 scope 恒锁账号档) 都在本 HEAD;
-                ②与 OPC 面板重复: 用户现在明确要左侧统一入口。一专家一线程,
-                点击进常驻对话。无本机专家时组件自隐藏。 */}
-            {!trimmedQuery && !worktreeGroupingActive && (
-              <SidebarExpertSessionsSection
-                onToggle={() => setSidebarExpertSessionsOpen(!expertSessionsOpen)}
-                open={expertSessionsOpen}
-              />
-            )}
+            {/* crab 0.20.5s-r10 (方案A,10-28 用户拍板): 「专家会话」独立分组移除
+                ——专家常驻线行混排进上面的普通「会话」列表(scopedSessions 已并
+                入 expertSessions 切片),行标题=专家名。一专家一线程永续不变,
+                点击行=进他那条线(owner 梯子按行 profile 路由)。新专家第一次
+                用自然出现,"建了不显示"的 roster 快照虫整类消失。 */}
 
             {!trimmedQuery && !worktreeGroupingActive && showsAdvancedChrome && cronJobs.length > 0 && (
               <SidebarCronJobsSection

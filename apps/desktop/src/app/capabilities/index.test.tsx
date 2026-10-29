@@ -238,7 +238,7 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
     await waitFor(() => expect(setSkillEnabled).toHaveBeenCalledWith('web-research', false, 'researcher'))
   })
 
-  it('qiji 0.20.5f: hides the raw SKILL.md body, shows metadata + Use button instead', async () => {
+  it('crab 0.20.5s-r10: 固定卡无展开,右下角「使用」按钮,不拉 SKILL.md 正文', async () => {
     $catalogCardView.set(false)
     getSkills.mockResolvedValue([
       {
@@ -261,16 +261,15 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       )
     })
 
-    // qiji 0.20.5f: 展开详情不再渲染英文正文（Deep research steps 必须缺席），
-    // 改为元数据行（技能名 web-research）+「使用」按钮。
-    const row = await screen.findByRole('button', { name: /web-research/ })
+    // r10: 卡片无展开——点行不再触发 getSkillContent(版本号元数据随展开区
+    // 一并砍掉),「使用」按钮固定右下角。正文永不出现在 DOM。
+    const card = await screen.findByRole('switch', { name: /web-research/ })
+    expect(card).toBeTruthy()
     await act(async () => {
-      fireEvent.click(row)
+      fireEvent.click(card.closest('div.rounded-2xl') ?? document.body)
     })
-    await waitFor(() => expect(getSkillContent).toHaveBeenCalled())
-    expect(getSkillContent.mock.calls[0][0]).toBe('web-research')
+    expect(getSkillContent).not.toHaveBeenCalled()
     expect(screen.queryByText(/Deep research steps/)).toBeNull()
-    expect(screen.getAllByText(/web-research/).length).toBeGreaterThan(0)
   })
 
   it('keeps installed skills on their toggle and installs new cards into the pinned remote profile', async () => {
