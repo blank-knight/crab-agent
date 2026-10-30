@@ -125,7 +125,8 @@ import {
   routeSessionId,
   sessionRoute,
   SETTINGS_ROUTE,
-  syncWorkspaceRoute
+  syncWorkspaceRoute,
+  $workspaceIsPage
 } from '../routes'
 import { SessionImportView } from '../session-import'
 import { SessionPickerOverlay } from '../session-picker-overlay'
@@ -1190,7 +1191,23 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       navigate(CRON_ROUTE)
     },
     onNavigate: selectSidebarItem,
-    onNewSessionInWorkspace: path => startSessionInWorkspace(path, { openTab: true }),
+    onNewSessionInWorkspace: path => {
+      // crab 0.20.5-t-r5: 「新建会话」主按钮的语义修正。旧路径无条件
+      // openTab:true——主聊天区已被占用(mainChatOccupied)时改开后台 tile,
+      // 但主页路由本身还挂着上一个会话的 runtime(用户从会话页点「新建会话」
+      // 回主页的场景):随后在主页草稿上发消息,resolveTargetSessionId 梯子
+      // 第2级把活 runtime(fc383c 旧会话)当目标——消息错落旧会话+路由闪跳
+      // (10-31 装机实锤,agent.log 铁证:01:02 prompt 灌进 08:20 的会话)。
+      // 修正:用户正看着主页草稿($workspaceIsPage=true,无会话 route)时,
+      // 点「新建会话」=把当前草稿翻新(清 runtime),不开 tile。
+      if ($workspaceIsPage.get() && path === null) {
+        startSessionInWorkspace(null)
+
+        return
+      }
+
+      startSessionInWorkspace(path, { openTab: true })
+    },
     onNewSessionSplit: (dir, opts) =>
       void openNewSessionTile(dir, {
         ...opts,
