@@ -60,11 +60,13 @@ import { $previewTarget } from '@/store/preview'
 import {
   $activeGatewayProfile,
   $freshSessionRequest,
+  $newChatProfile,
   $profileScope,
   ALL_PROFILES,
   ensureGatewayProfile,
   newSessionInProfile,
   normalizeProfileKey,
+  prewarmProfileBackend,
   refreshActiveProfile
 } from '@/store/profile'
 import { $newProjectSessionRequest, $startWorkSessionRequest, followActiveSessionCwd } from '@/store/projects'
@@ -953,6 +955,14 @@ export function ContribWiring({ children }: { children: ReactNode }) {
       // Status-then-arm, syncing $wakeWord so the composer toggle reflects the
       // same listener this auto-arm claims.
       void armWakeWord(requestGateway)
+
+      // crab 0.20.5-t-r4: 网关一开就预热 pinned 新会话档。冷启动场景下
+      // default 档后端可能已被池 LRU 回收,首次发送才拉起 = 用户等 10-20s
+      // "过一段时间才进入会话"(10-30 装机实锤)。boot 即预热,把拉起成本
+      // 从"用户点发送的那一刻"挪到"应用启动后台"。prewarmProfileBackend
+      // 自带 60s 节流+池上限和谐(#91545),不会造成后端churn;目标=active
+      // 档时它直接 return(已在服务)。
+      prewarmProfileBackend($newChatProfile.get() || 'default')
     }
   }, [gatewayState, requestGateway])
 
