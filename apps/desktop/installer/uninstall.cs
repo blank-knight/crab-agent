@@ -71,11 +71,12 @@ class Uninstaller
             catch (Exception ex)
             {
                 Console.WriteLine("复制卸载程序失败: " + ex.Message);
-                Console.WriteLine("按任意键关闭...");
-                Console.ReadKey();
+                WaitInteractive();
                 return;
             }
-            // Relaunch from temp with install dir as argument
+            // Relaunch from temp with install dir as argument.
+            // 0.20.5u (B7): keep the child attached to THIS console so the user
+            // still sees the log; UseShellExecute=false inherits the console.
             Process.Start(new ProcessStartInfo
             {
                 FileName = tempExe,
@@ -85,11 +86,23 @@ class Uninstaller
             return;
         }
 
-        // 2. Running from temp -> actual uninstall
+        // 2. Running from temp -> actual uninstall.
+        // 0.20.5u (B7): validate args[0] — treat it as an install dir ONLY when
+        // it is an existing directory. Random flags (/S, NSIS-style _?=...) on a
+        // console app end up in args; using them verbatim produced partial
+        // uninstalls (real dir kept, data dir wiped) — VM 2026-11-01 case.
         string installDir = args[0];
         // Strip trailing backslash if present
-        if (installDir.EndsWith("\\"))
-            installDir = installDir.Substring(0, installDir.Length - 1);
+        if (installDir.EndsWith("\\")) installDir = installDir.Substring(0, installDir.Length - 1);
+        if (!Directory.Exists(installDir)
+            || string.Equals(Path.GetFullPath(installDir), Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)), StringComparison.OrdinalIgnoreCase)
+            || installDir.Length <= 3)
+        {
+            Console.WriteLine("无效的卸载目录参数: " + installDir);
+            Console.WriteLine("用法: uninstall.exe \"<安装目录>\"");
+            WaitInteractive();
+            return;
+        }
         var failures = new System.Collections.Generic.List<string>();
 
         Console.WriteLine();
@@ -273,8 +286,10 @@ class Uninstaller
         }
         Console.WriteLine("  ============================================");
         Console.WriteLine();
-        Console.Write("  按任意键关闭...");
-        Console.ReadKey();
+        // 0.20.5u (B7): original Console.ReadKey() blocks forever in any
+        // headless context (scheduled task / remote assist / redirected stdin)
+        // and throws when stdin is redirected — skipping the self-delete below.
+        WaitInteractive();
 
         // 6. Self-delete temp copy (schedule delayed delete)
         try
@@ -289,5 +304,21 @@ class Uninstaller
             });
         }
         catch { }
+    }
+
+    // Wait for a key ONLY when a human can actually press one: an interactive
+    // console with stdin attached. Headless callers (redirected stdin, no
+    // console, service session) fall straight through so cleanup always
+    // finishes and the self-delete below always runs.
+    static void WaitInteractive()
+    {
+        try
+        {
+            if (!Environment.UserInteractive) return;
+            if (Console.IsInputRedirected) return;
+            Console.Write("  按任意键关闭...");
+            Console.ReadKey();
+        }
+        catch (InvalidOperationException) { /* no console at all */ }
     }
 }
