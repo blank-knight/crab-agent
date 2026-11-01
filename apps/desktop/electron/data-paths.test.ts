@@ -76,3 +76,79 @@ test('explicit homes and userData retain precedence, and suffixed Windows homes 
     'C:\\custom'
   )
 })
+
+// crab 0.20.5u (B1 fix): the Windows legacy-home chain must match install.ps1's
+// CRAB_HOME → QIJI_HOME → HERMES_HOME order, or first-launch bootstrap stages
+// the engine under qiji\ while the desktop keeps resolving hermes\ (bug B1:
+// bootstrap-complete → re-resolve finds nothing → infinite bootstrap loop).
+test('win32 legacy home chain: CRAB_HOME beats QIJI_HOME, missing dirs fall through to the default', (): void => {
+  const home: string = 'C:\\Users\\test'
+  const expectedDefault: string = path.win32.join(home, 'AppData', 'Local', 'hermes')
+
+  // QIJI_HOME (process env) pointing at an existing dir captures the resolve.
+  const qijiEnv: NodeJS.ProcessEnv = { QIJI_HOME: 'C:\\Users\\test\\AppData\\Local\\qiji' }
+  const qijiDir: string = 'C:\\Users\\test\\AppData\\Local\\qiji'
+
+  assert.equal(
+    resolveDesktopHermesHome({
+      home,
+      env: qijiEnv,
+      platform: 'win32',
+      directoryExists: (dir: string): boolean => dir === qijiDir
+    }),
+    qijiDir
+  )
+
+  // CRAB_HOME wins over QIJI_HOME when both exist.
+  const crabDir: string = 'C:\\Users\\test\\AppData\\Local\\crab'
+
+  assert.equal(
+    resolveDesktopHermesHome({
+      home,
+      env: { CRAB_HOME: crabDir, QIJI_HOME: qijiDir },
+      platform: 'win32',
+      directoryExists: (dir: string): boolean => dir === qijiDir || dir === crabDir
+    }),
+    crabDir
+  )
+
+  // A legacy var whose target directory no longer exists must NOT capture a
+  // fresh install — fall through to the default.
+  assert.equal(
+    resolveDesktopHermesHome({
+      home,
+      env: { QIJI_HOME: 'C:\\gone\\qiji' },
+      platform: 'win32',
+      directoryExists: (): boolean => false
+    }),
+    expectedDefault
+  )
+
+  // Persisted User-scope values (registry) feed the same chain: QIJI_HOME from
+  // the registry with an existing dir captures before the HERMES_HOME registry
+  // fallback.
+  assert.equal(
+    resolveDesktopHermesHome({
+      home,
+      env: {},
+      platform: 'win32',
+      directoryExists: (dir: string): boolean => dir === qijiDir,
+      readWindowsHome: (name: string): string | null => (name === 'QIJI_HOME' ? qijiDir : null)
+    }),
+    qijiDir
+  )
+
+  // Registry QIJI_HOME pointing at a missing dir falls through to the
+  // HERMES_HOME registry fallback.
+  assert.equal(
+    resolveDesktopHermesHome({
+      home,
+      env: {},
+      platform: 'win32',
+      directoryExists: (): boolean => false,
+      readWindowsHome: (name: string): string | null =>
+        name === 'QIJI_HOME' ? 'C:\\gone\\qiji' : 'C:\\custom'
+    }),
+    'C:\\custom'
+  )
+})

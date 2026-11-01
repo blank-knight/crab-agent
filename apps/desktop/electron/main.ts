@@ -963,7 +963,8 @@ if (process.env.HERMES_DESKTOP_TMPDIR) {
 const HERMES_HOME: string = resolveDesktopHermesHome({
   home: app.getPath('home'),
   directoryExists,
-  readWindowsHome: (): string | null => readWindowsUserEnvVar('HERMES_HOME')
+  readWindowsHome: (name: string): string | null =>
+    readWindowsUserEnvVar(name === 'CRAB_HOME' ? 'CRAB_HOME' : name === 'QIJI_HOME' ? 'QIJI_HOME' : 'HERMES_HOME')
 })
 
 // #77311: `desktop.electron_flags` and the renderer heap ceiling
