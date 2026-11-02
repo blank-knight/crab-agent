@@ -521,7 +521,13 @@ include-system-site-packages = false
             [System.IO.File]::WriteAllText((Join-Path $homeBin 'hermes.cmd'), $launcherBody)
             # Smoke-test the launcher: --version must exit 0 or the resolver's
             # execProbe will reject it and we loop again.
-            $null = & (Join-Path $dotHermesBin 'hermes.cmd') --version 2>&1
+            # NOTE: run via cmd /c with native redirection — calling the .cmd
+            # directly from PowerShell turns its stderr (the harmless pywin32
+            # .pth warning) into ErrorRecords, and under this script's
+            # ErrorActionPreference that is a TERMINATING error which kills the
+            # whole installer (2026-11-02 VM round 2: "uv produced no JSON
+            # result frame exit=1" was this line, not a real failure).
+            $null = & cmd.exe /c ("`"" + (Join-Path $dotHermesBin 'hermes.cmd') + "`" --version >nul 2>&1")
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "[vendor] Published hermes launchers (.hermes\bin + home\bin); --version OK" -ForegroundColor Cyan
             } else {
