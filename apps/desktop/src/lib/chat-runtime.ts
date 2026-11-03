@@ -104,7 +104,8 @@ export function sessionTitle(session: SessionInfo): string {
   // 占位期显示 pptx-maker 数秒，用户要一开始就是中文）。
   const preview = localizeSkillPlaceholder(stripSkillScaffolding(session.preview?.trim() || ''))
 
-  return preview || 'Untitled session'
+  // qiji 0.20.5v: 兜底中文（原 'Untitled session'——中英混杂报障漏网点）。
+  return preview || '未命名会话'
 }
 
 /** What a session is called before it has been sent — and before its composer

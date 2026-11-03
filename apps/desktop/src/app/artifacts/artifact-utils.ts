@@ -110,7 +110,7 @@ function looksLikeArtifact(value: string, explicit = false): boolean {
 }
 
 function artifactSessionTitle(session: SessionInfo): string {
-  return session.title?.trim() || session.preview?.trim() || 'Untitled session'
+  return session.title?.trim() || session.preview?.trim() || '未命名会话'
 }
 
 function normalizeValue(value: string): string {
