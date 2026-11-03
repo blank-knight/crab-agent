@@ -267,7 +267,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
         const { render: renderSlashOutput, sessionId, storedSessionId } = resolved
 
         if (!isDesktopSlashCommand(name)) {
-          renderSlashOutput(desktopSlashUnavailableMessage(name) || `/${name} is not available in the desktop app.`)
+          renderSlashOutput(desktopSlashUnavailableMessage(name) || `/${name} 在桌面端不可用。`)
 
           return
         }
@@ -364,8 +364,8 @@ export function useSlashCommand(deps: SlashCommandDeps) {
           if (queued !== 'idle') {
             renderSlashOutput(
               queued === 'queued'
-                ? 'session busy — message queued to send when the current turn finishes'
-                : 'session busy — stop the current reply first (Stop button or Esc), then send this command'
+                ? 'session busy — 消息已排队，将在当前回复结束后自动发送'
+                : 'session busy — 请先停止当前回复（停止按钮或 Esc），再执行该命令'
             )
 
             return
@@ -1301,7 +1301,7 @@ export function useSlashCommand(deps: SlashCommandDeps) {
         switch (surface?.kind) {
           case 'unavailable': {
             const resolved = await withSlashOutput(ctx)
-            resolved?.render(desktopSlashUnavailableMessage(name) || `/${name} is not available in the desktop app.`)
+            resolved?.render(desktopSlashUnavailableMessage(name) || `/${name} 在桌面端不可用。`)
 
             return
           }

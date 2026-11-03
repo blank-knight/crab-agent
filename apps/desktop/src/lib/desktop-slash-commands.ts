@@ -474,18 +474,19 @@ function isAliasCommand(command: string): boolean {
 }
 
 const UNAVAILABLE_MESSAGE: Record<DesktopUnavailableReason, (command: string) => string> = {
+  // qiji 0.20.5v: 中文文案（2026-11-03 用户报障"对话框提示中英混杂"）。
   advanced: command =>
-    `${command} is not shown in the desktop slash palette. Use the relevant desktop control or terminal interface instead.`,
+    `${command} 不在桌面端命令面板中。请使用对应的桌面控件或在终端中使用。`,
   'composer-voice': () =>
-    'Voice chat lives in the composer here: click the microphone button and choose "Start voice chat", or use the voice shortcut from Settings → Keyboard Shortcuts.',
-  messaging: command => `${command} is only used from messaging platforms.`,
-  settings: command => `${command} is managed from the desktop sidebar.`,
-  terminal: command => `${command} is only available in the terminal interface.`
+    '语音对话就在输入框这里：点击麦克风按钮并选择「开始语音对话」，或在 设置 → 键盘快捷键 中使用语音快捷键。',
+  messaging: command => `${command} 仅在消息平台中使用。`,
+  settings: command => `${command} 在桌面端侧边栏中管理。`,
+  terminal: command => `${command} 仅在终端界面中可用。`
 }
 
 const PICKER_UNAVAILABLE_MESSAGE: Record<DesktopPickerId, (command: string) => string> = {
-  model: command => `${command} uses the desktop model picker instead of a slash command.`,
-  session: command => `${command} uses the desktop session picker instead of a slash command.`
+  model: command => `${command} 在桌面端请使用模型选择器，无需命令。`,
+  session: command => `${command} 在桌面端请使用会话选择器，无需命令。`
 }
 
 function normalizeCommand(command: string): string {
