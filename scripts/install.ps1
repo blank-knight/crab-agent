@@ -23,8 +23,12 @@ param(
     # exact ref.  Precedence: Commit > Tag > Branch.
     [string]$Commit = "",
     [string]$Tag = "",
-    [string]$HermesHome = $(if ($env:QIJI_HOME) { $env:QIJI_HOME } else { "$env:LOCALAPPDATA\qiji" }),
-    [string]$InstallDir = $(if ($env:QIJI_HOME) { "$env:QIJI_HOME\hermes-agent" } else { "$env:LOCALAPPDATA\qiji\hermes-agent" }),
+    # crab 0.20.5n: home 读链三代兼容 CRAB_HOME→QIJI_HOME→HERMES_HOME。
+    # 0.20.5m 已把环境变量改成 CRAB_HOME(写新清旧),老装机现场还残留
+    # LOCALAPPDATA\qiji 目录(8月旧装)——若只认 QIJI_HOME 会在无环境变量时
+    # 兜底到 LOCALAPPDATA\qiji 把引擎铺错地方。hermes 现场在 LOCALAPPDATA\hermes。
+    [string]$HermesHome = $(if ($env:CRAB_HOME) { $env:CRAB_HOME } elseif ($env:QIJI_HOME) { $env:QIJI_HOME } elseif ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }),
+    [string]$InstallDir = $(if ($env:CRAB_HOME) { "$env:CRAB_HOME\hermes-agent" } elseif ($env:QIJI_HOME) { "$env:QIJI_HOME\hermes-agent" } elseif ($env:HERMES_HOME) { "$env:HERMES_HOME\hermes-agent" } else { "$env:LOCALAPPDATA\hermes\hermes-agent" }),
 
     # --- Stage protocol (additive; default invocation behaves as before) ----
     # See the "Stage protocol" section near the bottom of the file for the
@@ -64,7 +68,15 @@ param(
     # source, Python wheels, node_modules) and copies them into place
     # before each stage, avoiding all network downloads. Enables true
     # offline installation for customers with poor/no connectivity.
-    [string]$VendorDir = ""
+    [string]$VendorDir = "",
+
+    # crab 0.20.5n: keep resources\vendor alive after staging. The upstream
+    # cleanup deletes the vendor tree to save disk; on the UPGRADE path that
+    # tree is the ONLY local payload for a later repair/re-stage (offline
+    # machines have no GitHub access). The desktop bootstrap passes this
+    # switch; fresh NSIS installs (vendor already consumed once) keep the
+    # default delete behaviour.
+    [switch]$KeepVendor
 )
 
 $ErrorActionPreference = "Stop"
@@ -253,34 +265,43 @@ function Stage-VendorFiles {
         # a terminating error, aborting git init before remote add + commit.
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
+        # Block credential GUI prompts (CredentialHelperSelector popup).
+        # qiji 0.19.3: 四层压制——③④杀 helper-selector GUI(它读 credential.guiPrompt
+        # 和 helperselector.selected; system 层预选 none 后永不再问)
+        $env:GIT_TERMINAL_PROMPT = "0"
+        $env:GCM_INTERACTIVE = "never"
+        $env:GCM_GUI_PROMPT = "never"
+        git -c credential.helper= -c windows.appendAtomically=false config --system credential.guiPrompt false 2>&1 | Out-Null
+        git -c credential.helper= -c windows.appendAtomically=false config --system credential.helperselector.selected none 2>&1 | Out-Null
         try {
             $gitStep = "init"
-            git -c windows.appendAtomically=false init 2>&1 | Out-Null
+            git -c credential.helper= -c credential.guiPrompt=false -c windows.appendAtomically=false init 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) { throw "git init failed (exit $LASTEXITCODE)" }
 
-            git -c windows.appendAtomically=false config windows.appendAtomically false 2>&1 | Out-Null
-            git -c windows.appendAtomically=false config core.autocrlf false 2>&1 | Out-Null
-            git -c windows.appendAtomically=false config user.name "Qiji Installer" 2>&1 | Out-Null
-            git -c windows.appendAtomically=false config user.email "installer@local" 2>&1 | Out-Null
-            git -c windows.appendAtomically=false init.defaultBranch main 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false config windows.appendAtomically false 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false config core.autocrlf false 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false config user.name "Qiji Installer" 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false config user.email "installer@local" 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false init.defaultBranch main 2>&1 | Out-Null
 
             # Rename master -> main if init created master (old git default)
-            $curBranch = git -c windows.appendAtomically=false symbolic-ref --short HEAD 2>&1
+            $curBranch = git -c credential.helper= -c windows.appendAtomically=false symbolic-ref --short HEAD 2>&1
             if ($LASTEXITCODE -eq 0 -and $curBranch -ne "main") {
-                git -c windows.appendAtomically=false branch -m main 2>&1 | Out-Null
+                git -c credential.helper= -c windows.appendAtomically=false branch -m main 2>&1 | Out-Null
             }
 
+            # 0.19.2: no origin remote on installed machines. The update check
+            # runs `git ls-remote origin` against a PRIVATE gitee mirror, which
+            # triggers GCM credential popups for end users (no credentials
+            # exist). Client updates ship as signed full Setup.exe packages via
+            # fa_version; the git remote channel is intentionally severed.
             $gitStep = "remote"
-            git remote add origin "https://gitee.com/wintao-storm/QIJI-agent.git" 2>&1 | Out-Null
-            # remote add fails if already exists; that's fine
-            if ($LASTEXITCODE -ne 0) {
-                git remote set-url origin "https://gitee.com/wintao-storm/QIJI-agent.git" 2>&1 | Out-Null
-            }
+            git -c credential.helper= remote remove origin 2>&1 | Out-Null
 
             $gitStep = "add+commit"
-            git -c windows.appendAtomically=false add pyproject.toml hermes_cli/__init__.py AGENTS.md README.md 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false add pyproject.toml hermes_cli/__init__.py AGENTS.md README.md 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) { throw "git add failed (exit $LASTEXITCODE)" }
-            git -c windows.appendAtomically=false commit -m "vendor snapshot (offline install)" 2>&1 | Out-Null
+            git -c credential.helper= -c windows.appendAtomically=false commit -m "vendor snapshot (offline install)" 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) { throw "git commit failed (exit $LASTEXITCODE)" }
 
             Write-Host "[vendor] Git initialized: $(git rev-parse --short HEAD) on branch $(git rev-parse --abbrev-ref HEAD)" -ForegroundColor Green
@@ -312,8 +333,36 @@ function Stage-VendorFiles {
     $vendorPython = Join-Path $VendorDir "python"
     $vendorSitePackages = Join-Path $VendorDir "site-packages"
     $vendorVenvScripts = Join-Path $VendorDir "venv-scripts"
+    $vendorRuntimeStamp = Join-Path $VendorDir "vendor-runtime-stamp.json"
     $managedVenv = Join-Path $InstallDir "venv"
     $managedPython = Join-Path $InstallDir "python"
+
+    # qiji 0.17.7: vendor runtime upgrade gate. Old installs skipped python/
+    # site-packages staging whenever a venv existed, so an outdated hermes
+    # runtime survived every reinstall. Compare the vendor stamp against the
+    # stamp written beside the installed venv; on mismatch, retire the old
+    # venv (rename, not delete — keeps a rollback path) so staging rebuilds it.
+    if ((Test-Path $vendorRuntimeStamp) -and (Test-Path (Join-Path $managedVenv "Scripts\python.exe"))) {
+        $installedStampPath = Join-Path $InstallDir "vendor-runtime-stamp.json"
+        $installedCommit = ""
+        if (Test-Path $installedStampPath) {
+            try { $installedCommit = (Get-Content $installedStampPath -Raw | ConvertFrom-Json).commit } catch { $installedCommit = "" }
+        }
+        $vendorCommit = ""
+        try { $vendorCommit = (Get-Content $vendorRuntimeStamp -Raw | ConvertFrom-Json).commit } catch { $vendorCommit = "" }
+        if ($installedCommit -ne $vendorCommit) {
+            Write-Host "[vendor] Vendor runtime changed ($installedCommit -> $vendorCommit); rebuilding venv" -ForegroundColor Cyan
+            $retiredVenv = Join-Path $InstallDir ("venv.old-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+            Move-Item $managedVenv $retiredVenv -Force
+            # Keep only the most recent retired venv; older ones are dead weight.
+            Get-ChildItem (Split-Path $managedVenv) -Directory -Filter "venv.old-*" |
+                Sort-Object Name -Descending | Select-Object -Skip 1 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            Copy-Item $vendorRuntimeStamp $installedStampPath -Force
+        }
+    } elseif ((Test-Path $vendorRuntimeStamp) -and -not (Test-Path (Join-Path $InstallDir "vendor-runtime-stamp.json"))) {
+        # Fresh install or pre-0.17.7 install with no stamp: record it now.
+        Copy-Item $vendorRuntimeStamp (Join-Path $InstallDir "vendor-runtime-stamp.json") -Force
+    }
 
     if ((Test-Path $vendorPython) -and (Test-Path $vendorSitePackages) -and -not (Test-Path (Join-Path $managedVenv "Scripts\python.exe"))) {
         # a) Copy Python interpreter into InstallDir\python\
@@ -446,6 +495,72 @@ include-system-site-packages = false
         }
 
         Write-Host "[vendor] Staged pre-built venv (Python + site-packages)" -ForegroundColor Cyan
+    }
+
+    # crab 0.20.5u (B9 fix): publish hermes launchers for offline/vendor installs.
+    # The desktop resolver (updater-process.ts resolveInstallationLauncher) only
+    # accepts hermes.exe/.cmd at InstallDir\.hermes\bin\, hermesHome\bin\ (with
+    # _launchers.py identity check), or venv\Scripts\ (legacy rung, excluded when
+    # a pm/ dir exists). The vendor offline path stages repo+venv but NEVER
+    # publishes a launcher anywhere — so after "bootstrap complete" the desktop
+    # re-resolved to null and looped the installer forever (VM 2026-11-02,
+    # complete -> 1ms -> "no Hermes install found"). The upstream online install
+    # calls hermes_cli/_launchers.py for this; offline mode must lay the same
+    # surface down itself. Two cmd wrappers, same shape the online path writes:
+    # PYTHONPATH pinned to the install root + venv python -m hermes_cli.main.
+    if (Test-Path "$InstallDir\hermes_cli\main.py") {
+        $pyLauncher = "$InstallDir\venv\Scripts\python.exe"
+        if (Test-Path $pyLauncher) {
+            $launcherBody = "@echo off`r`nset `"PYTHONPATH=$InstallDir`"`r`n`"$pyLauncher`" -m hermes_cli.main %*"
+            $dotHermesBin = Join-Path $InstallDir '.hermes\bin'
+            New-Item -ItemType Directory -Force -Path $dotHermesBin | Out-Null
+            [System.IO.File]::WriteAllText((Join-Path $dotHermesBin 'hermes.cmd'), $launcherBody)
+            # Also publish into hermesHome\bin (resolver rung 2; harmless if rung 1 hits)
+            $homeBin = Join-Path $HermesHome 'bin'
+            New-Item -ItemType Directory -Force -Path $homeBin | Out-Null
+            [System.IO.File]::WriteAllText((Join-Path $homeBin 'hermes.cmd'), $launcherBody)
+            # Smoke-test the launcher: --version must exit 0 or the resolver's
+            # execProbe will reject it and we loop again.
+            # NOTE: run via cmd /c with native redirection — calling the .cmd
+            # directly from PowerShell turns its stderr (the harmless pywin32
+            # .pth warning) into ErrorRecords, and under this script's
+            # ErrorActionPreference that is a TERMINATING error which kills the
+            # whole installer (2026-11-02 VM round 2: "uv produced no JSON
+            # result frame exit=1" was this line, not a real failure).
+            $null = & cmd.exe /c ("`"" + (Join-Path $dotHermesBin 'hermes.cmd') + "`" --version >nul 2>&1")
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[vendor] Published hermes launchers (.hermes\bin + home\bin); --version OK" -ForegroundColor Cyan
+            } else {
+                Write-Host "[vendor] WARNING: hermes.cmd --version exited $LASTEXITCODE — desktop may re-run bootstrap" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    # crab 0.20.5v (B13 fix): write the install stamp as updateMechanism=external.
+    # Without a stamp, the engine's step_adopt_blessed_checkout "adopts" the
+    # checkout at first launch and stamps it updateMechanism=self — which puts
+    # the whole PM self-update chain on the launch path: prepare_launch
+    # re-execs serve into the PM store interpreter, activate_dependencies then
+    # demands a committed dependency environment that an offline vendor install
+    # never has, and the backend dies with "no dependency environment is
+    # committed" (VM 2026-11-02 round 3, 90s port-announcement timeout).
+    # updateMechanism=external keeps the venv interpreter on serve (its own
+    # prefix != base_prefix satisfies _require_own_dependencies) — desktop
+    # upgrades remain the installer's job, which is exactly the vendor model.
+    if (Test-Path "$InstallDir\hermes_cli\main.py") {
+        $stampPath = Join-Path $InstallDir 'install-stamp.json'
+        $stampJson = @{
+            schemaVersion    = 2
+            updateMechanism = 'external'
+            source          = 'vendor-offline'
+            displayVersion  = '0.20.5-v'
+        } | ConvertTo-Json
+        [System.IO.File]::WriteAllBytes($stampPath, [System.Text.Encoding]::UTF8.GetBytes($stampJson))
+        # The PM completion marker, if a prior bootstrap left one, would drag
+        # serve back into the online dependency-sync path — clear it.
+        Get-ChildItem (Join-Path $HermesHome 'installs') -Directory -ErrorAction SilentlyContinue |
+            ForEach-Object { Remove-Item (Join-Path $_.FullName 'source-completion-pending') -Force -ErrorAction SilentlyContinue }
+        Write-Host "[vendor] Wrote install-stamp.json (updateMechanism=external)" -ForegroundColor Cyan
     }
 
     # 7. node_modules -> $InstallDir\node_modules (skip npm install)
@@ -673,7 +788,7 @@ Fix-UvTrampolines
 # so vendor\ is now mostly empty shells.  The remaining items (hermes-agent
 # source, bin\uv.exe, tools\) were copied and are no longer needed.  Deleting
 # this saves ~100-400 MB of dead weight on the customer's disk.
-if ($VendorDir -and (Test-Path $VendorDir)) {
+if ($VendorDir -and -not $KeepVendor -and (Test-Path $VendorDir)) {
     try {
         Remove-Item $VendorDir -Recurse -Force -ErrorAction SilentlyContinue
         Write-Host "[vendor] Cleaned up staging directory ($VendorDir)" -ForegroundColor Cyan
@@ -1821,11 +1936,11 @@ function Install-Repository {
                 # Reset $LASTEXITCODE before the probe so we don't pick up
                 # a stale 0 from an earlier git call in this session.
                 $global:LASTEXITCODE = 0
-                $revParseOut = & git -c windows.appendAtomically=false rev-parse --is-inside-work-tree 2>&1
+                $revParseOut = & git -c credential.helper= -c windows.appendAtomically=false rev-parse --is-inside-work-tree 2>&1
                 $revParseOk = ($LASTEXITCODE -eq 0) -and ($revParseOut -match "true")
 
                 $global:LASTEXITCODE = 0
-                $null = & git -c windows.appendAtomically=false status --short 2>&1
+                $null = & git -c credential.helper= -c windows.appendAtomically=false status --short 2>&1
                 $statusOk = ($LASTEXITCODE -eq 0)
 
                 # An interrupted previous clone leaves a repo with NO initial
@@ -1835,7 +1950,7 @@ function Install-Repository {
                 # (#40998). Require a resolvable HEAD so such partial checkouts
                 # are treated as broken and re-cloned fresh below.
                 $global:LASTEXITCODE = 0
-                $null = & git -c windows.appendAtomically=false rev-parse --verify HEAD 2>&1
+                $null = & git -c credential.helper= -c windows.appendAtomically=false rev-parse --verify HEAD 2>&1
                 $hasCommit = ($LASTEXITCODE -eq 0)
 
                 if ($revParseOk -and $statusOk -and $hasCommit) {
@@ -1865,7 +1980,7 @@ function Install-Repository {
                 # be overwritten by checkout", which is exactly the failure GUI
                 # users hit on update. Pin autocrlf=false so the dirt is never
                 # created in the first place.
-                git -c windows.appendAtomically=false config core.autocrlf false 2>$null
+                git -c credential.helper= -c windows.appendAtomically=false config core.autocrlf false 2>$null
                 # Preserve any real local changes before the checkout instead of
                 # discarding them with `reset --hard HEAD`. The old hard reset
                 # silently destroyed agent-edited source on managed clones (the
@@ -1873,7 +1988,7 @@ function Install-Repository {
                 # nothing is lost, and a failed restore leaves the work in a
                 # git stash for manual recovery. Untracked files are included so
                 # agent-created dirs (e.g. tinker-atropos/) survive too.
-                $statusOut = git -c windows.appendAtomically=false status --porcelain 2>$null
+                $statusOut = git -c credential.helper= -c windows.appendAtomically=false status --porcelain 2>$null
                 if (-not [string]::IsNullOrWhiteSpace(($statusOut -join "`n"))) {
                     # A previously interrupted update can leave the index with
                     # unmerged entries. In that state `git stash` aborts with
@@ -1884,17 +1999,17 @@ function Install-Repository {
                     # working-tree changes are kept (and stashed just below); only
                     # the index conflict state is dropped. Mirrors the `hermes
                     # update` path (#4735).
-                    $unmergedOut = git -c windows.appendAtomically=false ls-files --unmerged 2>$null
+                    $unmergedOut = git -c credential.helper= -c windows.appendAtomically=false ls-files --unmerged 2>$null
                     if (-not [string]::IsNullOrWhiteSpace(($unmergedOut -join "`n"))) {
                         Write-Info "Clearing unmerged index entries from a previous conflict..."
-                        git -c windows.appendAtomically=false reset -q 2>$null
+                        git -c credential.helper= -c windows.appendAtomically=false reset -q 2>$null
                     }
                     $stashName = "hermes-install-autostash-" + (Get-Date -Format "yyyyMMdd-HHmmss")
                     Write-Info "Local changes detected, stashing before update..."
-                    git -c windows.appendAtomically=false stash push --include-untracked -m "$stashName"
+                    git -c credential.helper= -c windows.appendAtomically=false stash push --include-untracked -m "$stashName"
                     if ($LASTEXITCODE -eq 0) { $autostashRef = "stash@{0}" }
                 }
-                git -c windows.appendAtomically=false fetch origin $Branch
+                git -c credential.helper= -c windows.appendAtomically=false fetch origin $Branch
                 if ($LASTEXITCODE -ne 0) { throw "git fetch failed (exit $LASTEXITCODE)" }
                 # Precedence: Commit > Tag > Branch.  Commit and Tag check
                 # out as detached HEAD intentionally -- they're meant to be
@@ -1902,17 +2017,17 @@ function Install-Repository {
                 if ($Commit) {
                     # Make sure we have the commit locally (a tag-less commit
                     # SHA isn't always reachable from any one branch fetch).
-                    git -c windows.appendAtomically=false fetch origin $Commit
-                    git -c windows.appendAtomically=false checkout --detach $Commit
+                    git -c credential.helper= -c windows.appendAtomically=false fetch origin $Commit
+                    git -c credential.helper= -c windows.appendAtomically=false checkout --detach $Commit
                     if ($LASTEXITCODE -ne 0) { throw "git checkout $Commit failed (exit $LASTEXITCODE)" }
                 } elseif ($Tag) {
-                    git -c windows.appendAtomically=false fetch origin "refs/tags/${Tag}:refs/tags/${Tag}"
-                    git -c windows.appendAtomically=false checkout --detach "refs/tags/$Tag"
+                    git -c credential.helper= -c windows.appendAtomically=false fetch origin "refs/tags/${Tag}:refs/tags/${Tag}"
+                    git -c credential.helper= -c windows.appendAtomically=false checkout --detach "refs/tags/$Tag"
                     if ($LASTEXITCODE -ne 0) { throw "git checkout tag $Tag failed (exit $LASTEXITCODE)" }
                 } else {
-                    git -c windows.appendAtomically=false checkout $Branch
+                    git -c credential.helper= -c windows.appendAtomically=false checkout $Branch
                     if ($LASTEXITCODE -ne 0) { throw "git checkout $Branch failed (exit $LASTEXITCODE)" }
-                    git -c windows.appendAtomically=false pull --ff-only origin $Branch
+                    git -c credential.helper= -c windows.appendAtomically=false pull --ff-only origin $Branch
                     if ($LASTEXITCODE -ne 0) { throw "git pull failed (exit $LASTEXITCODE)" }
                 }
 
@@ -1943,9 +2058,9 @@ function Install-Repository {
 
                     if ($restoreNow) {
                         Write-Info "Restoring local changes..."
-                        git -c windows.appendAtomically=false stash apply $autostashRef
+                        git -c credential.helper= -c windows.appendAtomically=false stash apply $autostashRef
                         if ($LASTEXITCODE -eq 0) {
-                            git -c windows.appendAtomically=false stash drop $autostashRef 2>$null
+                            git -c credential.helper= -c windows.appendAtomically=false stash drop $autostashRef 2>$null
                             Write-Warn "Local changes were restored on top of the updated codebase."
                             Write-Warn "Review git diff / git status if the app behaves unexpectedly."
                         } else {
@@ -2010,7 +2125,7 @@ function Install-Repository {
         Write-Info "Trying SSH clone..."
         $env:GIT_SSH_COMMAND = "ssh -o BatchMode=yes -o ConnectTimeout=5"
         try {
-            Invoke-NativeWithRelaxedErrorAction { git -c windows.appendAtomically=false clone --depth 1 --branch $Branch $RepoUrlSsh $InstallDir }
+            Invoke-NativeWithRelaxedErrorAction { git -c credential.helper= -c windows.appendAtomically=false clone --depth 1 --branch $Branch $RepoUrlSsh $InstallDir }
             if ($LASTEXITCODE -eq 0) { $cloneSuccess = $true }
         } catch { }
         $env:GIT_SSH_COMMAND = $null
@@ -2019,7 +2134,7 @@ function Install-Repository {
             if (Test-Path $InstallDir) { Remove-Item -Recurse -Force $InstallDir -ErrorAction SilentlyContinue }
             Write-Info "SSH failed, trying HTTPS..."
             try {
-                Invoke-NativeWithRelaxedErrorAction { git -c windows.appendAtomically=false clone --depth 1 --branch $Branch $RepoUrlHttps $InstallDir }
+                Invoke-NativeWithRelaxedErrorAction { git -c credential.helper= -c windows.appendAtomically=false clone --depth 1 --branch $Branch $RepoUrlHttps $InstallDir }
                 if ($LASTEXITCODE -eq 0) { $cloneSuccess = $true }
             } catch { }
         }
@@ -2056,13 +2171,14 @@ function Install-Repository {
                     Move-Item $extractedDir.FullName $InstallDir -Force
                     Write-Success "Downloaded and extracted"
 
-                    # Initialize git repo so updates work later
+                    # Initialize git repo (no origin — 0.19.2: the gitee mirror is
+                    # private; an origin remote on end-user machines triggers GCM
+                    # credential popups. Updates ship as signed Setup.exe instead.)
                     Push-Location $InstallDir
-                    git -c windows.appendAtomically=false init 2>$null
-                    git -c windows.appendAtomically=false config windows.appendAtomically false 2>$null
-                    git remote add origin $RepoUrlHttps 2>$null
+                    git -c credential.helper= -c windows.appendAtomically=false init 2>$null
+                    git -c credential.helper= -c windows.appendAtomically=false config windows.appendAtomically false 2>$null
                     Pop-Location
-                    Write-Success "Git repo initialized for future updates"
+                    Write-Success "Git repo initialized (no remote — package updates only)"
 
                     $cloneSuccess = $true
                 }
@@ -2082,12 +2198,12 @@ function Install-Repository {
 
     # Set per-repo config (harmless if it fails)
     Push-Location $InstallDir
-    git -c windows.appendAtomically=false config windows.appendAtomically false 2>$null
+    git -c credential.helper= -c windows.appendAtomically=false config windows.appendAtomically false 2>$null
     # Pin autocrlf=false on the managed clone so git never renormalizes the
     # repo's LF text files to CRLF in the working tree. Without this, the very
     # next `hermes update` checkout aborts on a "dirty" tree the user never
     # touched (see the update path above).
-    git -c windows.appendAtomically=false config core.autocrlf false 2>$null
+    git -c credential.helper= -c windows.appendAtomically=false config core.autocrlf false 2>$null
 
     # Post-clone pin: when a clone (or ZIP-fallback init) just landed us on
     # $Branch's tip, honour the higher-precedence $Commit / $Tag by checking
@@ -2099,18 +2215,25 @@ function Install-Repository {
         # global EAP=Stop otherwise.  We check $LASTEXITCODE for real errors.
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
+        # Block credential GUI prompts (CredentialHelperSelector popup).
+        # qiji 0.19.3: 同 vendor 段的四层压制(fetch 是唯一真正触发凭据解析的命令)
+        $env:GIT_TERMINAL_PROMPT = "0"
+        $env:GCM_INTERACTIVE = "never"
+        $env:GCM_GUI_PROMPT = "never"
+        git -c credential.helper= -c windows.appendAtomically=false config --system credential.guiPrompt false 2>&1 | Out-Null
+        git -c credential.helper= -c windows.appendAtomically=false config --system credential.helperselector.selected none 2>&1 | Out-Null
         try {
             if ($Commit) {
                 Write-Info "Pinning to commit $Commit..."
-                git -c windows.appendAtomically=false fetch origin $Commit
-                git -c windows.appendAtomically=false checkout --detach $Commit
+                git -c credential.helper= -c credential.guiPrompt=false -c windows.appendAtomically=false fetch origin $Commit
+                git -c credential.helper= -c windows.appendAtomically=false checkout --detach $Commit
                 if ($LASTEXITCODE -ne 0) {
                     throw "git checkout $Commit failed (exit $LASTEXITCODE)"
                 }
             } elseif ($Tag) {
                 Write-Info "Pinning to tag $Tag..."
-                git -c windows.appendAtomically=false fetch origin "refs/tags/${Tag}:refs/tags/${Tag}"
-                git -c windows.appendAtomically=false checkout --detach "refs/tags/$Tag"
+                git -c credential.helper= -c windows.appendAtomically=false fetch origin "refs/tags/${Tag}:refs/tags/${Tag}"
+                git -c credential.helper= -c windows.appendAtomically=false checkout --detach "refs/tags/$Tag"
                 if ($LASTEXITCODE -ne 0) {
                     throw "git checkout tag $Tag failed (exit $LASTEXITCODE)"
                 }
@@ -2416,6 +2539,9 @@ except Exception:
         # even when fastapi/uvicorn are actually installed.
         $prevEAP = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
+        # Block credential GUI prompts (CredentialHelperSelector popup)
+        $env:GIT_TERMINAL_PROMPT = "0"
+        $env:GCM_INTERACTIVE = "never"
         try {
             & $pythonExe -c "import fastapi, uvicorn" 2>&1 | Out-Null
             if ($LASTEXITCODE -eq 0) { $webOk = $true }
@@ -2556,10 +2682,11 @@ function Write-BootstrapMarker {
         pinnedCommit  = $pinnedCommit
         pinnedBranch  = $pinnedBranch
         completedAt   = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-        # desktopVersion field intentionally omitted — only the desktop
-        # app knows its own version, and the marker validator doesn't
-        # require it. The desktop fills it in if/when it writes its
-        # own marker (e.g. after a future in-app upgrade).
+        # crab 0.20.5n: desktopVersion 从环境变量 CRAB_DESKTOP_VERSION 带入
+        # (由 Electron bootstrap runner 传入)。缺省时省略该字段——marker 校验
+        # 不要求它,老行为不变。desktop 侧 isRuntimeOutdated 靠这个字段判断
+        # 已装引擎是否旧于当前 App 包版本,升级重铺链路的闸门就在这。
+        desktopVersion = $env:CRAB_DESKTOP_VERSION
     }
     $json = $marker | ConvertTo-Json -Compress:$false
 
