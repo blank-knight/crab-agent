@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router'
 
-import { NEW_CHAT_ROUTE } from '@/app/routes'
 import { Button } from '@/components/ui/button'
 import { getSkillContent, type ProfileScope, profileScopeKey } from '@/hermes'
+import { useLaunchIntoFreshChat } from '@/hooks/use-launch-into-fresh-chat'
 import { useI18n } from '@/i18n'
-import { queueSkillInsert } from '@/store/composer'
 import { pinNewChatProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
 
@@ -26,7 +24,6 @@ export function SkillDetail({
   skill: SkillInfo
 }) {
   const { t } = useI18n()
-  const navigate = useNavigate()
   // Only learned/local skills are the user's to rewrite or archive — bundled
   // and hub skills are managed by their sources.
   const editable = skill.provenance === 'agent'
@@ -56,11 +53,15 @@ export function SkillDetail({
   // 预填 /技能名 （与主页快捷技能卡、OPC 卡同一 queueSkillInsert 闩锁队列协议，
   // 不依赖 URL、不怕 composer 重挂载）。0.20.5r: 点了就算用——autoSend 直发，
   // 用户补需求改为在对话里说（用户反馈：还要手动发一次像没生效）。
+  const launchIntoFreshChat = useLaunchIntoFreshChat()
+
   const onUse = () => {
     // crab 0.20.5s-r3: pin-only,不切 active(切网关=卡顿+吞autoSend)。
+    // crab 0.20.5v-w: 先建会话再直跳(OPC 卡 r4 同款时序)——旧 navigate
+    // 先渲染空态主页,session.create 往返期间「新建会话」整页可见=两段式
+    // 闪屏(2026-11-03 用户报障)。失败自动回退旧行为。
     pinNewChatProfile('default')
-    navigate(NEW_CHAT_ROUTE)
-    queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: true })
+    void launchIntoFreshChat(`/${skill.name} `, zhName)
   }
 
   return (

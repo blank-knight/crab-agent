@@ -6,17 +6,16 @@
 //
 // 上游同步注意：qiji 隔离区组件；接线点在 capabilities/index.tsx 的 qiji 标记块。
 import { memo, useCallback, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { type ProfileScope, setSkillEnabled } from '@/hermes'
+import { useLaunchIntoFreshChat } from '@/hooks/use-launch-into-fresh-chat'
 import { useI18n } from '@/i18n'
 import type { IconComponent } from '@/lib/icons'
 import { queryClient } from '@/lib/query-client'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
 import { cn } from '@/lib/utils'
-import { queueSkillInsert } from '@/store/composer'
 import { notify, notifyError } from '@/store/notifications'
 import { pinNewChatProfile } from '@/store/profile'
 import type { SkillInfo } from '@/types/hermes'
@@ -123,7 +122,7 @@ function SkillCard({
   skill: SkillInfo
 }) {
   const { t } = useI18n()
-  const navigate = useNavigate()
+  const launchIntoFreshChat = useLaunchIntoFreshChat()
   const zhName = skillNameZh(skill.name, skill.name)
   const zhDesc = skillDescZh(skill.name, skill.description || '')
 
@@ -132,9 +131,11 @@ function SkillCard({
   // 用户嫌乱)。使用语义不变:点击=回聊天直发(与三入口语义表一致)。
   const onUse = () => {
     // 与 SkillFullBody.onUse 同链路(0.20.5q 闩锁队列,点了就算用)。
+    // crab 0.20.5v-w: 先建会话再直跳(OPC 卡 r4 同款时序)——旧 navigate('/')
+    // 先渲染空态主页,session.create 往返期间「新建会话」整页可见=两段式
+    // 闪屏(2026-11-03 用户报障)。失败自动回退旧行为。
     pinNewChatProfile('default')
-    navigate('/')
-    queueSkillInsert({ command: `/${skill.name} `, label: zhName, autoSend: true })
+    void launchIntoFreshChat(`/${skill.name} `, zhName)
   }
 
   return (
