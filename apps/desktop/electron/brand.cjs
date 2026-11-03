@@ -23,5 +23,8 @@ module.exports = {
   // 0.20.5m 起与 userDataDirName 解耦：exe 叫 Crab，Roaming 兜底还是 Qiji。
   executableName: 'Crab',
   // Windows AUMI（toast 通知 + 任务栏分组；须与 qiji-builder.config.cjs appId 一致）
-  appId: 'com.crab.desktop'
+  appId: 'com.crab.desktop',
+  // crab 0.20.5v (B15): 首启是否跳过"本地/云端"选择门，直接本地安装。
+  // 品牌产品语义：装机即本地使用；false 则恢复上游选择门。
+  autoLocalBootstrap: true
 }

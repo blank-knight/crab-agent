@@ -18,5 +18,9 @@ export const BRAND = {
   // crab 0.20.5m: AUMI 随贴牌 qiji→crab（须与 qiji-builder.config.cjs appId 一致=brand.cjs 单一源）。
   // 改 AUMI 会让老装机的 toast 通知/任务栏分组键换代——覆盖安装后 Windows 以新 AUMI
   // 重新分组，无功能损失。
-  appId: 'com.crab.desktop'
+  appId: 'com.crab.desktop',
+  // crab 0.20.5v (B15): 首启跳过"本地/云端"选择门，直接本地安装。
+  // 品牌产品语义：装机即本地使用；false 则恢复上游选择门。
+  // 同步点：electron/brand.cjs 的 autoLocalBootstrap（CJS 侧同名字段）。
+  autoLocalBootstrap: true
 } as const

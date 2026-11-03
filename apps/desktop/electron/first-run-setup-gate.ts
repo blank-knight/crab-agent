@@ -13,7 +13,14 @@ interface FirstRunSetupBackend {
   runtimeUpgrade?: boolean
 }
 
+// crab 0.20.5v (B15): branded builds auto-continue into local bootstrap on
+// first run — the local/cloud choice card never shows. See qiji/brand.ts.
+import { BRAND as QIJI_BRAND } from './qiji/brand'
+const BRAND_AUTO_LOCAL_BOOTSTRAP = QIJI_BRAND.autoLocalBootstrap === true
+
 interface FirstRunSetupGateOptions {
+  /** crab 0.20.5v (B15): branded default — first run continues straight into local bootstrap. */
+  autoLocal?: boolean
   hideChoice?: () => void
   log?: (message: string) => void
   onStuck?: (backend: FirstRunSetupBackend, stuckAfterMs: number) => void
@@ -24,6 +31,7 @@ interface FirstRunSetupGateOptions {
 export type FirstRunSetupDecision = 'continue-local' | 'remote-applied' | 'reset'
 
 export function createFirstRunSetupGate({
+  autoLocal = BRAND_AUTO_LOCAL_BOOTSTRAP,
   hideChoice,
   log,
   onStuck,
@@ -71,7 +79,12 @@ export function createFirstRunSetupGate({
       backend &&
         backend.kind === 'bootstrap-needed' &&
         !backend.runtimeUpgrade &&
-        !localBootstrapConfirmed
+        !localBootstrapConfirmed &&
+        // crab 0.20.5v (B15): branded default — a fresh install continues
+        // straight into local bootstrap; the local/cloud choice card never
+        // shows (unattended machines sat on it until the boot budget died).
+        // autoLocal:false restores the upstream prompting semantics.
+        !autoLocal
     )
 
   const wait = async (backend?: FirstRunSetupBackend | null) => {
