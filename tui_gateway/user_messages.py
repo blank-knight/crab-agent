@@ -16,37 +16,37 @@ from typing import Any
 # Provider-layer failure codes → (title, hint). Codes are ``agent.error_classifier.FailoverReason``
 # values carried in ``error_surface.code``; anything unlisted falls back on the layer table.
 _TURN_ERROR_CODE_COPY: dict[str, tuple[str, str]] = {
-    "auth": ("The model provider rejected the API key", "Fix the key with /model, then /retry."),
-    "auth_permanent": ("The model provider rejected the API key", "Fix the key with /model, then /retry."),
-    "billing": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "billing_unverified": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "rate_limit": ("The model provider is rate-limiting requests", "Wait a moment, then /retry."),
-    "upstream_rate_limit": ("The model provider is rate-limiting requests", "Wait a moment, then /retry."),
-    "upstream_blocked": ("A firewall/CDN in front of the model provider blocked the request", "Set a User-Agent via the provider's extra_headers, or switch with /model."),
-    "overloaded": ("The model provider is overloaded", "Wait a moment, then /retry."),
-    "server_error": ("The model provider had an internal error", "Wait a moment, then /retry."),
-    "timeout": ("The model provider did not answer in time", "Try /retry; if it keeps happening, switch with /model."),
-    "context_overflow": ("The conversation is too long for this model", "Run /compress, then /retry."),
-    "payload_too_large": ("The request was too large for this model", "Run /compress, then /retry."),
-    "model_not_found": ("The model provider does not know this model", "Pick another model with /model."),
-    "content_policy_blocked": ("The model provider refused this request (content policy)", "Rephrase and send again."),
-    "provider_policy_blocked": ("The model provider refused this request (account policy)", "Switch with /model."),
-    "format_error": ("The model provider rejected the request format", "Try /retry; if it persists, switch with /model."),
-    "ssl_cert_verification": ("The connection to the model provider could not be verified (TLS)",
-                              "Check the endpoint's certificate, then /retry."),
+    # qiji 0.20.5v: 全表中文化（原英文见 git 历史）。code/layer 键是 wire contract 不动。
+    "auth": ("模型供应商拒绝了 API 密钥", "请修正密钥后重试。"),
+    "auth_permanent": ("模型供应商拒绝了 API 密钥", "请修正密钥后重试。"),
+    "billing": ("模型供应商报告余额不足", "请充值或更换模型。"),
+    "billing_unverified": ("模型供应商报告余额不足", "请充值或更换模型。"),
+    "rate_limit": ("模型供应商正在限流", "请稍候再重试。"),
+    "upstream_rate_limit": ("模型供应商正在限流", "请稍候再重试。"),
+    "upstream_blocked": ("模型供应商前的防火墙/CDN 拦截了请求", "请在供应商的 extra_headers 配置 User-Agent，或更换模型。"),
+    "overloaded": ("模型供应商过载", "请稍候再重试。"),
+    "server_error": ("模型供应商内部错误", "请稍候再重试。"),
+    "timeout": ("模型供应商响应超时", "请重试；若持续出现请更换模型。"),
+    "context_overflow": ("对话过长，超出该模型容量", "请压缩上下文后重试。"),
+    "payload_too_large": ("请求体过大，超出该模型限制", "请压缩上下文后重试。"),
+    "model_not_found": ("模型供应商没有这个模型", "请选择其他模型。"),
+    "content_policy_blocked": ("模型供应商拒绝了该请求（内容政策）", "请调整措辞后重发。"),
+    "provider_policy_blocked": ("模型供应商拒绝了该请求（账号政策）", "请更换模型。"),
+    "format_error": ("模型供应商拒绝了请求格式", "请重试；若持续出现请更换模型。"),
+    "ssl_cert_verification": ("到模型供应商的连接证书校验失败（TLS）", "请检查端点证书后重试。"),
 }
 
 _TURN_ERROR_LAYER_COPY: dict[str, tuple[str, str]] = {
-    "auth": ("The model provider rejected the credentials", "Fix them with /model, then /retry."),
-    "billing": ("The model provider reports no credit left", "Top up the account or switch with /model."),
-    "endpoint": ("Your custom model endpoint did not answer", "Check the endpoint is running, then /retry."),
-    "streaming": ("The connection to the model provider dropped mid-reply", "Send /retry."),
-    "disk": ("The disk is full, so Hermes could not save the turn", "Free some space, then /retry."),
-    "gateway": ("Hermes hit an internal error while running this turn", "Send /retry; type /logs for the trace."),
-    "provider": ("The model provider returned an error", "Send /retry, or switch with /model."),
+    "auth": ("模型供应商拒绝了凭据", "请修正后重试。"),
+    "billing": ("模型供应商报告余额不足", "请充值或更换模型。"),
+    "endpoint": ("自定义模型端点未响应", "请检查端点运行状态后重试。"),
+    "streaming": ("到模型供应商的连接在回复中途断开", "请重试。"),
+    "disk": ("磁盘已满，螃蟹OPC 无法保存本轮对话", "请清理磁盘空间后重试。"),
+    "gateway": ("螃蟹OPC 运行本轮时发生内部错误", "请重试；可查看日志了解详情。"),
+    "provider": ("模型供应商返回错误", "请重试或更换模型。"),
 }
 
-_TURN_ERROR_DEFAULT = ("The request failed", "Send /retry, or switch with /model.")
+_TURN_ERROR_DEFAULT = ("请求失败", "请重试或更换模型。")
 
 # Pre-turn AuthError bodies whose remediation names CLI-only surface flows
 # (`hermes model`, `/login`, `hermes auth add`) —Desktop renders `payload.error`
@@ -94,7 +94,9 @@ def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: boo
         detail = "No AI provider is configured for this session yet."
     if len(detail) > _DETAIL_LIMIT:
         detail = detail[:_DETAIL_LIMIT - 1] + "…"
-    lines = [f"{turn_error_title(surface)}. Your message was not answered."]
+    # qiji 0.20.5v: 中文正文。⚠️ "Details: " 行前缀是 Desktop splitFailureDetails
+    # (desktop-install-overlay.tsx /\n?\s*Details:\s*/) 的解析标记，必须保留英文原词。
+    lines = [f"{turn_error_title(surface)}。你的消息未得到回复。"]
     if detail:
         lines.append(f"Details: {detail}")
     lines.append(turn_error_hint(surface, recoverable))
@@ -102,31 +104,34 @@ def turn_error_text(error: Any, surface: dict | None = None, *, recoverable: boo
 
 
 def busy_message(command: str) -> str:
-    """4009 refusal for a history-mutating command while a reply is streaming. There is no
-    ``/interrupt`` slash command on any client: Desktop has a Stop button, the terminal TUI uses
-    Ctrl+C — name both without assuming which one the reader has."""
-    return (f"session busy — Hermes is still replying. Stop the current reply first (Stop button, "
-            f"or Ctrl+C in a terminal), then run /{command.lstrip('/')}.")
+    """4009 refusal for a history-mutating command while a reply is streaming.
+    qiji 0.20.5v: 中文文案。⚠️ "session busy" 引导词是前端 isSessionBusyError
+    (/session busy/i) 的 wire contract——必须保留在句首，其余措辞可自由。"""
+    return (f"session busy — 螃蟹OPC 正在回复中。请先停止当前回复（停止按钮，"
+            f"或终端中按 Ctrl+C），再执行 /{command.lstrip('/')}。")
 
 
 def agent_init_failed_message(exc: Any) -> str:
-    return (f"Hermes could not start the assistant for this session. Details: {exc}. "
-            "Check the model and provider with /model, or run `hermes setup` in a terminal to reconfigure.")
+    # qiji 0.20.5v: 中文文案 + 去品牌化。Desktop 把 payload.message 原文渲染进
+    # 错误卡正文，这里 emit 什么用户就看到什么（2026-11-03 用户实锤报障）。
+    # 不含 "session busy" 引导词，前端 isSessionBusyError 不匹配本句——措辞可自由。
+    return (f"螃蟹OPC 未能为该会话启动助手。错误详情：{exc}。 "
+            "请检查模型与供应商配置，或重启螃蟹OPC 后重试。")
 
 
 AGENT_STILL_STARTING = (
-    "Hermes is still starting this session (loading tools), so this command could not run yet. "
-    "Wait for the status bar to show ready and try again.")
+    "螃蟹OPC 正在启动该会话（加载工具中），命令暂时无法执行。 "
+    "请等待状态栏显示就绪后重试。")
 
 # A deferred build that finished WITHOUT attaching an agent (its session record was replaced or
 # closed while it ran) leaves ``agent_ready`` set and ``agent`` None; this is the recorded cause.
 AGENT_BUILD_ABANDONED = "agent build aborted: the session record was replaced before the build finished"
 # Turn refusal when the record still has no agent at admission time (reason unknown).
 AGENT_MISSING_FOR_TURN = (
-    "Hermes could not start the assistant for this session, so your message was not run. "
-    "Reopen the session (or start a new one with /new) and send it again.")
+    "螃蟹OPC 未能为该会话启动助手，消息未被处理。 "
+    "请重新打开会话（或新建会话）后再次发送。")
 
 
 def resume_failed_message(exc: Any) -> str:
-    return (f"Could not reopen that session (its transcript could not be read). Details: {exc}. "
-            "Start a new session (/new), or pick another from /sessions.")
+    return (f"无法重新打开该会话（对话记录读取失败）。错误详情：{exc}。 "
+            "请新建会话，或从会话列表选择其他会话。")
