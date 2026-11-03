@@ -536,6 +536,33 @@ include-system-site-packages = false
         }
     }
 
+    # crab 0.20.5v (B13 fix): write the install stamp as updateMechanism=external.
+    # Without a stamp, the engine's step_adopt_blessed_checkout "adopts" the
+    # checkout at first launch and stamps it updateMechanism=self — which puts
+    # the whole PM self-update chain on the launch path: prepare_launch
+    # re-execs serve into the PM store interpreter, activate_dependencies then
+    # demands a committed dependency environment that an offline vendor install
+    # never has, and the backend dies with "no dependency environment is
+    # committed" (VM 2026-11-02 round 3, 90s port-announcement timeout).
+    # updateMechanism=external keeps the venv interpreter on serve (its own
+    # prefix != base_prefix satisfies _require_own_dependencies) — desktop
+    # upgrades remain the installer's job, which is exactly the vendor model.
+    if (Test-Path "$InstallDir\hermes_cli\main.py") {
+        $stampPath = Join-Path $InstallDir 'install-stamp.json'
+        $stampJson = @{
+            schemaVersion    = 2
+            updateMechanism = 'external'
+            source          = 'vendor-offline'
+            displayVersion  = '0.20.5-v'
+        } | ConvertTo-Json
+        [System.IO.File]::WriteAllBytes($stampPath, [System.Text.Encoding]::UTF8.GetBytes($stampJson))
+        # The PM completion marker, if a prior bootstrap left one, would drag
+        # serve back into the online dependency-sync path — clear it.
+        Get-ChildItem (Join-Path $HermesHome 'installs') -Directory -ErrorAction SilentlyContinue |
+            ForEach-Object { Remove-Item (Join-Path $_.FullName 'source-completion-pending') -Force -ErrorAction SilentlyContinue }
+        Write-Host "[vendor] Wrote install-stamp.json (updateMechanism=external)" -ForegroundColor Cyan
+    }
+
     # 7. node_modules -> $InstallDir\node_modules (skip npm install)
     # NOTE: We can't name it "node_modules" in vendor/ because electron-builder
     # silently strips any directory named node_modules from extraResources.
