@@ -44,6 +44,15 @@ GRANDFATHER: dict[str, set[str]] = {
     "skills/mlops/inference/vllm": {"name"},
     "skills/mlops/models/audiocraft": {"name"},
     "skills/mlops/models/segment-anything": {"name"},
+    # crab 0.20.5y: 市场六技能随发布产物原样预装(xlsx-master 等,中文触发词式
+    # description、自有 frontmatter 形态),非新写不重写——与市场 zip 同源。
+    "skills/market/docx-writer": {"fields", "tags", "description"},
+    "skills/market/img-toolkit": {"fields", "tags", "description"},
+    "skills/market/pdf-toolkit": {"fields", "tags", "description"},
+    "skills/market/pptx-maker": {"fields", "tags", "description"},
+    "skills/market/whisper": {"fields", "tags", "description"},
+    "skills/market/whisper/whisper": {"fields", "tags", "description"},
+    "skills/market/xlsx-master": {"fields", "tags", "description"},
 }
 
 def _skill_paths():

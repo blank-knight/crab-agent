@@ -16,7 +16,6 @@ import type {
 } from '@/global'
 import { useI18n } from '@/i18n'
 import { AlertCircle, ChevronDown, ChevronRight, Globe, iconSize, Loader2, Monitor } from '@/lib/icons'
-import { capitalize } from '@/lib/text'
 import { cn } from '@/lib/utils'
 
 import { localCardPresentation } from './desktop-install-local-card'
@@ -58,6 +57,11 @@ interface StageRowProps {
   result: DesktopBootstrapStageResult | undefined
   now: number
 }
+
+// crab 0.20.5y: 品牌去痕开关——stage 明细列表与原始安装日志区默认隐藏
+// (上游术语 uv/system-packages/robocopy 直出会暴露技术栈);置 true 可恢复
+// 旧版调试视图。进度条/百分比/当前阶段名不受影响。
+const SHOW_STAGE_LIST = false
 
 function formatStageName(name: string): string {
   // crab 0.20.5y: 品牌化阶段名——上游 stage 标识(git/node/system-packages/uv)
@@ -661,7 +665,8 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
             </div>
           )}
 
-          {stages.length > 0 && false && (
+          {/* crab 0.20.5y: stage 明细列表隐藏(品牌去痕);保留代码供后续需要时恢复 */}
+          {SHOW_STAGE_LIST && stages.length > 0 && (
             <ol className="mb-4 space-y-0.5">
               {stages.map(stage => (
                 <StageRow descriptor={stage} key={stage.name} now={now} result={state.stages[stage.name]} />
@@ -673,7 +678,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               输出(uv/robocopy/Hermes 字样),对终端用户是噪音也露品牌痕迹。
               失败时的排障通道保留在错误块(revealLogs/复制),正常运行期不再
               暴露"查看输出"入口。 */}
-          {false && (
+          {SHOW_STAGE_LIST && (
           <div className="pt-3">
             <Button
               className="-ml-2 text-muted-foreground hover:text-foreground"
