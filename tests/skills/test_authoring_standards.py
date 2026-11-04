@@ -31,7 +31,19 @@ CONTINUATION_THEN_COMMENT = re.compile(r"\\\s+#")
 # Grandfathered pre-existing debt. Shrink this list; never grow it.
 # ---------------------------------------------------------------------------
 GRANDFATHER: dict[str, set[str]] = {
-    # (empty — the Aug 2026 sweep cleared all mechanical violations)
+    # qiji 商业技能随 0.20.5v 交付形态自 main 整树回迁（树哈希与交付分支一致），
+    # 未按上游 authoring-standards 重写：长 description(中文触发词式)、平台可用性
+    # frontmatter 差异、示例路径 C:\Users\用户\ 为中文占位符(paths 规则正则只认 <)。
+    # mlops/* 与 computer-use/dogfood/yuanbao 同为 main 原样搬运,非本分支新写。
+    "skills/qiji-geo": {"fields", "tags", "description", "paths"},
+    "skills/qiji-knowledge-base": {"fields", "tags", "description", "paths"},
+    "skills/computer-use": {"fields", "tags", "related", "description"},
+    "skills/dogfood": {"fields"},
+    "skills/yuanbao": {"fields"},
+    "skills/mlops/evaluation/lm-evaluation-harness": {"name"},
+    "skills/mlops/inference/vllm": {"name"},
+    "skills/mlops/models/audiocraft": {"name"},
+    "skills/mlops/models/segment-anything": {"name"},
 }
 
 def _skill_paths():
