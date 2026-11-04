@@ -95,12 +95,12 @@ def test_sessions_db_open_failure_points_to_repair(monkeypatch, capsys):
 def test_unknown_command_suggests_close_match_and_says_nothing_sent():
     lead, pointer = unknown_command_lines("/modle", {"/model", "/help", "/quit"})
     assert "/modle" in lead
-    assert "nothing was sent" in lead
-    assert "Did you mean /model?" in lead
+    assert "未发送任何内容" in lead
+    assert "你是想输入 /model 吗？" in lead
     assert "/help" in pointer
 
 
 def test_unknown_command_without_close_match_has_no_suggestion():
     lead, pointer = unknown_command_lines("/zzzzzz", {"/model", "/help"})
-    assert "Did you mean" not in lead
+    assert "你是想输入" not in lead
     assert "/help" in pointer

@@ -15,5 +15,5 @@ def unknown_command_lines(typed: str, known: Iterable[str]) -> tuple[str, str]:
     """
     base = typed.split()[0] if typed.split() else typed
     close = difflib.get_close_matches(base, list(known), n=1, cutoff=0.6)
-    hint = f" Did you mean {close[0]}?" if close else ""
-    return (f"Unknown command {base} — nothing was sent.{hint}", "Type /help for the full list.")
+    hint = f" 你是想输入 {close[0]} 吗？" if close else ""
+    return (f"未知命令 {base}，未发送任何内容。{hint}", "输入 /help 查看全部命令。")
