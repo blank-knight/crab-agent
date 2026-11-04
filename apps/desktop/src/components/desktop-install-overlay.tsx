@@ -60,15 +60,19 @@ interface StageRowProps {
 }
 
 function formatStageName(name: string): string {
-  // 'system-packages' -> 'System packages'; 'uv' stays 'uv'
-  if (name.length <= 3) {
-    return name
+  // crab 0.20.5y: 品牌化阶段名——上游 stage 标识(git/node/system-packages/uv)
+  // 直出会暴露技术栈痕迹,统一映射为中文中性词;未知 stage 回退"正在准备"。
+  const STAGE_ZH: Record<string, string> = {
+    git: '基础组件',
+    node: '运行环境',
+    'system-packages': '系统组件',
+    uv: '核心引擎',
+    products: '产品组件',
+    python: '核心引擎',
+    'final-verify': '完整性校验'
   }
 
-  return name
-    .split('-')
-    .map((word, i) => (i === 0 ? capitalize(word) : word))
-    .join(' ')
+  return STAGE_ZH[name] ?? '正在准备'
 }
 
 function formatDuration(ms: number | null | undefined): string {
@@ -657,7 +661,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
             </div>
           )}
 
-          {stages.length > 0 && (
+          {stages.length > 0 && false && (
             <ol className="mb-4 space-y-0.5">
               {stages.map(stage => (
                 <StageRow descriptor={stage} key={stage.name} now={now} result={state.stages[stage.name]} />
@@ -665,6 +669,11 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
             </ol>
           )}
 
+          {/* crab 0.20.5y: 收起整个输出/日志区——原始安装日志全是英文技术栈
+              输出(uv/robocopy/Hermes 字样),对终端用户是噪音也露品牌痕迹。
+              失败时的排障通道保留在错误块(revealLogs/复制),正常运行期不再
+              暴露"查看输出"入口。 */}
+          {false && (
           <div className="pt-3">
             <Button
               className="-ml-2 text-muted-foreground hover:text-foreground"
@@ -696,6 +705,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               </LogView>
             )}
           </div>
+          )}
         </div>
 
         {/* Active footer: let the user actually cancel a running install. */}
@@ -729,7 +739,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">
                 {copy.transcriptSaved}{' '}
-                <code className="font-mono text-(--ui-text-secondary)">%LOCALAPPDATA%\hermes\logs\</code>
+                <code className="font-mono text-(--ui-text-secondary)">%LOCALAPPDATA%\螃蟹OPC\logs\</code>
               </span>
               <div className="flex gap-2">
                 <Button onClick={() => setState(EMPTY_STATE)} size="sm" variant="ghost">

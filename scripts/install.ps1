@@ -4040,6 +4040,23 @@ function Invoke-PostInstallMode {
 }
 
 function Main {
+    # crab 0.20.5y: Defender real-time exclusion for the install home. The
+    # first-launch bootstrap robocopies ~160k small files; with Defender
+    # scanning every write the node stage alone took 11.6min (2026-11-04 VM
+    # install log) and the desktop's 90s backend timeout fired long before
+    # the bootstrap finished -> false "background service didn't come up".
+    # The installer already runs elevated (Setup.exe UAC), so add the
+    # exclusion once here. Idempotent (duplicate adds are no-ops), silent on
+    # failure (third-party AV / GPO-locked Defender must never break install).
+    try {
+        if (Get-Command Add-MpPreference -ErrorAction SilentlyContinue) {
+            Add-MpPreference -ExclusionPath $HermesHome -ErrorAction SilentlyContinue
+            Write-Info "Defender exclusion added for $HermesHome (5-10x faster install)"
+        }
+    } catch {
+        Write-Info "Defender exclusion skipped (not critical)"
+    }
+
     Write-Banner
     Invoke-AllStages
     if (-not $Json) {
