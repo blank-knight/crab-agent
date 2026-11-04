@@ -36,7 +36,7 @@ const INSTALLER = __dirname
 // crab 0.20.5m: 安装包名 Qiji→Crab。数据目录字面量(qiji-portable.7z)是
 // 内部中间产物,用户不可见,保持不动减少变量。
 const APP_NAME = 'Crab'
-const VERSION = '0.20.5u'
+const VERSION = '0.20.5y'
 const PRODUCT_NAME_ZH = '螃蟹OPC'
 // 品牌数据目录单一事实源 —— 与 electron/brand.cjs 同源。贴牌改名只改那里。
 const brand = require(path.join(ROOT, 'electron', 'brand.cjs'))
