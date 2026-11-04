@@ -9,17 +9,17 @@
 
 import { useEffect, useMemo, useState } from 'react'
 
+import { translateCategory, translateSkillField } from '@/app/skills/translations'
 import { Button } from '@/components/ui/button'
 import { Codicon } from '@/components/ui/codicon'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { getSkills, type SkillInfo } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { translateCategory, translateSkillField } from '@/app/skills/translations'
 import { cn } from '@/lib/utils'
 
 interface SkillPickerProps {
-  /** Called with the slash command text (e.g. "/qiji-geo") when user picks a skill. */
-  onSelect: (command: string) => void
+  /** Called with the picked skill's slash command and display label (e.g. { command: '/powerpoint ', label: 'PPT制作' }). */
+  onSelect: (payload: { command: string; label: string }) => void
   disabled?: boolean
 }
 
@@ -34,7 +34,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
 
   // Fetch skills when popover opens
   useEffect(() => {
-    if (!open || skills.length > 0) return
+    if (!open || skills.length > 0) {return}
     setLoading(true)
     getSkills()
       .then(list => {
@@ -57,21 +57,25 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
       : skills
 
     const map = new Map<string, SkillInfo[]>()
+
     for (const s of filtered) {
       const cat = s.category || 'other'
-      if (!map.has(cat)) map.set(cat, [])
+
+      if (!map.has(cat)) {map.set(cat, [])}
       map.get(cat)!.push(s)
     }
+
     return Array.from(map.entries()).sort((a, b) => {
-      if (a[0] === 'other') return 1
-      if (b[0] === 'other') return -1
+      if (a[0] === 'other') {return 1}
+
+      if (b[0] === 'other') {return -1}
+
       return a[0].localeCompare(b[0])
     })
   }, [skills, query])
 
   const handlePick = (skill: SkillInfo) => {
-    const cmd = `/${skill.name}`
-    onSelect(cmd)
+    onSelect({ command: `/${skill.name} `, label: displayName(skill) })
     setOpen(false)
     setQuery('')
   }
@@ -89,14 +93,13 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover onOpenChange={setOpen} open={open}>
       <PopoverTrigger asChild>
         <Button
-          aria-label="选择技能"
+          aria-label={isZh ? '技能' : 'Skills'}
           className="size-(--composer-control-size) shrink-0 rounded-md text-(--ui-text-tertiary) hover:bg-(--chrome-action-hover) hover:text-foreground"
           disabled={disabled}
           size="icon"
-          title={isZh ? '技能' : 'Skills'}
           type="button"
           variant="ghost"
         >
@@ -111,7 +114,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
       >
         {/* Search bar */}
         <div className="flex items-center gap-2 border-b border-(--ui-border) px-3 py-2">
-          <Codicon name="search" size="0.75rem" className="text-(--ui-text-tertiary)" />
+          <Codicon className="text-(--ui-text-tertiary)" name="search" size="0.75rem" />
           <input
             autoFocus
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-(--ui-text-tertiary)"
@@ -125,7 +128,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
         <div className="flex-1 overflow-y-auto overscroll-contain">
           {loading ? (
             <div className="flex items-center justify-center py-8 text-sm text-(--ui-text-tertiary)">
-              <Codicon name="loading~spin" size="0.875rem" className="mr-2" />
+              <Codicon className="mr-2" name="loading~spin" size="0.875rem" />
               {isZh ? '加载中...' : 'Loading...'}
             </div>
           ) : grouped.length === 0 ? (

@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { type ReactElement, useContext, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { DesktopUninstallMode, DesktopUninstallSummary } from '@/global'
+import type { DesktopUninstallMode, DesktopUninstallResult, DesktopUninstallSummary } from '@/global'
+import { useI18n } from '@/i18n'
 import { AlertTriangle, Loader2, Trash2 } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
-import { SectionHeading } from './primitives'
+import { SectionHeading, SettingsBreadcrumbContext } from './primitives'
 
 interface ModeOption {
   mode: DesktopUninstallMode
@@ -17,84 +18,82 @@ interface ModeOption {
   needsAgent: boolean
 }
 
-const OPTIONS: ModeOption[] = [
-  {
-    mode: 'gui',
-    title: '仅卸载桌面端',
-    description: '移除桌面应用。奇计智能体、配置和聊天记录均保留。',
-    consequence: '桌面端（本应用及其数据）',
-    needsAgent: false
-  },
-  {
-    mode: 'lite',
-    title: '卸载桌面端 + 智能体，保留数据',
-    description: '移除桌面应用和奇计智能体，但保留配置、聊天记录和密钥，以便日后重新安装。',
-    consequence: '桌面端和奇计智能体（配置、聊天记录和密钥会保留）',
-    needsAgent: true
-  },
-  {
-    mode: 'full',
-    title: '彻底卸载',
-    description: '移除桌面应用、智能体及所有用户数据 — 包括配置、聊天记录、定时任务、密钥、日志。',
-    consequence: '所有内容 — 桌面端、奇计智能体、以及全部配置、聊天记录、密钥和日志',
-    // full removes the agent (and user data), so it's an agent-removing option:
-    // hide it on a lite client with no local agent, same as lite. A lite client
-    // connecting to a remote backend has no local agent OR local user data the
-    // GUI installed, so gui-only is the correct (and only) option there.
-    needsAgent: true
-  }
-]
+export function UninstallSection(): ReactElement | null {
+  const hasBreadcrumb = useContext(SettingsBreadcrumbContext)
+  const { t } = useI18n()
+  const u = t.settings.uninstallSection
 
-export function UninstallSection() {
+  const options: ModeOption[] = [
+    {
+      mode: 'gui',
+      title: u.options.gui.title,
+      description: u.options.gui.description,
+      consequence: u.options.gui.consequence,
+      needsAgent: false
+    },
+    {
+      mode: 'lite',
+      title: u.options.lite.title,
+      description: u.options.lite.description,
+      consequence: u.options.lite.consequence,
+      needsAgent: true
+    },
+    {
+      mode: 'full',
+      title: u.options.full.title,
+      description: u.options.full.description,
+      consequence: u.options.full.consequence,
+      // full removes the agent (and user data), so it's an agent-removing option:
+      // hide it on a lite client with no local agent, same as lite. A lite client
+      // connecting to a remote backend has no local agent OR local user data the
+      // GUI installed, so gui-only is the correct (and only) option there.
+      needsAgent: true
+    }
+  ]
+
   const [summary, setSummary] = useState<DesktopUninstallSummary | null>(null)
-  const [loading, setLoading] = useState(true)
   const [pending, setPending] = useState<DesktopUninstallMode | null>(null)
-  const [running, setRunning] = useState(false)
+  const [running, setRunning] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let alive = true
-    const bridge = window.hermesDesktop?.uninstall
+  useEffect((): (() => void) | undefined => {
+    let alive: boolean = true
+    const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.hermesDesktop?.uninstall
 
     if (!bridge) {
-      setLoading(false)
-
       return
     }
 
     void bridge
       .summary()
-      .then(result => {
+      .then((result: DesktopUninstallSummary): void => {
         if (alive) {
           setSummary(result)
         }
       })
-      .catch(() => {
-        // Non-fatal — we degrade to offering the GUI-only option.
-      })
-      .finally(() => {
+      .catch((): void => {
+        // A failed ownership probe must not offer a destructive fallback.
         if (alive) {
-          setLoading(false)
+          setSummary(null)
         }
       })
 
-    return () => {
+    return (): void => {
       alive = false
     }
   }, [])
 
-  const bridge = window.hermesDesktop?.uninstall
+  const bridge: Window['hermesDesktop']['uninstall'] | undefined = window.hermesDesktop?.uninstall
 
-  if (!bridge) {
+  if (!bridge || summary?.code_removal_allowed !== true) {
     return null
   }
 
-  // Gate the agent-removing options on whether an agent is actually present.
-  // A future lite client that ships without the bundled agent shows GUI-only.
-  const agentInstalled = summary?.agent_installed ?? false
-  const visibleOptions = OPTIONS.filter(opt => agentInstalled || !opt.needsAgent)
+  // An owned GUI can remain after its local agent has been removed.
+  const agentInstalled: boolean = summary.agent_installed
+  const visibleOptions: ModeOption[] = options.filter((opt: ModeOption): boolean => agentInstalled || !opt.needsAgent)
 
-  const handleConfirm = async () => {
+  const handleConfirm: () => Promise<void> = async (): Promise<void> => {
     if (!pending) {
       return
     }
@@ -103,10 +102,10 @@ export function UninstallSection() {
     setError(null)
 
     try {
-      const result = await bridge.run(pending)
+      const result: DesktopUninstallResult = await bridge.run(pending)
 
       if (!result.ok) {
-        setError(result.message || result.error || '无法启动卸载。')
+        setError(result.message || result.error || u.couldNotStart)
         setRunning(false)
         setPending(null)
       }
@@ -118,60 +117,46 @@ export function UninstallSection() {
     }
   }
 
-  const pendingOption = OPTIONS.find(opt => opt.mode === pending) ?? null
+  const pendingOption: ModeOption | null = options.find((opt: ModeOption): boolean => opt.mode === pending) ?? null
 
   return (
-    <div className="mx-auto mt-8 w-full max-w-2xl">
-      <SectionHeading icon={AlertTriangle} title="危险操作" />
+    <div className={cn('mx-auto w-full max-w-2xl', !hasBreadcrumb && 'mt-8')}>
+      <SectionHeading icon={AlertTriangle} page title={t.settings.uninstallSection.dangerZone} />
 
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
-        {loading ? (
-          <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-            <Loader2 className="size-3.5 animate-spin" />
-            正在检查已安装组件…
-          </div>
-        ) : pendingOption ? (
+        {pendingOption ? (
           <div>
-            <p className="text-sm font-medium text-destructive">确认卸载</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              此操作将移除{pendingOption.consequence}，不可撤销。
-            </p>
+            <p className="text-sm font-medium text-destructive">{t.settings.uninstallSection.confirmUninstall}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{u.confirmBody(pendingOption.consequence)}</p>
             {summary?.running_app_path && (
               <p className="mt-1 font-mono text-[0.68rem] text-muted-foreground/60">
-                应用：{summary.running_app_path}
+                {u.appLabel} {summary.running_app_path}
               </p>
             )}
             {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <Button
-                disabled={running}
-                onClick={() => void handleConfirm()}
-                size="sm"
-                variant="destructive"
-              >
+              <Button disabled={running} onClick={(): void => void handleConfirm()} size="sm" variant="destructive">
                 {running && <Loader2 className="size-3 animate-spin" />}
-                {running ? '卸载中…' : '确认卸载'}
+                {running ? u.uninstalling : u.yesUninstall}
               </Button>
-              <Button disabled={running} onClick={() => setPending(null)} size="sm" variant="text">
-                取消
+              <Button disabled={running} onClick={(): void => setPending(null)} size="sm" variant="text">
+                {t.common.cancel}
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium">卸载奇计</p>
-            <p className="text-xs text-muted-foreground">
-              选择卸载范围。应用将关闭以完成卸载，随时可以重新安装。
-            </p>
+            <p className="text-sm font-medium">{t.settings.uninstallSection.uninstallHermes}</p>
+            <p className="text-xs text-muted-foreground">{u.chooseHowMuch}</p>
             <div className="mt-1 flex flex-col gap-2">
-              {visibleOptions.map(opt => (
+              {visibleOptions.map((opt: ModeOption): ReactElement => (
                 <button
                   className={cn(
                     'flex items-start gap-3 rounded-lg border border-border/60 bg-background/40 px-3 py-2.5 text-left transition',
                     'hover:border-destructive/40 hover:bg-destructive/5'
                   )}
                   key={opt.mode}
-                  onClick={() => {
+                  onClick={(): void => {
                     setError(null)
                     setPending(opt.mode)
                   }}

@@ -1,0 +1,336 @@
+import type {
+  FeishuOnboardingApplyResponse,
+  FeishuOnboardingStartResponse,
+  FeishuOnboardingStatusResponse,
+  MessagingPlatformsResponse,
+  MessagingPlatformTestResponse,
+  MessagingPlatformUpdate,
+  PairingResponse,
+  PairingUser,
+  QqOnboardingApplyResponse,
+  QqOnboardingStartResponse,
+  QqOnboardingStatusResponse,
+  TelegramOnboardingApplyResponse,
+  TelegramOnboardingStartResponse,
+  TelegramOnboardingStatusResponse,
+  WebhookCreatePayload,
+  WebhookCreateResponse,
+  WebhookEnableResponse,
+  WebhooksResponse,
+  WeixinOnboardingApplyResponse,
+  WeixinOnboardingStartResponse,
+  WeixinOnboardingStatusResponse
+} from '@/types/hermes'
+
+import { hermesApi, profileScoped } from './client'
+
+export function getMessagingPlatforms(profile?: null | string): Promise<MessagingPlatformsResponse> {
+  return hermesApi<MessagingPlatformsResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/platforms'
+  })
+}
+
+/** `hot_served`: a live multiplexer serving this named profile rebuilt its adapters from the new
+ *  credentials right away — no gateway restart is needed for the change to take effect. */
+export interface MessagingPlatformUpdateResponse {
+  hot_served?: boolean
+  ok: boolean
+  platform: string
+}
+
+export function updateMessagingPlatform(
+  platformId: string,
+  body: MessagingPlatformUpdate,
+  profile?: null | string
+): Promise<MessagingPlatformUpdateResponse> {
+  return hermesApi<MessagingPlatformUpdateResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/platforms/${encodeURIComponent(platformId)}`,
+    method: 'PUT',
+    body
+  })
+}
+
+export function testMessagingPlatform(
+  platformId: string,
+  profile?: null | string
+): Promise<MessagingPlatformTestResponse> {
+  return hermesApi<MessagingPlatformTestResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/platforms/${encodeURIComponent(platformId)}/test`,
+    method: 'POST'
+  })
+}
+
+// -- Telegram QR onboarding ---------------------------------------------------
+// Pairing state lives in the memory of the backend process that started it, so
+// every call in one flow carries the SAME profile scope — the Electron router
+// picks the backend from it, and a mismatched apply would 404 the pairing.
+
+export function startTelegramOnboarding(
+  botName?: string,
+  profile?: null | string
+): Promise<TelegramOnboardingStartResponse> {
+  return hermesApi<TelegramOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/telegram/onboarding/start',
+    method: 'POST',
+    body: botName ? { bot_name: botName } : {}
+  })
+}
+
+export function getTelegramOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<TelegramOnboardingStatusResponse> {
+  return hermesApi<TelegramOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/telegram/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyTelegramOnboarding(
+  pairingId: string,
+  allowedUserIds: string[],
+  profile?: null | string
+): Promise<TelegramOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<TelegramOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/telegram/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { allowed_user_ids: allowedUserIds, profile: scope.profile }
+  })
+}
+
+export function cancelTelegramOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/telegram/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- Weixin (iLink) QR onboarding ---------------------------------------------
+// Same profile-scoping rule as Telegram: pairing state lives in the backend
+// process that started it, so every call carries the SAME profile scope.
+
+export function startWeixinOnboarding(profile?: null | string): Promise<WeixinOnboardingStartResponse> {
+  return hermesApi<WeixinOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/weixin/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getWeixinOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<WeixinOnboardingStatusResponse> {
+  return hermesApi<WeixinOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyWeixinOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<WeixinOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<WeixinOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelWeixinOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/weixin/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- QQ Bot QR onboarding ------------------------------------------------------
+
+export function startQqOnboarding(profile?: null | string): Promise<QqOnboardingStartResponse> {
+  return hermesApi<QqOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/qqbot/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getQqOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<QqOnboardingStatusResponse> {
+  return hermesApi<QqOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyQqOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<QqOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<QqOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelQqOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- Feishu / Lark QR onboarding ------------------------------------------------
+
+export function startFeishuOnboarding(profile?: null | string): Promise<FeishuOnboardingStartResponse> {
+  return hermesApi<FeishuOnboardingStartResponse>({
+    ...profileScoped(profile),
+    path: '/api/messaging/feishu/onboarding/start',
+    method: 'POST',
+    body: {}
+  })
+}
+
+export function getFeishuOnboardingStatus(
+  pairingId: string,
+  profile?: null | string
+): Promise<FeishuOnboardingStatusResponse> {
+  return hermesApi<FeishuOnboardingStatusResponse>({
+    ...profileScoped(profile),
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}`
+  })
+}
+
+export function applyFeishuOnboarding(
+  pairingId: string,
+  profile?: null | string
+): Promise<FeishuOnboardingApplyResponse> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<FeishuOnboardingApplyResponse>({
+    ...scope,
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}/apply`,
+    method: 'POST',
+    body: { profile: scope.profile }
+  })
+}
+
+export function cancelFeishuOnboarding(pairingId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(profile),
+    path: `/api/messaging/feishu/onboarding/${encodeURIComponent(pairingId)}`,
+    method: 'DELETE'
+  })
+}
+
+// -- Pairing (who may DM the bot) --------------------------------------------
+// Unknown DMers get a one-time code and land in `pending` until an admin
+// approves them. Approval grants on the row's `request_id`, never on the code:
+// the code is the requester's proof that the channel is theirs and is never
+// returned by the API, while an authenticated admin is only ever identifying
+// a row they can already see.
+
+export function getPairing(profile?: null | string): Promise<PairingResponse> {
+  return hermesApi<PairingResponse>({
+    ...profileScoped(profile),
+    path: '/api/pairing'
+  })
+}
+
+export function approvePairing(
+  platform: string,
+  requestId: string,
+  profile?: null | string
+): Promise<{ ok: boolean; user: PairingUser }> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<{ ok: boolean; user: PairingUser }>({
+    ...scope,
+    path: '/api/pairing/approve',
+    method: 'POST',
+    // These endpoints read the profile off the body, not the query string —
+    // the request scope alone would approve into the wrong profile's store.
+    body: { platform, request_id: requestId, profile: scope.profile }
+  })
+}
+
+export function revokePairing(platform: string, userId: string, profile?: null | string): Promise<{ ok: boolean }> {
+  const scope = profileScoped(profile)
+
+  return hermesApi<{ ok: boolean }>({
+    ...scope,
+    path: '/api/pairing/revoke',
+    method: 'POST',
+    body: { platform, user_id: userId, profile: scope.profile }
+  })
+}
+
+// -- Webhooks (subscription CRUD) --------------------------------------------
+// The webhook receiver is its own gateway platform; subscriptions live in a
+// shared JSON store the CLI/dashboard also drive. Enable mutates config and
+// best-effort restarts the gateway; subscription changes hot-reload.
+
+export function getWebhooks(): Promise<WebhooksResponse> {
+  return hermesApi<WebhooksResponse>({
+    ...profileScoped(),
+    path: '/api/webhooks'
+  })
+}
+
+export function enableWebhooks(): Promise<WebhookEnableResponse> {
+  return hermesApi<WebhookEnableResponse>({
+    ...profileScoped(),
+    path: '/api/webhooks/enable',
+    method: 'POST'
+  })
+}
+
+export function createWebhook(body: WebhookCreatePayload): Promise<WebhookCreateResponse> {
+  return hermesApi<WebhookCreateResponse>({
+    ...profileScoped(),
+    path: '/api/webhooks',
+    method: 'POST',
+    body
+  })
+}
+
+export function deleteWebhook(name: string): Promise<{ ok: boolean }> {
+  return hermesApi<{ ok: boolean }>({
+    ...profileScoped(),
+    path: `/api/webhooks/${encodeURIComponent(name)}`,
+    method: 'DELETE'
+  })
+}
+
+export function setWebhookEnabled(
+  name: string,
+  enabled: boolean
+): Promise<{ enabled: boolean; name: string; ok: boolean }> {
+  return hermesApi<{ enabled: boolean; name: string; ok: boolean }>({
+    ...profileScoped(),
+    path: `/api/webhooks/${encodeURIComponent(name)}/enabled`,
+    method: 'PUT',
+    body: { enabled }
+  })
+}

@@ -1,0 +1,72 @@
+/* ============================================================
+   qiji 珊瑚螃蟹皮肤 · 全局视觉覆盖层
+   ------------------------------------------------------------
+   作用域：html[data-hermes-theme='coral'] —— 只在珊瑚皮肤激活时生效，
+   其他皮肤零影响。把旧组件（连接器/插件/设置等上游行卡）统一到
+   设计预览稿的语言：大圆角 / 软阴影 / 悬浮上浮 / 品牌色点缀。
+   ============================================================ */
+
+/* ── 通用行卡 → 圆角卡片化（列表行、面板行、目录行） ── */
+html[data-hermes-theme='coral'] [data-tour='hub-nav'] ~ * [class*='rounded-'],
+html[data-hermes-theme='coral'] .qiji-cardify {
+  /* 占位：具体类在下方按组件落 */
+}
+
+/* 目录卡片（技能/插件 CatalogBrowser 的 article 卡）—— qiji 0.20.5 起圆角/软阴影/
+   悬浮上浮已直接落在 catalog-card 组件类上，本段 coral 覆盖退役。 */
+
+/* 旧 ListRow / 设置行 → 圆角化 + 细分隔线弱化 */
+html[data-hermes-theme='coral'] [data-tour='hub-nav'] ~ div button,
+html[data-hermes-theme='coral'] .overlay-main button[class*='rounded'] {
+  border-radius: 0.75rem;
+}
+
+/* qiji 0.20.5: 连接器/目录卡的圆角+悬浮已落到组件类（全皮肤生效），
+   本段旧的 coral 覆盖退役——避免 transition 属性互相打架。 */
+
+/* ── 胶囊化：筛选 chip / 标签 / 小按钮 ── */
+html[data-hermes-theme='coral'] [class*='text-[0.7'] span[class*='rounded-full'],
+html[data-hermes-theme='coral'] [class*='Facet'] button,
+html[data-hermes-theme='coral'] [class*='facet'] button {
+  border-radius: 999px;
+}
+
+/* ── 滚动条：暖色细轨 ── */
+html[data-hermes-theme='coral'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html[data-hermes-theme='coral'] ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ui-primary) 30%, var(--ui-muted));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+html[data-hermes-theme='coral'] ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ui-primary) 55%, var(--ui-muted));
+  background-clip: content-box;
+}
+
+html[data-hermes-theme='coral'] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── 选中态：品牌色柔光 ── */
+html[data-hermes-theme='coral'] ::selection {
+  background: color-mix(in srgb, var(--ui-primary) 25%, transparent);
+}
+
+/* ── 输入控件：圆角 + 聚焦品牌描边 ── */
+html[data-hermes-theme='coral'] input[class*='rounded'],
+html[data-hermes-theme='coral'] textarea[class*='rounded'] {
+  border-radius: 0.8rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+html[data-hermes-theme='coral'] input[class*='rounded']:focus,
+html[data-hermes-theme='coral'] textarea[class*='rounded']:focus {
+  border-color: color-mix(in srgb, var(--ui-primary) 50%, var(--ui-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-primary) 15%, transparent);
+}

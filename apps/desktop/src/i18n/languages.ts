@@ -1,31 +1,76 @@
+import { LOCALE_ENDONYMS } from '@hermes/shared/i18n'
+
+import { normalize } from '@/lib/text'
+
 import type { Locale } from './types'
 
-export const DEFAULT_LOCALE: Locale = 'zh'
+// DEFAULT_LOCALE 保持上游 'en': 它同时是无 Provider 测试渲染与缺 key 回退的
+// 语义源(en.ts 是 Translations 唯一全量实现),动它会崩掉全批英文断言。
+export const DEFAULT_LOCALE: Locale = 'en'
+
+// qiji 产品默认: 面向中文市场,首次启动(无保存语言)默认中文。仅用于 App 挂载链
+// (context.tsx 探测回落),不参与回退,也不影响测试默认。
+export const QIJI_DEFAULT_LOCALE: Locale = 'zh'
+
+// 运行时回退目录(缺 key 时查哪个语言)。与 DEFAULT_LOCALE 同值但语义独立:
+// DEFAULT_LOCALE 是"测试/无 Provider 渲染默认",FALLBACK_LOCALE 是"翻译回退源"。
+// qiji 两者都保持 en(en.ts 是 Translations 唯一全量实现)。
+export const FALLBACK_LOCALE: Locale = 'en'
 
 export const LOCALE_OPTIONS = [
   {
     id: 'en',
-    name: 'English',
+    name: LOCALE_ENDONYMS.en,
     englishName: 'English',
     configValue: 'en'
   },
   {
     id: 'zh',
-    name: '简体中文',
+    name: LOCALE_ENDONYMS.zh,
     englishName: 'Simplified Chinese',
     configValue: 'zh'
   },
   {
     id: 'zh-hant',
-    name: '繁體中文',
+    name: LOCALE_ENDONYMS['zh-hant'],
     englishName: 'Traditional Chinese',
     configValue: 'zh-hant'
   },
   {
     id: 'ja',
-    name: '日本語',
+    name: LOCALE_ENDONYMS.ja,
     englishName: 'Japanese',
     configValue: 'ja'
+  },
+  {
+    id: 'ar',
+    name: LOCALE_ENDONYMS.ar,
+    englishName: 'Arabic',
+    configValue: 'ar'
+  },
+  {
+    id: 'ru',
+    name: LOCALE_ENDONYMS.ru,
+    englishName: 'Russian',
+    configValue: 'ru'
+  },
+  {
+    id: 'fr',
+    name: LOCALE_ENDONYMS.fr,
+    englishName: 'French',
+    configValue: 'fr'
+  },
+  {
+    id: 'de',
+    name: LOCALE_ENDONYMS.de,
+    englishName: 'German',
+    configValue: 'de'
+  },
+  {
+    id: 'es',
+    name: LOCALE_ENDONYMS.es,
+    englishName: 'Spanish',
+    configValue: 'es'
   }
 ] as const satisfies readonly { configValue: string; englishName: string; id: Locale; name: string }[]
 
@@ -62,7 +107,58 @@ const LOCALE_ALIASES: Record<string, Locale> = {
   zh_hant_hk: 'zh-hant',
   ja: 'ja',
   'ja-jp': 'ja',
-  ja_jp: 'ja'
+  ja_jp: 'ja',
+  ar: 'ar',
+  'ar-sa': 'ar',
+  ar_sa: 'ar',
+  'ar-ae': 'ar',
+  ar_ae: 'ar',
+  'ar-eg': 'ar',
+  ar_eg: 'ar',
+  arabic: 'ar',
+  العربية: 'ar',
+  ru: 'ru',
+  'ru-ru': 'ru',
+  ru_ru: 'ru',
+  'ru-by': 'ru',
+  'ru-kz': 'ru',
+  russian: 'ru',
+  'russian-russian': 'ru',
+  русский: 'ru',
+  руский: 'ru',
+  fr: 'fr',
+  'fr-fr': 'fr',
+  fr_fr: 'fr',
+  'fr-be': 'fr',
+  fr_be: 'fr',
+  'fr-ca': 'fr',
+  fr_ca: 'fr',
+  'fr-ch': 'fr',
+  fr_ch: 'fr',
+  french: 'fr',
+  français: 'fr',
+  francais: 'fr',
+  de: 'de',
+  'de-de': 'de',
+  de_de: 'de',
+  'de-at': 'de',
+  de_at: 'de',
+  'de-ch': 'de',
+  de_ch: 'de',
+  german: 'de',
+  deutsch: 'de',
+  es: 'es',
+  'es-es': 'es',
+  es_es: 'es',
+  'es-mx': 'es',
+  es_mx: 'es',
+  'es-ar': 'es',
+  es_ar: 'es',
+  'es-419': 'es',
+  es_419: 'es',
+  spanish: 'es',
+  español: 'es',
+  espanol: 'es'
 }
 
 export function isLocale(value: unknown): value is Locale {
@@ -74,11 +170,37 @@ export function normalizeLocale(value: unknown): Locale {
     return DEFAULT_LOCALE
   }
 
-  return LOCALE_ALIASES[value.trim().toLowerCase()] ?? DEFAULT_LOCALE
+  return LOCALE_ALIASES[normalize(value)] ?? DEFAULT_LOCALE
 }
 
 export function isSupportedLocaleValue(value: unknown): boolean {
-  return typeof value === 'string' && LOCALE_ALIASES[value.trim().toLowerCase()] != null
+  return typeof value === 'string' && LOCALE_ALIASES[normalize(value)] != null
+}
+
+/** OS tags can include regions absent from the picker aliases, such as ru-UA. */
+export function osPreferredLocale(tag: string | null | undefined): Locale | null {
+  if (!tag) {
+    return null
+  }
+
+  const exact = LOCALE_ALIASES[normalize(tag)]
+
+  if (exact) {
+    return exact
+  }
+
+  const base = tag.split(/[-_]/)[0]
+
+  return (base && LOCALE_ALIASES[normalize(base)]) || null
+}
+
+/** An explicit choice must win even when it differs from the OS language. */
+export function resolveInitialLocale(saved: string | null | undefined, osLocale: string | null | undefined): Locale {
+  if (isSupportedLocaleValue(saved)) {
+    return normalizeLocale(saved)
+  }
+
+  return osPreferredLocale(osLocale) ?? DEFAULT_LOCALE
 }
 
 export function localeConfigValue(locale: Locale): string {
