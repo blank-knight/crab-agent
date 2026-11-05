@@ -87,8 +87,8 @@ img.crop(((img.width-s)//2, (img.height-s)//2,
 一次性环境（系统 python 没有，用 uv 独立 venv，装一次约 1 分钟）：
 
 ```bash
-uv venv /tmp/ocr-env --python 3.11
-uv pip install --python /tmp/ocr-env/bin/python rapidocr-onnxruntime
+uv venv \$TMPDIR/\1 --python 3.11
+uv pip install --python \$TMPDIR/\1 rapidocr-onnxruntime
 ```
 
 识别（截图先 2x LANCZOS 放大，精度显著提升；打印 Y 坐标便于还原表格行分组）：
@@ -98,8 +98,8 @@ from rapidocr_onnxruntime import RapidOCR
 from PIL import Image
 engine = RapidOCR()
 im = Image.open("in.jpg")
-im.resize((im.width*2, im.height*2), Image.LANCZOS).save("/tmp/ocr_2x.jpg", quality=95)
-result, _ = engine("/tmp/ocr_2x.jpg")
+im.resize((im.width*2, im.height*2), Image.LANCZOS).save("\$TMPDIR/\1", quality=95)
+result, _ = engine("\$TMPDIR/\1")
 for box, text, score in result:
     print(round(box[0][1]), "|", text)   # Y坐标 | 文本
 ```

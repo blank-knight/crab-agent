@@ -56,7 +56,13 @@ def reported_success(cp: subprocess.CompletedProcess) -> bool:
 
 def n1_tag() -> str:
     """N-1: the newest release tag strictly before HEAD."""
-    return I.git("describe", "--tags", "--abbrev=0", "--match", "v20[0-9][0-9].*", "HEAD~1", cwd=H.WORKTREE)
+    # crab: 兼容两种 release tag 形态——上游日历版(v2026.x.x)与本仓库
+    # semver 版(v0.20.5-y)。只匹配上游模式在本仓库必 "No names found"。
+    return I.git(
+        "describe", "--tags", "--abbrev=0",
+        "--match", "v20[0-9][0-9].*", "--match", "v0.*",
+        "HEAD~1", cwd=H.WORKTREE,
+    )
 
 
 def n1_base() -> str:

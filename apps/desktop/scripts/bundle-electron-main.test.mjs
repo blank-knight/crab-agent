@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 import { afterAll, beforeAll, expect, test } from 'vitest'
@@ -13,13 +13,17 @@ let root
 let bundle
 let preload
 
-// Run the shipped electron-main.mjs under plain Node as if on Linux. The entry
+// Run the shipped electron-main bundle under plain Node as if on Linux. The entry
 // relaunches through process.execPath; the preload (inherited through
 // NODE_OPTIONS) makes that child print its argv instead of starting the app.
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), 'hermes-electron-entry-'))
   await bundleElectronMain({ source: repo, out: join(root, 'dist'), dev: true })
-  bundle = join(root, 'dist/electron-main.mjs')
+  // crab: 产物形态两可——上游 ESM(electron-main.mjs)/本产品链 CJS(.cjs),
+  // 按 package.json main 字段解析(与 bundleElectronMain 的 QIJI_CJS_MAIN
+  // 分支恒一致),存在什么测什么。
+  const mainEntry = JSON.parse(readFileSync(join(repo, 'apps/desktop/package.json'), 'utf8')).main
+  bundle = join(root, 'dist', basename(mainEntry))
   preload = join(root, 'preload.mjs')
   writeFileSync(
     preload,
