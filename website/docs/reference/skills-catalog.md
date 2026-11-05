@@ -31,6 +31,12 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`hermes-agent`](../user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-hermes-agent.md) | Use, configure, theme, extend, and orchestrate Hermes Agent. | `autonomous-ai-agents/hermes-agent` |
 | [`opencode`](../user-guide/skills/bundled/autonomous-ai-agents/autonomous-ai-agents-opencode.md) | Delegate coding to OpenCode CLI (features, PR review). | `autonomous-ai-agents/opencode` |
 
+## computer-use
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`computer-use`](../user-guide/skills/bundled/computer-use/computer-use-computer-use.md) | Drive the user's desktop in the background — clicking, typing, scrolling, dragging — without stealing the cursor, keyboard focus, or switching virtual desktops / Spaces. Cross-platform: macOS, Windows, Linux. Works with any tool-capable... | `computer-use` |
+
 ## creative
 
 | Skill | Description | Path |
@@ -46,11 +52,23 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`popular-web-designs`](../user-guide/skills/bundled/creative/creative-popular-web-designs.md) | 54 real design systems (Stripe, Linear, Vercel) as HTML/CSS. | `creative/popular-web-designs` |
 | [`songwriting-and-ai-music`](../user-guide/skills/bundled/creative/creative-songwriting-and-ai-music.md) | Songwriting craft and Suno AI music prompts. | `creative/songwriting-and-ai-music` |
 
+## data-science
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`jupyter-live-kernel`](../user-guide/skills/bundled/data-science/data-science-jupyter-live-kernel.md) | Iterative Python via live Jupyter kernel (hamelnb). | `data-science/jupyter-live-kernel` |
+
 ## devops
 
 | Skill | Description | Path |
 |-------|-------------|------|
 | [`sdlc-review`](../user-guide/skills/bundled/devops/devops-sdlc-review.md) | Review Kanban handoffs and route verified outcomes. | `devops/sdlc-review` |
+
+## dogfood
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`dogfood`](../user-guide/skills/bundled/dogfood/dogfood-dogfood.md) | Exploratory QA of web apps: find bugs, evidence, reports. | `dogfood` |
 
 ## email
 
@@ -59,6 +77,29 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`email-inbox-triage`](../user-guide/skills/bundled/email/email-email-inbox-triage.md) | Triage an inbox: prioritize threads, draft replies safely. | `email/email-inbox-triage` |
 | [`himalaya`](../user-guide/skills/bundled/email/email-himalaya.md) | Himalaya CLI: IMAP/SMTP email from terminal. | `email/himalaya` |
 
+## github
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`codebase-inspection`](../user-guide/skills/bundled/github/github-codebase-inspection.md) | Inspect codebases w/ pygount: LOC, languages, ratios. | `github/codebase-inspection` |
+| [`github-auth`](../user-guide/skills/bundled/github/github-github-auth.md) | GitHub auth setup: HTTPS tokens, SSH keys, gh CLI login. | `github/github-auth` |
+| [`github-code-review`](../user-guide/skills/bundled/github/github-github-code-review.md) | Review PRs: diffs, inline comments via gh or REST. | `github/github-code-review` |
+| [`github-issues`](../user-guide/skills/bundled/github/github-github-issues.md) | Create, triage, label, assign GitHub issues via gh or REST. | `github/github-issues` |
+| [`github-pr-workflow`](../user-guide/skills/bundled/github/github-github-pr-workflow.md) | GitHub PR lifecycle: branch, commit, open, CI, merge. | `github/github-pr-workflow` |
+| [`github-repo-management`](../user-guide/skills/bundled/github/github-github-repo-management.md) | Clone/create/fork repos; manage remotes, releases. | `github/github-repo-management` |
+
+## market
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`docx-writer`](../user-guide/skills/bundled/market/market-docx-writer.md) | Word 文档生成与编辑 - create, read, edit .docx with python-docx. Headings, paragraphs, tables, images, styles, headers/footers, TOC, find-replace. Triggers include any mention of Word, 文档, 报告, 合同, 通知书, .docx or requests to produce professional... | `market/docx-writer` |
+| [`img-toolkit`](../user-guide/skills/bundled/market/market-img-toolkit.md) | 图片批量处理工具 - format conversion (jpg/png/webp), compression, resize, crop, watermark, thumbnails, OCR文字识别兜底. Powered by Pillow + RapidOCR. Triggers include any mention of 图片处理, 转格式, 压缩图片, 缩放, 裁剪, 加水印, 批量, OCR, 识别图片文字, 看不清图片, format conversi... | `market/img-toolkit` |
+| [`pdf-toolkit`](../user-guide/skills/bundled/market/market-pdf-toolkit.md) | PDF 全能处理工具 - merge, split, rotate, watermark, encrypt, decrypt, extract text/tables/images, compress. Triggers include any mention of PDF, 合并, 拆分, 旋转, 水印, 加密, 提取, 压缩, or when the user works with .pdf files in any way. Also covers scanned... | `market/pdf-toolkit` |
+| [`pptx-maker`](../user-guide/skills/bundled/market/market-pptx-maker.md) | PPT 演示文稿生成 - create and edit .pptx with python-pptx. Layouts, text frames, bullet lists, tables, charts, images, master slides, speaker notes. Triggers include any mention of PPT, 幻灯片, 演示, 汇报, deck, slides, .pptx or requests to produce p... | `market/pptx-maker` |
+| [`whisper`](../user-guide/skills/bundled/market/market-whisper.md) | OpenAI's general-purpose speech recognition model. Supports 99 languages, transcription, translation to English, and language identification. Six model sizes from tiny (39M params) to large (1550M params). Use for speech-to-text, podcast... | `market/whisper` |
+| [`whisper`](../user-guide/skills/bundled/market/market-whisper-whisper.md) | 语音转文字（Whisper 本地模型）- 语音识别、录音/播客/视频转录、会议纪要、音频翻译成英文。支持 99 种语言，六个模型档位 tiny→large。提到 语音转文字, 转录, 听写, 会议记录, 字幕, whisper, asr 或需要处理音频文件时使用。 | `market/whisper/whisper` |
+| [`xlsx-master`](../user-guide/skills/bundled/market/market-xlsx-master.md) | Deep Excel/xlsx operations for end users - create, read, edit and analyze spreadsheets with openpyxl and pandas. Formulas, styles, charts, pivot-like aggregation, multi-sheet workbooks, batch processing of report files, CSV/xlsx conversi... | `market/xlsx-master` |
+
 ## media
 
 | Skill | Description | Path |
@@ -66,6 +107,18 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`gif-search`](../user-guide/skills/bundled/media/media-gif-search.md) | Search/download GIFs from Tenor via curl + jq. | `media/gif-search` |
 | [`songsee`](../user-guide/skills/bundled/media/media-songsee.md) | Audio spectrograms/features (mel, chroma, MFCC) via CLI. | `media/songsee` |
 | [`youtube-content`](../user-guide/skills/bundled/media/media-youtube-content.md) | YouTube transcripts to summaries, threads, blogs. | `media/youtube-content` |
+
+## mlops
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`audiocraft-audio-generation`](../user-guide/skills/bundled/mlops/mlops-models-audiocraft.md) | AudioCraft: MusicGen text-to-music, AudioGen text-to-sound. | `mlops/models/audiocraft` |
+| [`huggingface-hub`](../user-guide/skills/bundled/mlops/mlops-huggingface-hub.md) | HuggingFace hf CLI: search/download/upload models, datasets. | `mlops/huggingface-hub` |
+| [`llama-cpp`](../user-guide/skills/bundled/mlops/mlops-inference-llama-cpp.md) | llama.cpp local GGUF inference + HF Hub model discovery. | `mlops/inference/llama-cpp` |
+| [`evaluating-llms-harness`](../user-guide/skills/bundled/mlops/mlops-evaluation-lm-evaluation-harness.md) | lm-eval-harness: benchmark LLMs (MMLU, GSM8K, etc.). | `mlops/evaluation/lm-evaluation-harness` |
+| [`segment-anything-model`](../user-guide/skills/bundled/mlops/mlops-models-segment-anything.md) | SAM: zero-shot image segmentation via points, boxes, masks. | `mlops/models/segment-anything` |
+| [`serving-llms-vllm`](../user-guide/skills/bundled/mlops/mlops-inference-vllm.md) | vLLM: high-throughput LLM serving, OpenAI API, quantization. | `mlops/inference/vllm` |
+| [`weights-and-biases`](../user-guide/skills/bundled/mlops/mlops-evaluation-weights-and-biases.md) | W&B: log ML experiments, sweeps, model registry, dashboards. | `mlops/evaluation/weights-and-biases` |
 
 ## note-taking
 
@@ -92,6 +145,18 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`weekly-review-planning`](../user-guide/skills/bundled/productivity/productivity-weekly-review-planning.md) | Weekly reset: commitments, stalled work, next-week plan. | `productivity/weekly-review-planning` |
 | [`xlsx`](../user-guide/skills/bundled/productivity/productivity-xlsx.md) | Create, read, edit Excel .xlsx workbooks and CSVs. | `productivity/xlsx` |
 
+## qiji-geo
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`qiji-geo`](../user-guide/skills/bundled/qiji-geo/qiji-geo-qiji-geo.md) | 奇计GEO平台自动化（网页端 + 桌面客户端）。网页端操作 geo.heikexia.cc：AI可见度诊断、诊断报告、关键词管理、爆文复刻、文章列表、账号权益查询。桌面客户端（auth helper.exe）操作16个社媒平台分发 + 8个AI认证。当用户提到奇计、GEO诊断、AI可见度、品牌诊断、geo.heikexia、auth helper、社媒分发 时加载。 | `qiji-geo` |
+
+## qiji-knowledge-base
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`qiji-knowledge-base`](../user-guide/skills/bundled/qiji-knowledge-base/qiji-knowledge-base-qiji-knowledge-base.md) | 奇计知识库。自动收集、整理、检索用户的业务知识、品牌资料、行业信息。支持批量导入文件构建知识库。越用越聪明，为GEO诊断和AI写作提供素材。当用户提到知识库、品牌资料、产品介绍、公司简介、存一下、记住这个、导入、我的资料时加载。 | `qiji-knowledge-base` |
+
 ## research
 
 | Skill | Description | Path |
@@ -100,6 +165,12 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | [`competitor-news-monitor`](../user-guide/skills/bundled/research/research-competitor-news-monitor.md) | Watch named companies for material news; cited digests. | `research/competitor-news-monitor` |
 | [`grounded-citations`](../user-guide/skills/bundled/research/research-grounded-citations.md) | Ground answers and documents in cited, verifiable sources. | `research/grounded-citations` |
 | [`llm-wiki`](../user-guide/skills/bundled/research/research-llm-wiki.md) | Karpathy's LLM Wiki: build/query interlinked markdown KB. | `research/llm-wiki` |
+
+## smart-home
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`openhue`](../user-guide/skills/bundled/smart-home/smart-home-openhue.md) | Control Philips Hue lights, scenes, rooms via OpenHue CLI. | `smart-home/openhue` |
 
 ## social-media
 
@@ -129,3 +200,9 @@ If a skill is missing from this list but present in the repo, the catalog is reg
 | Skill | Description | Path |
 |-------|-------------|------|
 | [`blocked-page-recovery`](../user-guide/skills/bundled/web/web-blocked-page-recovery.md) | Use when a fetch fails: 403/429, paywall, WAF, bot wall. | `web/blocked-page-recovery` |
+
+## yuanbao
+
+| Skill | Description | Path |
+|-------|-------------|------|
+| [`yuanbao`](../user-guide/skills/bundled/yuanbao/yuanbao-yuanbao.md) | Yuanbao (元宝) groups: @mention users, query info/members. | `yuanbao` |

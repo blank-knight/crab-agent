@@ -188,6 +188,15 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                   type: 'category',
+                  label: 'computer-use',
+                  key: 'skills-bundled-computer-use',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/computer-use/computer-use-computer-use',
+                  ],
+                },
+                {
+                  type: 'category',
                   label: 'creative',
                   key: 'skills-bundled-creative',
                   collapsed: true,
@@ -206,11 +215,29 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                   type: 'category',
+                  label: 'data-science',
+                  key: 'skills-bundled-data-science',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/data-science/data-science-jupyter-live-kernel',
+                  ],
+                },
+                {
+                  type: 'category',
                   label: 'devops',
                   key: 'skills-bundled-devops',
                   collapsed: true,
                   items: [
                     'user-guide/skills/bundled/devops/devops-sdlc-review',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'dogfood',
+                  key: 'skills-bundled-dogfood',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/dogfood/dogfood-dogfood',
                   ],
                 },
                 {
@@ -225,6 +252,35 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                   type: 'category',
+                  label: 'github',
+                  key: 'skills-bundled-github',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/github/github-codebase-inspection',
+                    'user-guide/skills/bundled/github/github-github-auth',
+                    'user-guide/skills/bundled/github/github-github-code-review',
+                    'user-guide/skills/bundled/github/github-github-issues',
+                    'user-guide/skills/bundled/github/github-github-pr-workflow',
+                    'user-guide/skills/bundled/github/github-github-repo-management',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'market',
+                  key: 'skills-bundled-market',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/market/market-docx-writer',
+                    'user-guide/skills/bundled/market/market-img-toolkit',
+                    'user-guide/skills/bundled/market/market-pdf-toolkit',
+                    'user-guide/skills/bundled/market/market-pptx-maker',
+                    'user-guide/skills/bundled/market/market-whisper',
+                    'user-guide/skills/bundled/market/market-whisper-whisper',
+                    'user-guide/skills/bundled/market/market-xlsx-master',
+                  ],
+                },
+                {
+                  type: 'category',
                   label: 'media',
                   key: 'skills-bundled-media',
                   collapsed: true,
@@ -232,6 +288,21 @@ const sidebars: SidebarsConfig = {
                     'user-guide/skills/bundled/media/media-gif-search',
                     'user-guide/skills/bundled/media/media-songsee',
                     'user-guide/skills/bundled/media/media-youtube-content',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'mlops',
+                  key: 'skills-bundled-mlops',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/mlops/mlops-models-audiocraft',
+                    'user-guide/skills/bundled/mlops/mlops-huggingface-hub',
+                    'user-guide/skills/bundled/mlops/mlops-inference-llama-cpp',
+                    'user-guide/skills/bundled/mlops/mlops-evaluation-lm-evaluation-harness',
+                    'user-guide/skills/bundled/mlops/mlops-models-segment-anything',
+                    'user-guide/skills/bundled/mlops/mlops-inference-vllm',
+                    'user-guide/skills/bundled/mlops/mlops-evaluation-weights-and-biases',
                   ],
                 },
                 {
@@ -267,6 +338,24 @@ const sidebars: SidebarsConfig = {
                 },
                 {
                   type: 'category',
+                  label: 'qiji-geo',
+                  key: 'skills-bundled-qiji-geo',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/qiji-geo/qiji-geo-qiji-geo',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'qiji-knowledge-base',
+                  key: 'skills-bundled-qiji-knowledge-base',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/qiji-knowledge-base/qiji-knowledge-base-qiji-knowledge-base',
+                  ],
+                },
+                {
+                  type: 'category',
                   label: 'research',
                   key: 'skills-bundled-research',
                   collapsed: true,
@@ -275,6 +364,15 @@ const sidebars: SidebarsConfig = {
                     'user-guide/skills/bundled/research/research-competitor-news-monitor',
                     'user-guide/skills/bundled/research/research-grounded-citations',
                     'user-guide/skills/bundled/research/research-llm-wiki',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'smart-home',
+                  key: 'skills-bundled-smart-home',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/smart-home/smart-home-openhue',
                   ],
                 },
                 {
@@ -313,6 +411,15 @@ const sidebars: SidebarsConfig = {
                   collapsed: true,
                   items: [
                     'user-guide/skills/bundled/web/web-blocked-page-recovery',
+                  ],
+                },
+                {
+                  type: 'category',
+                  label: 'yuanbao',
+                  key: 'skills-bundled-yuanbao',
+                  collapsed: true,
+                  items: [
+                    'user-guide/skills/bundled/yuanbao/yuanbao-yuanbao',
                   ],
                 },
               ],

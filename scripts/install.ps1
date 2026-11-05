@@ -81,6 +81,114 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# --- BEGIN GENERATED: bootstrap pins (scripts/gen-bootstrap-pins.py) ---
+# Derived from pm/lock.json. DO NOT EDIT BY HAND:
+# run scripts/gen-bootstrap-pins.py after a pin bump.
+$script:UvPinVersion = "0.12.3"
+$script:UvPinFiles = @{
+    "win32-x64" = @{
+        Url    = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-pc-windows-msvc.zip"
+        MirrorUrl = "https://hermes-assets.nousresearch.com/upstream/sha256/b23350c79e8ad0192b8124af13a0f17e8d4e4549524785e1aef389ae5a06990e"
+        Sha256 = "b23350c79e8ad0192b8124af13a0f17e8d4e4549524785e1aef389ae5a06990e"
+    }
+    "win32-arm64" = @{
+        Url    = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-aarch64-pc-windows-msvc.zip"
+        MirrorUrl = "https://hermes-assets.nousresearch.com/upstream/sha256/4343217d668727b8a8eb5cad92389a1d2eeead93c89940d1b955ba1bb15462eb"
+        Sha256 = "4343217d668727b8a8eb5cad92389a1d2eeead93c89940d1b955ba1bb15462eb"
+    }
+}
+
+$script:GitPinVersion = "2.53.0+3"
+$script:GitPinFiles = @{
+    "win32-x64" = @{
+        Url    = "https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.3/PortableGit-2.53.0.3-64-bit.7z.exe"
+        MirrorUrl = "https://hermes-assets.nousresearch.com/upstream/sha256/b365da794b1d2225eb24d5f5e09ef7792cfd5fa26c3a3586210280c80dff3a2a"
+        Sha256 = "b365da794b1d2225eb24d5f5e09ef7792cfd5fa26c3a3586210280c80dff3a2a"
+    }
+    "win32-arm64" = @{
+        Url    = "https://github.com/git-for-windows/git/releases/download/v2.53.0.windows.3/PortableGit-2.53.0.3-arm64.7z.exe"
+        MirrorUrl = "https://hermes-assets.nousresearch.com/upstream/sha256/0db54010054c01f35501cf69e1e32d3710138ecb934d188bd77093afed24300e"
+        Sha256 = "0db54010054c01f35501cf69e1e32d3710138ecb934d188bd77093afed24300e"
+    }
+}
+# --- END GENERATED: bootstrap pins ---
+
+$RepoUrlSsh = "git@gitee.com:wintao-storm/QIJI-agent.git"
+$RepoUrlHttps = "https://gitee.com/wintao-storm/QIJI-agent.git"
+$PythonVersion = "3.11"
+$NodeVersion = "22"
+
+
+# Stage-protocol version.  Bumped only for genuinely breaking changes to the
+# manifest schema, stage-name set semantics, or stdout JSON shape.  Adding a
+# new stage does NOT bump this -- drivers iterate the manifest dynamically.
+$InstallStageProtocolVersion = 1
+
+
+# Stage definitions -- the single source of truth.  Each entry maps a stable
+# stage name (the API contract drivers depend on) to the worker function that
+# implements it.  ``Title`` is what UIs show; ``Category`` lets UIs group
+# stages; ``NeedsUserInput`` tells UIs "this stage prompts -- either skip it
+# or arrange to provide answers another way."
+$InstallStages = @(
+    @{ Name = "uv";               Title = "Installing uv package manager";        Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Uv" }
+    @{ Name = "python";           Title = "Verifying Python $PythonVersion";      Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Python" }
+    @{ Name = "git";              Title = "Installing Git";                       Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Git" }
+    @{ Name = "node";             Title = "Detecting Node.js";                    Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Node" }
+    @{ Name = "system-packages";  Title = "Installing ripgrep and ffmpeg";        Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-SystemPackages" }
+    @{ Name = "repository";       Title = "Cloning repository";            Category = "install";      NeedsUserInput = $false; Worker = "Stage-Repository" }
+    @{ Name = "venv";             Title = "Creating Python virtual environment";  Category = "install";      NeedsUserInput = $false; Worker = "Stage-Venv" }
+    @{ Name = "dependencies";     Title = "Installing Python dependencies";       Category = "install";      NeedsUserInput = $false; Worker = "Stage-Dependencies" }
+    @{ Name = "node-deps";        Title = "Installing Node.js dependencies";      Category = "install";      NeedsUserInput = $false; Worker = "Stage-NodeDeps" }
+)
+if ($IncludeDesktop) {
+    # Insert AFTER node-deps so workspace npm is already installed when
+    # the desktop build runs. Inserted only when explicitly requested
+    # (Hermes-Setup.exe), never via the irm|iex CLI one-liner.
+    $InstallStages += @{ Name = "desktop"; Title = "Building desktop app"; Category = "install"; NeedsUserInput = $false; Worker = "Stage-Desktop" }
+}
+$InstallStages += @(
+    @{ Name = "path";             Title = "Adding to PATH";                Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-Path" }
+    @{ Name = "config-templates"; Title = "Writing configuration templates";      Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-ConfigTemplates" }
+    @{ Name = "platform-sdks";    Title = "Installing messaging platform SDKs";   Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-PlatformSdks" }
+    @{ Name = "bootstrap-marker"; Title = "Marking install complete";              Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-BootstrapMarker" }
+    # Interactive stages.  In non-interactive mode these become no-ops; the
+    # caller (GUI / CI) handles the equivalent UX themselves.
+    @{ Name = "configure";        Title = "Configuring API keys and models";      Category = "post-install"; NeedsUserInput = $true;  Worker = "Stage-Configure" }
+    @{ Name = "gateway";          Title = "Starting messaging gateway";           Category = "post-install"; NeedsUserInput = $true;  Worker = "Stage-Gateway" }
+    @{ Name = "complete";          Title = "Finish install";                      Category = "runtime";     NeedsUserInput = $false; Worker = "Stage-BootstrapMarker" }
+)
+
+
+# ==========================================================================
+# Programmatic driver modes -- emit and exit BEFORE any side effects
+# (transcript, robocopy banner, vendor pre-staging).  CI and the desktop
+# onboarding wizard parse this stdout; it must stay clean.  Mirrors the
+# upstream contract: dispatch right after the data tables are defined.
+# ==========================================================================
+if ($ProtocolVersion) {
+    Write-Output $InstallStageProtocolVersion
+    exit 0
+}
+
+if ($Manifest) {
+    $payload = @{
+        protocol_version = $InstallStageProtocolVersion
+        stages = @($InstallStages | ForEach-Object {
+            @{
+                name             = $_.Name
+                title            = $_.Title
+                category         = $_.Category
+                needs_user_input = $_.NeedsUserInput
+            }
+        })
+    }
+    $payload | ConvertTo-Json -Depth 5 -Compress | Write-Output
+    exit 0
+}
+
+
+
 # ============================================================================
 # Install log — captures ALL output for post-mortem debugging.
 # Customers installing via NSIS exe can't see the console; this file is the
@@ -800,16 +908,6 @@ if ($VendorDir -and -not $KeepVendor -and (Test-Path $VendorDir)) {
 # ============================================================================
 # Configuration
 # ============================================================================
-
-$RepoUrlSsh = "git@gitee.com:wintao-storm/QIJI-agent.git"
-$RepoUrlHttps = "https://gitee.com/wintao-storm/QIJI-agent.git"
-$PythonVersion = "3.11"
-$NodeVersion = "22"
-
-# Stage-protocol version.  Bumped only for genuinely breaking changes to the
-# manifest schema, stage-name set semantics, or stdout JSON shape.  Adding a
-# new stage does NOT bump this -- drivers iterate the manifest dynamically.
-$InstallStageProtocolVersion = 1
 
 # ============================================================================
 # Helper functions
@@ -3818,39 +3916,6 @@ function Write-Completion {
 #      Drivers iterate the manifest dynamically.
 #
 # ============================================================================
-
-# Stage definitions -- the single source of truth.  Each entry maps a stable
-# stage name (the API contract drivers depend on) to the worker function that
-# implements it.  ``Title`` is what UIs show; ``Category`` lets UIs group
-# stages; ``NeedsUserInput`` tells UIs "this stage prompts -- either skip it
-# or arrange to provide answers another way."
-$InstallStages = @(
-    @{ Name = "uv";               Title = "Installing uv package manager";        Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Uv" }
-    @{ Name = "python";           Title = "Verifying Python $PythonVersion";      Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Python" }
-    @{ Name = "git";              Title = "Installing Git";                       Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Git" }
-    @{ Name = "node";             Title = "Detecting Node.js";                    Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-Node" }
-    @{ Name = "system-packages";  Title = "Installing ripgrep and ffmpeg";        Category = "prereqs";      NeedsUserInput = $false; Worker = "Stage-SystemPackages" }
-    @{ Name = "repository";       Title = "Cloning repository";            Category = "install";      NeedsUserInput = $false; Worker = "Stage-Repository" }
-    @{ Name = "venv";             Title = "Creating Python virtual environment";  Category = "install";      NeedsUserInput = $false; Worker = "Stage-Venv" }
-    @{ Name = "dependencies";     Title = "Installing Python dependencies";       Category = "install";      NeedsUserInput = $false; Worker = "Stage-Dependencies" }
-    @{ Name = "node-deps";        Title = "Installing Node.js dependencies";      Category = "install";      NeedsUserInput = $false; Worker = "Stage-NodeDeps" }
-)
-if ($IncludeDesktop) {
-    # Insert AFTER node-deps so workspace npm is already installed when
-    # the desktop build runs. Inserted only when explicitly requested
-    # (Hermes-Setup.exe), never via the irm|iex CLI one-liner.
-    $InstallStages += @{ Name = "desktop"; Title = "Building desktop app"; Category = "install"; NeedsUserInput = $false; Worker = "Stage-Desktop" }
-}
-$InstallStages += @(
-    @{ Name = "path";             Title = "Adding to PATH";                Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-Path" }
-    @{ Name = "config-templates"; Title = "Writing configuration templates";      Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-ConfigTemplates" }
-    @{ Name = "platform-sdks";    Title = "Installing messaging platform SDKs";   Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-PlatformSdks" }
-    @{ Name = "bootstrap-marker"; Title = "Marking install complete";              Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-BootstrapMarker" }
-    # Interactive stages.  In non-interactive mode these become no-ops; the
-    # caller (GUI / CI) handles the equivalent UX themselves.
-    @{ Name = "configure";        Title = "Configuring API keys and models";      Category = "post-install"; NeedsUserInput = $true;  Worker = "Stage-Configure" }
-    @{ Name = "gateway";          Title = "Starting messaging gateway";           Category = "post-install"; NeedsUserInput = $true;  Worker = "Stage-Gateway" }
-)
 
 # Stage workers -- thin wrappers that delegate to the existing Install-* /
 # Test-* / Invoke-* functions while preserving their error semantics.  Kept

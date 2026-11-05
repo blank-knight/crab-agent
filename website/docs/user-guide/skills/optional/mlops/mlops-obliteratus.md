@@ -22,7 +22,7 @@ OBLITERATUS: abliterate LLM refusals (diff-in-means).
 | Dependencies | `obliteratus`, `torch`, `transformers`, `bitsandbytes`, `accelerate`, `safetensors` |
 | Platforms | linux, macos |
 | Tags | `Abliteration`, `Uncensoring`, `Refusal-Removal`, `LLM`, `Weight-Projection`, `SVD`, `Mechanistic-Interpretability`, `HuggingFace`, `Model-Surgery` |
-| Related skills | [`serving-llms-vllm`](../../optional/mlops/mlops-inference-serving-llms-vllm.md), [`llama-cpp`](../../optional/mlops/mlops-inference-llama-cpp.md), [`huggingface-tokenizers`](../../optional/mlops/mlops-huggingface-tokenizers.md) |
+| Related skills | [`serving-llms-vllm`](../../bundled/mlops/mlops-inference-vllm.md), [`llama-cpp`](../../bundled/mlops/mlops-inference-llama-cpp.md), [`huggingface-tokenizers`](../../optional/mlops/mlops-huggingface-tokenizers.md) |
 
 ## Reference: full SKILL.md
 
