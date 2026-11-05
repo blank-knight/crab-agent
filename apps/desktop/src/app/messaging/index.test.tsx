@@ -286,18 +286,17 @@ describe('MessagingView setup-guide link', () => {
     expect(screen.queryByText('Open setup guide')).toBeNull()
   })
 
-  it('opens a real docs URL through the validated external opener', async () => {
+  it('branded build hides the setup-guide link even with a real docs URL', async () => {
+    // qiji 0.20.5b: 设置指南指向上游 hermes 文档站,品牌构建隐藏(BRAND_SHOW_SETUP_GUIDE)。
+    // 有真实 docs_url 也不渲染按钮、不触发外部打开;上游行为保留于 git 历史。
     const docsUrl = 'https://hermes-agent.nousresearch.com/docs/user-guide/messaging/teams'
     getMessagingPlatforms.mockResolvedValue({ platforms: [platform({ docs_url: docsUrl })] })
 
     await renderMessaging()
 
-    const link = await screen.findByText('Open setup guide')
-    await act(async () => {
-      fireEvent.click(link)
-    })
-
-    await waitFor(() => expect(openExternalLink).toHaveBeenCalledWith(docsUrl))
+    expect((await screen.findAllByText('Microsoft Teams')).length).toBeGreaterThan(0)
+    expect(screen.queryByText('Open setup guide')).toBeNull()
+    expect(openExternalLink).not.toHaveBeenCalled()
   })
 })
 

@@ -620,7 +620,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const stored = Number(window.localStorage.getItem('qiji-font-scale'))
 
       if (Number.isFinite(stored) && stored > 0) {scale = Math.min(1.5, Math.max(0.85, stored))}
-    } catch {}
+    } catch {
+      // qiji: localStorage 在个别环境不可用,字号回退默认值。
+    }
 
     document.documentElement.style.setProperty('--dt-base-size', `${(0.875 * scale).toFixed(3)}rem`)
   }, [paintedTheme, paintedMode, chatFontFamily])

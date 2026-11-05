@@ -54,6 +54,9 @@ import { QqQrSetup } from './qq-qr-setup'
 import { TelegramQrSetup } from './telegram-qr-setup'
 import { WeixinQrSetup } from './weixin-qr-setup'
 
+// qiji 0.20.5b: 设置指南跳转开关(暂隐;自有帮助站就绪后置 true)。
+const BRAND_SHOW_SETUP_GUIDE = false
+
 interface MessagingViewProps extends React.ComponentProps<'section'> {
   setStatusbarItemGroup?: SetStatusbarItemGroup
 }
@@ -1055,8 +1058,8 @@ function PlatformDetail({
         </p>
         {platform.docs_url && (
           // qiji 0.20.5b: 设置指南跳转暂时隐藏（指向上游 hermes 文档站）。
-          // 后续换成自有帮助站后恢复接线：把 BRAND_DOCS_BASE 指过去即可。
-          false ? (
+          // 后续换成自有帮助站后恢复接线：把 BRAND_SHOW_SETUP_GUIDE 打开即可。
+          BRAND_SHOW_SETUP_GUIDE ? (
             <div className="mt-3">
               <Button asChild size="sm" variant="textStrong">
                 <a

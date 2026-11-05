@@ -30,12 +30,6 @@ const BRAND_DISABLE_CHANGED_FILES_CARD = true
  * transcript's other inline widgets rather than inventing its own chrome.
  */
 export const ChangedFilesCard: FC<{ parts: readonly unknown[] }> = ({ parts }) => {
-  // qiji 0.20.3: 品牌客户端禁用「N files changed」卡片（git ±行数是代码视角，
-  // 对话产品用户不需要）。上游实现整体保留，仅此一处短路。
-  if (BRAND_DISABLE_CHANGED_FILES_CARD) {
-    return null
-  }
-
   const { t } = useI18n()
   const copy = t.assistant.thread
   const files = useMemo(() => deriveChangedFiles(parts), [parts])
@@ -45,6 +39,12 @@ export const ChangedFilesCard: FC<{ parts: readonly unknown[] }> = ({ parts }) =
   const viewCwd = useStore(view.$cwd)
   const scopeCwd = view.kind === 'primary' ? null : viewCwd || null
   const composerScope = useComposerScope()
+
+  // qiji 0.20.3: 品牌客户端禁用「N files changed」卡片（git ±行数是代码视角，
+  // 对话产品用户不需要）。hooks 之后短路——rules-of-hooks 要求无条件调用。
+  if (BRAND_DISABLE_CHANGED_FILES_CARD) {
+    return null
+  }
 
   if (files.length === 0) {
     return null

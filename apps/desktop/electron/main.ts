@@ -3406,30 +3406,8 @@ async function checkUpdates(opts: { force?: boolean } = {}): Promise<UpdaterStat
     message: '客户端更新走完整安装包通道',
     fetchedAt: Date.now()
   }
-
-  // A packaged install delegates to the update owner named by its stamp.
-  let strategy: UpdaterStrategy | null = null
-
-  try {
-    strategy = await resolvePackagedUpdateStrategy()
-
-    if (strategy) {
-      return await strategy.check(opts)
-    }
-  } catch (error) {
-    return {
-      supported: true,
-      mechanism: strategy?.mechanism,
-      error: 'check-failed',
-      message: error instanceof Error ? error.message : String(error),
-      fetchedAt: Date.now()
-    }
-  }
-
-  // Checkout install: dispatch through the strategy layer — one mechanism,
-  // one stamp, no direct body path. The flow lives in updater/checkout.ts;
-  // this is the only production door to the checkout arms.
-  return resolveCheckoutUpdateStrategy().check(opts)
+  // qiji 0.20.2 起本函数固定走 fa_version 完整安装包通道,上面的 return 即终点;
+  // 原打包安装策略解析链为不可达死代码,已删——保留于 git 历史可考古。
 }
 
 let updateInFlight = false
