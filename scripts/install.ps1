@@ -113,8 +113,11 @@ $script:GitPinFiles = @{
 }
 # --- END GENERATED: bootstrap pins ---
 
-$RepoUrlSsh = "git@gitee.com:wintao-storm/QIJI-agent.git"
-$RepoUrlHttps = "https://gitee.com/wintao-storm/QIJI-agent.git"
+# An explicit HERMES_REPO_URL wins over both defaults (reruns point at the same
+# origin; tests drive a local fixture repo through it). SSH/HTTPS forms derive
+# from the same base when it is an https URL.
+$RepoUrlHttps = if ($env:HERMES_REPO_URL) { $env:HERMES_REPO_URL } else { "https://gitee.com/wintao-storm/QIJI-agent.git" }
+$RepoUrlSsh = if ($env:HERMES_REPO_URL) { $env:HERMES_REPO_URL } else { "git@gitee.com:wintao-storm/QIJI-agent.git" }
 $PythonVersion = "3.11"
 $NodeVersion = "22"
 
@@ -194,22 +197,12 @@ if ($Manifest) {
 # Customers installing via NSIS exe can't see the console; this file is the
 # ONLY trace we get when they report "it didn't work".
 # ============================================================================
-# Stage-driver mode (-Stage / -ProtocolVersion / -Manifest) never starts a
-# transcript or creates $HermesHome\logs: drivers own logging and the desktop
-# E2E boundary forbids writes outside the install dir (upstream has no
-# transcript at all; this log is an interactive-install affordance).
-if ($Stage -or $Manifest -or $ProtocolVersion) { $_InstallLog = $null } else {
+# The install transcript is an INTERACTIVE-ONLY affordance: it is started in
+# Invoke-AllStages (the no-flag ladder) and nowhere else. Stage drivers
+# (-Stage/-Manifest/-ProtocolVersion), dot-sourced wrappers, and the desktop
+# E2E boundary must never see $HermesHome\logs created here.
+$_InstallLog = $null
 $_InstallLogDir = Join-Path $HermesHome "logs"
-New-Item -ItemType Directory -Force -Path $_InstallLogDir -ErrorAction SilentlyContinue | Out-Null
-$_InstallLog = Join-Path $_InstallLogDir "install.log"
-if ($_InstallLog) {
-    try {
-        Start-Transcript -Path $_InstallLog -Force -ErrorAction SilentlyContinue | Out-Null
-    } catch {
-        # Some hosts disallow transcript. Install still works; we just lose the log.
-    }
-}
-}
 
 # Suppress Invoke-WebRequest's per-chunk progress bar.  Windows PowerShell
 # 5.1's progress UI repaints synchronously on every received byte, which
@@ -2245,6 +2238,16 @@ function Install-Repository {
         git config --global windows.appendAtomically false 2>$null
 
         # Try SSH first, then HTTPS, with -c flag for atomic write fix
+        # A local-path origin (tests, offline fixtures) clones directly -- the
+        # SSH/HTTPS/ZIP ladder only makes sense for network remotes.
+        if ($RepoUrlSsh -match "^[A-Za-z]:\\|^\\\\|^/" -or (Test-Path $RepoUrlSsh)) {
+            Write-Info "Cloning from local origin $RepoUrlSsh ..."
+            try {
+                Invoke-NativeWithRelaxedErrorAction { git -c credential.helper= -c windows.appendAtomically=false clone $RepoUrlSsh $InstallDir }
+                if ($LASTEXITCODE -eq 0) { $cloneSuccess = $true }
+            } catch { }
+        }
+
         Write-Info "Trying SSH clone..."
         $env:GIT_SSH_COMMAND = "ssh -o BatchMode=yes -o ConnectTimeout=5"
         try {
@@ -3967,7 +3970,16 @@ function Stage-Python           {
     }
     Resolve-UvCmd; if (-not (Test-Python))    { throw "Python $PythonVersion not available" }
 }
-function Stage-Git              { if (-not (Install-Git))    { throw "Git not available and auto-install failed -- install from https://git-scm.com/download/win then re-run" } }
+function Stage-Git {
+    # Stage-driver mode: the pinned pm-store path first (upstream prerequisites
+    # semantics: fail closed when no pin exists for this arch); interactive
+    # installs keep the PATH-first ladder.
+    if ($Stage -or $Json) {
+        if (Ensure-Git) { return }
+        throw "no pinned Git artifact for this Windows architecture"
+    }
+    if (-not (Install-Git)) { throw "Git not available and auto-install failed -- install from https://git-scm.com/download/win then re-run" }
+}
 # Node is optional (browser tools degrade gracefully without it).  Surface
 # failure to the JSON contract as skipped=true / reason rather than ok=true,
 # so a GUI driver consuming the manifest can distinguish "node ready" from
@@ -4004,6 +4016,60 @@ function Get-InstallStage {
     }
     return $null
 }
+# --- Upstream pinned-git seam (staged installs / pm store parity) -------------
+# Provisions Git from the same pm/lock.json pins ($script:GitPinFiles above)
+# into the pm store slot (<store>\git-<version>-<target>\), exactly the
+# directory shape pm and the staged tests expect. PATH-first Install-Git
+# stays the interactive ladder; Ensure-Git is the pinned, fail-closed path
+# upstream stage drivers (prerequisites) call.
+function Get-PmStoreRoot {
+    if ($env:HERMES_RUNTIME_DIR) { return $env:HERMES_RUNTIME_DIR }
+    return (Join-Path $HermesHome "tools")
+}
+
+function Get-PinnedGit {
+    $target = "win32-$(Get-WindowsArch)"
+    $pin = $script:GitPinFiles[$target]
+    if (-not $pin) { return $null }
+    $entry = Join-Path (Get-PmStoreRoot) "git-$($script:GitPinVersion)-$target"
+    $gitExe = Join-Path $entry "cmd\git.exe"
+    if (Test-Path $gitExe) { return $gitExe }
+    Write-Info "Installing pinned git $($script:GitPinVersion) ($target) into the pm store..."
+    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-git-bootstrap-$PID"
+    try {
+        New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+        $sfxPath = Join-Path $tmpDir "portable-git.7z.exe"
+        Invoke-WebRequest -Uri $pin.Url -OutFile $sfxPath -UseBasicParsing
+        $hash = (Get-FileHash -Path $sfxPath -Algorithm SHA256).Hash.ToLower()
+        if ($hash -ne $pin.Sha256.ToLower()) { throw "pinned git download hash mismatch: $hash" }
+        $extractDir = Join-Path $tmpDir "unpacked"
+        New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+        Unblock-File -Path $sfxPath -ErrorAction SilentlyContinue
+        $sfx = [System.Diagnostics.Process]::Start($sfxPath, "-o`"$extractDir`" -y")
+        if (-not $sfx.WaitForExit(600000)) {
+            & taskkill.exe /T /F /PID $sfx.Id 2>&1 | Out-Null
+            $sfx.WaitForExit()
+            throw "pinned git self-extractor timed out after 600s"
+        }
+        if ($sfx.ExitCode) { throw "pinned git self-extractor exited $($sfx.ExitCode)" }
+        New-Item -ItemType Directory -Force -Path $entry | Out-Null
+        $null = & robocopy $extractDir $entry /E /NJH /NJS /NFL /NDL /NP /R:1 /W:1 /MT:8
+        if ($LASTEXITCODE -ge 8) { throw "robocopy into pm store failed (exit $LASTEXITCODE)" }
+        if (-not (Test-Path $gitExe)) { throw "pinned git staged but $gitExe missing" }
+        return $gitExe
+    } finally {
+        Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+    }
+}
+
+function Ensure-Git {
+    $g = Get-PinnedGit
+    if (-not $g) { return $false }
+    $gitEntry = Split-Path (Split-Path $g -Parent) -Parent
+    $env:Path = "$gitEntry\cmd;$gitEntry\usr\bin;$env:Path"
+    return $true
+}
+
 # ----------------------------------------------------------------------------
 # Upstream seam functions (compat layer). Upstream-shaped wrappers dot-
 # source this script and call these directly. crab resolved paths at
@@ -4080,7 +4146,10 @@ function Invoke-Stage {
 
     $start = [DateTime]::UtcNow
     $result = @{
-        stage        = $StageDef.Name
+        # Echo the CALLER's stage name: an upstream alias (setup/prerequisites)
+        # must report itself under the name the driver asked for, not the
+        # internal stage it mapped to.
+        stage        = if ($Stage) { $Stage } else { $StageDef.Name }
         ok           = $false
         skipped      = $false
         reason       = $null
@@ -4121,6 +4190,15 @@ function Invoke-Stage {
 # ============================================================================
 
 function Invoke-AllStages {
+    # Interactive ladder only: create the log dir and start the transcript
+    # here, so stage-driver/dot-sourced invocations never touch $HermesHome\logs.
+    try {
+        New-Item -ItemType Directory -Force -Path $_InstallLogDir -ErrorAction SilentlyContinue | Out-Null
+        $_InstallLog = Join-Path $_InstallLogDir "install.log"
+        Start-Transcript -Path $_InstallLog -Force -ErrorAction SilentlyContinue | Out-Null
+    } catch {
+        # Some hosts disallow transcript. Install still works; we just lose the log.
+    }
     Step-OutOfInstallDir
     foreach ($s in $InstallStages) {
         Invoke-Stage -StageDef $s

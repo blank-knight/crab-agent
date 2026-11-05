@@ -7,6 +7,7 @@ test patches on ``update_cmd`` stay effective).
 
 import logging
 from contextlib import suppress
+import os
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -457,6 +458,15 @@ def _portable_git_candidates() -> list:
     candidates = []
     with suppress(Exception):
         candidates += [root / "git" / "mingw64" / "libexec" / "git-core" / "git.exe" for root in (get_default_hermes_root(), Path(get_hermes_home()))]
+    # crab: the pm runtime store (HERMES_RUNTIME_DIR) holds the verified pinned
+    # PortableGit (git-<version>-<target>/...); CI runners stage it before tests.
+    # On machines where the system Program Files\Git copy is broken (DLL rot,
+    # vendor bundles), the store copy is the healthy one.
+    with suppress(Exception):
+        store = os.environ.get("HERMES_RUNTIME_DIR")
+        if store:
+            store_root = Path(store)
+            candidates += sorted(store_root.glob("git-*/mingw64/libexec/git-core/git.exe"))
     return candidates
 
 
