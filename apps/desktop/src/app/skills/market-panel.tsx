@@ -1,17 +1,18 @@
+import { useStore } from '@nanostores/react'
+import { Download, Loader2, Sparkles } from 'lucide-react'
 import type * as React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { Download, Loader2, Sparkles } from 'lucide-react'
 
+import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { isZhLocale } from '@/i18n'
 import { BACKEND_BASE_URL, backendGet } from '@/lib/backend'
 import { invalidateSlashCompletions } from '@/lib/slash-completion-cache'
+import { cn } from '@/lib/utils'
 import { $auth } from '@/store/auth'
-import { isZhLocale } from '@/i18n'
-import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
+
 import { resolveSkillIconName, SkillIcon, skillIconTone } from './skill-icon'
 import { translateSkillField } from './translations'
-import { useStore } from '@nanostores/react'
 
 interface MarketSkill {
   id: number | string
@@ -52,6 +53,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
    */
   const notifyBackendOfSkillsChange = useCallback(async () => {
     invalidateSlashCompletions()
+
     try {
       await requestGateway('skills.reload')
     } catch {
@@ -62,10 +64,15 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
   const installGithub = useCallback(async (repo: string, subdir?: string) => {
     setGhBusy(true)
     setMsg('')
+
     try {
       const r = await window.hermesDesktop.skillMarket.installGithub(repo, subdir)
       const names = 'allNames' in r && Array.isArray((r as { allNames?: string[] }).allNames) ? (r as { allNames: string[] }).allNames : [r.name]
-      setInstalled(prev => { const s = new Set(prev); for (const n of names) s.add(n); return s })
+      setInstalled(prev => { const s = new Set(prev);
+
+ for (const n of names) {s.add(n);}
+
+ return s })
       await notifyBackendOfSkillsChange()
       setMsg(`已安装 ${names.length > 1 ? names.length + ' 个技能(' + names.slice(0, 3).join('、') + (names.length > 3 ? '…' : '') + ')' : '「' + r.name + '」'}(来自 GitHub ${repo})`)
       setMsgOk(true)
@@ -80,16 +87,20 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
 
   const load = useCallback(async () => {
     setLoading(true)
+
     try {
       const res = await backendGet<{ total: number; rows: MarketSkill[] }>('/api/client/v1/skill/list')
       const rows = res.data?.rows ?? []
       const installedNames: string[] = []
+
       try {
         const r = await window.hermesDesktop.listDir('skills/market')
+
         for (const item of r) {
-          if (item.isDirectory) installedNames.push(item.name)
+          if (item.isDirectory) {installedNames.push(item.name)}
         }
       } catch { /* 目录不存在=没装过 */ }
+
       setSkills(rows)
       setInstalled(new Set(installedNames))
     } catch {
@@ -101,13 +112,16 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
 
   /** qiji 0.19.8: 卸载市场技能（按用户偏好不加确认弹窗），卸完刷新已装集合 */
   async function uninstall(sk: MarketSkill) {
-    if (uninstalling) return
+    if (uninstalling) {return}
     setUninstalling(sk.name)
     setMsgOk(false)
     setMsg('')
+
     try {
       await window.hermesDesktop.skillMarket.uninstall(sk.name)
-      setInstalled(prev => { const s = new Set(prev); s.delete(sk.name); return s })
+      setInstalled(prev => { const s = new Set(prev); s.delete(sk.name);
+
+ return s })
       await notifyBackendOfSkillsChange()
       setMsgOk(true)
       setMsg(`「${sk.title}」已卸载`)
@@ -122,9 +136,10 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
   useEffect(() => { void load() }, [load])
 
   async function install(sk: MarketSkill) {
-    if (installing) return
+    if (installing) {return}
     setInstalling(sk.name)
     setMsg('')
+
     try {
       const url = `${BACKEND_BASE_URL}/api/client/v1/skill/download?id=${sk.id}`
       await window.hermesDesktop.skillMarket.install(url, sk.name, auth.token || '')
@@ -163,9 +178,11 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
             const isInstalled = installed.has(sk.name)
             // qiji 0.19.3-fix: 中文环境下标题/描述走翻译层（后端 SKILL.md 是英文）
             const titleZh = isZhLocale() ? translateSkillField(sk.name, 'name', sk.title) : sk.title
+
             const descZh = isZhLocale()
               ? translateSkillField(sk.name, 'description', sk.description ?? '')
               : (sk.description ?? '')
+
             return (
               <div
                 className="flex flex-col justify-between rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5"
@@ -223,7 +240,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
           <input
             className="flex-1 rounded-md border bg-transparent px-2 py-1.5 text-xs outline-none focus:border-primary/50"
             onChange={e => setGhRepo(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && ghRepo.trim()) void installGithub(ghRepo.trim()) }}
+            onKeyDown={e => { if (e.key === 'Enter' && ghRepo.trim()) {void installGithub(ghRepo.trim())} }}
             placeholder="owner/repo（支持粘贴 github.com 链接）"
             value={ghRepo}
           />
@@ -247,8 +264,9 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
               key={repo}
               onClick={() => {
                 const parts = repo.split('/')
-                if (parts.length > 2) void installGithub(parts.slice(0, 2).join('/'), parts.slice(2).join('/'))
-                else void installGithub(repo)
+
+                if (parts.length > 2) {void installGithub(parts.slice(0, 2).join('/'), parts.slice(2).join('/'))}
+                else {void installGithub(repo)}
               }}
               type="button"
             >

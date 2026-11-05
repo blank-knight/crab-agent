@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import type { HermesGateway, ProfileScope } from '@/hermes'
 import { useI18n } from '@/i18n'
-import { $freeTierStatus } from '@/store/free-tier'
-import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 // qiji 0.20.5c: 自定义 MCP 入口挂高级开关（见 addYourOwn）。
 import { $advancedFeatures } from '@/store/advanced-features'
+import { $freeTierStatus } from '@/store/free-tier'
+import { openFreeTierSignIn } from '@/store/free-tier-sign-in'
 import { notifyError, readableError } from '@/store/notifications'
 
 import { installBundledEntry } from '../mcp/install-catalog-entry'

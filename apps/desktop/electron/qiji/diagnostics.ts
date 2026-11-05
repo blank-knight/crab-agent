@@ -19,13 +19,15 @@ export interface DiagnosticsDeps {
 
 function readTail(p: string, maxBytes = 64 * 1024): string {
   try {
-    if (!fs.existsSync(p)) return '(文件不存在)'
+    if (!fs.existsSync(p)) {return '(文件不存在)'}
     const stat = fs.statSync(p)
     const start = Math.max(0, stat.size - maxBytes)
     const fd = fs.openSync(p, 'r')
+
     try {
       const buf = Buffer.alloc(Math.min(stat.size, maxBytes))
       fs.readSync(fd, buf, 0, buf.length, start)
+
       return buf.toString('utf8')
     } finally {
       fs.closeSync(fd)
@@ -70,10 +72,12 @@ export function registerQijiDiagnosticsIpc({
     }
 
     const content = sections.join('\n') + '\n'
+
     try {
       fs.mkdirSync(desktopDir, { recursive: true })
       fs.writeFileSync(outPath, content, 'utf8')
       rememberLog(`[diagnostics] 诊断快照已导出到 ${outPath}`)
+
       return { ok: true, path: outPath }
     } catch (e) {
       return { ok: false, error: (e as Error).message ? (e as Error).message : String(e) }

@@ -329,8 +329,10 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
   // 全部钳制在安全区间: 主题只能"调气质",不能破坏可用性。
   {
     const L = theme.layout ?? {}
+
     const clamp = (v: number | undefined, lo: number, hi: number, dflt: number) =>
       typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt
+
     const vibe = L.vibe ?? 'work'
 
     root.style.setProperty('--dt-radius-scalar', String(clamp(L.radiusScalar, 0, 2, vibe === 'chat' ? 1.1 : vibe === 'zen' ? 0.9 : 0.6)))
@@ -361,6 +363,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
   // raise a readability scrim so glass surfaces keep contrast over busy art.
   const bg = theme.backgroundImage
   const wallpaper = isDark ? bg?.dark ?? bg?.light : bg?.light
+
   if (wallpaper) {
     const scrim = bg?.scrimOpacity ?? (isDark ? 0.55 : 0.75)
     root.style.setProperty('--dt-wallpaper', `url("${wallpaper}")`)
@@ -612,10 +615,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // chatFontFamily 异步到达时重跑——不跟随重跑就会把 1.25 缩放踩回 0.875(字号回归)。
   useEffect(() => {
     let scale = 1.25
+
     try {
       const stored = Number(window.localStorage.getItem('qiji-font-scale'))
-      if (Number.isFinite(stored) && stored > 0) scale = Math.min(1.5, Math.max(0.85, stored))
+
+      if (Number.isFinite(stored) && stored > 0) {scale = Math.min(1.5, Math.max(0.85, stored))}
     } catch {}
+
     document.documentElement.style.setProperty('--dt-base-size', `${(0.875 * scale).toFixed(3)}rem`)
   }, [paintedTheme, paintedMode, chatFontFamily])
 

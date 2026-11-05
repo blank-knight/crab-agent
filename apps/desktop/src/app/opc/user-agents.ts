@@ -30,9 +30,12 @@ const KEY = 'qiji-user-agents'
 
 function parse(raw: string | null): UserAgent[] {
   if (!raw) {return []}
+
   try {
     const arr = JSON.parse(raw)
+
     if (!Array.isArray(arr)) {return []}
+
     return arr.filter(
       (u): u is UserAgent =>
         u &&
@@ -61,7 +64,9 @@ export function addUserAgent(partial: Pick<UserAgent, 'title' | 'desc' | 'kind' 
     createdAt: Date.now(),
     ...partial
   }
+
   saveUserAgents([agent, ...loadUserAgents()])
+
   return agent
 }
 

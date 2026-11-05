@@ -1,3 +1,6 @@
+import { registerQijiClientUpdateIpc } from './client-update'
+import { registerQijiDiagnosticsIpc } from './diagnostics'
+import { registerQijiListDirIpc } from './list-dir'
 // qiji 商业层统一入口（主进程侧）。
 // 上游同步注意：本目录（electron/qiji/）是商业层隔离区，上游没有对应文件，
 // 每次 merge upstream 不会触碰这里；接线点只在 main.ts 的 qiji 标记块内。
@@ -7,10 +10,7 @@
 //   registerQijiIpc({ hermesHome, rememberLog, getMainWindow, getTray, ... })  // 模块顶层,与 registerFsIpc 同区
 //   registerQijiWallpaperScheme()   // 必须在 app ready 之前（与 MEDIA_PROTOCOL 同窗口）
 //   registerQijiWallpaperProtocol() // app ready 后（与 registerMediaProtocol 同区）
-import { registerQijiBrandIpc, appBrandName, brandText } from './oem-brand'
-import { registerQijiClientUpdateIpc } from './client-update'
-import { registerQijiDiagnosticsIpc } from './diagnostics'
-import { registerQijiListDirIpc } from './list-dir'
+import { appBrandName, brandText, registerQijiBrandIpc } from './oem-brand'
 import { registerQijiSkillMarketIpc } from './skill-market'
 import {
   registerQijiWallpaperIpc,

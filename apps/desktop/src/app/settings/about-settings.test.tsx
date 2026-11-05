@@ -5,12 +5,10 @@ import type { DesktopVersionInfo } from '@/global'
 import { I18nProvider } from '@/i18n'
 import { $auth } from '@/store/auth'
 import {
-  $clientUpdate,
   checkClientUpdate,
   type ClientUpdateState
 } from '@/store/client-update'
-import { $desktopVersion, refreshDesktopVersion } from '@/store/updates'
-import { submitReport } from '@/lib/client-report'
+import { refreshDesktopVersion } from '@/store/updates'
 
 import { AboutSettings } from './about-settings'
 
@@ -28,6 +26,7 @@ vi.mock('@/store/updates', async (): Promise<Record<string, unknown>> => {
 
 vi.mock('@/store/client-update', async (): Promise<Record<string, unknown>> => {
   const { atom } = await import('nanostores')
+
   const idle: ClientUpdateState = {
     status: 'idle',
     error: undefined,

@@ -81,10 +81,13 @@ function composerCollapsedSelectionContainer(editor: HTMLElement): Node | null {
  *  is never touched. Returns true when something was removed. */
 export function dropEmptyEditorPlaceholderBr(editor: HTMLElement): boolean {
   const solo = editor.childNodes.length === 1 && editor.firstChild instanceof HTMLBRElement
+
   if (!solo) {
     return false
   }
+
   editor.firstChild.remove()
+
   return true
 }
 

@@ -1,15 +1,15 @@
 import { useStore } from '@nanostores/react'
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n'
+import { BackendError, backendGet, backendPost } from '@/lib/backend'
 import { CheckCircle2, Download, Loader2, Sparkles, Users } from '@/lib/icons'
-import { BackendError, BACKEND_BASE_URL, backendGet, backendPost } from '@/lib/backend'
-import { useNavigate } from 'react-router'
 import { cn } from '@/lib/utils'
 import { $auth, setAvatar as setGlobalAvatar, setScore } from '@/store/auth'
 
-import { ListRow, SectionHeading, SettingsContent } from './primitives'
+import { SectionHeading, SettingsContent } from './primitives'
 
 // —— 类型 ——
 
@@ -46,10 +46,12 @@ function avatarUrl(emoji: string): string {
 function avatarEmoji(url: string): string {
   if (url.startsWith('avatar://emoji/')) {
     const raw = decodeURIComponent(url.slice('avatar://emoji/'.length))
+
     if (AVATAR_PRESETS.includes(raw as (typeof AVATAR_PRESETS)[number])) {
       return raw
     }
   }
+
   return ''
 }
 
@@ -96,18 +98,22 @@ export function AccountSettings() {
   const reloadProfile = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
+
     try {
       const res = await backendGet<ProfileData>('/api/client/v1/profile')
       const d = res.data
-      if (!d) throw new Error('empty')
+
+      if (!d) {throw new Error('empty')}
       setProfile(d)
       setNickname(d.nickname || '')
       setEmail(d.email || '')
       setAvatar(d.avatar || '')
+
       // 同步全局（标题栏账号胶囊显示头像）
       if ((authState.avatar ?? '') !== (d.avatar || '')) {
         setGlobalAvatar(d.avatar ? d.avatar : null)
       }
+
       // 同步全局额度（关于页/顶栏共用）
       setScore(d.score)
     } catch (err) {
@@ -120,12 +126,15 @@ export function AccountSettings() {
 
   const loadLogs = useCallback(async (page: number, append: boolean) => {
     setLoadingLogs(true)
+
     try {
       const res = await backendGet<{ total: number; page: number; rows: ScoreLogRow[] }>(
         `/api/client/v1/profile/scorelogs?page=${page}&limit=10`
       )
+
       const d = res.data
-      if (!d) return
+
+      if (!d) {return}
       setLogsTotal(d.total)
       setLogsPage(page)
       setLogs(prev => (append ? [...prev, ...d.rows] : d.rows))
@@ -156,21 +165,27 @@ export function AccountSettings() {
   }, [authState.token])
 
   async function saveProfile() {
-    if (!profile || savingProfile) return
+    if (!profile || savingProfile) {return}
     setSavingProfile(true)
     setProfileError(null)
     setProfileSaved(false)
+
     try {
       const body: Record<string, string> = {}
-      if (nickname !== profile.nickname) body.nickname = nickname
-      if (email !== profile.email) body.email = email
+
+      if (nickname !== profile.nickname) {body.nickname = nickname}
+
+      if (email !== profile.email) {body.email = email}
+
       if (Object.keys(body).length > 0) {
         await backendPost('/api/client/v1/profile/update', body)
       }
+
       if (avatar !== profile.avatar) {
         await backendPost('/api/client/v1/profile/avatar', { avatar })
         setGlobalAvatar(avatar !== '' ? avatar : null)
       }
+
       setProfileSaved(true)
       setProfile(p => (p ? { ...p, nickname, email, avatar } : p))
       window.setTimeout(() => setProfileSaved(false), 2000)
@@ -182,15 +197,18 @@ export function AccountSettings() {
   }
 
   async function buyPlan(plan: Plan) {
-    if (buyingId !== null) return
+    if (buyingId !== null) {return}
     setBuyingId(plan.id)
     setPlanMsg(null)
+
     try {
       const res = await backendPost<{ order_no: string; pay_url: string }>('/api/client/v1/plan/order', {
         plan_id: plan.id,
         pay_type: 'alipay',
       })
+
       const payUrl = res.data?.pay_url
+
       if (payUrl && window.hermesDesktop?.openExternal) {
         await window.hermesDesktop.openExternal(payUrl)
         setPlanMsgOk(true)
@@ -198,12 +216,15 @@ export function AccountSettings() {
         // 轮询支付结果（最多 5 分钟，每 5 秒）
         const orderNo = res.data?.order_no ?? ''
         let paid = false
+
         for (let i = 0; i < 60 && !paid; i++) {
           await new Promise(r => setTimeout(r, 5000))
+
           try {
             const st = await backendGet<{ status: string; score: number }>(
               `/api/client/v1/plan/status?order_no=${encodeURIComponent(orderNo)}`
             )
+
             if (st.data?.status === 'paid') {
               paid = true
               setPlanMsg(a.plans.paid)
@@ -228,14 +249,16 @@ export function AccountSettings() {
   }
 
   async function redeem() {
-    if (!code.trim() || redeeming) return
+    if (!code.trim() || redeeming) {return}
     setRedeeming(true)
     setRechargeMsg(null)
+
     try {
       const res = await backendPost<{ added_score: number; remaining_score: number }>(
         '/api/client/v1/recharge/redeem',
         { code: code.trim() }
       )
+
       const d = res.data
       setRechargeOk(true)
       setRechargeMsg(a.recharge.success(d?.added_score ?? 0, d?.remaining_score ?? 0))
@@ -356,7 +379,7 @@ export function AccountSettings() {
           <ProfileField label={a.profile.agent}>
             <span className="text-sm text-muted-foreground">{profile?.agent_name || '-'}</span>
           </ProfileField>
-          <ProfileField last label={a.profile.joinedAt}>
+          <ProfileField label={a.profile.joinedAt} last>
             <span className="text-sm text-muted-foreground">{profile?.createtime || '-'}</span>
           </ProfileField>
         </div>
@@ -427,7 +450,7 @@ export function AccountSettings() {
               className="h-9 min-w-0 flex-1 rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
               onChange={e => setCode(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') void redeem()
+                if (e.key === 'Enter') {void redeem()}
               }}
               placeholder={a.recharge.placeholder}
               value={code}

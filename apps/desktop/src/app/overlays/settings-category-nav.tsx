@@ -1,10 +1,9 @@
 import { memo, type ReactNode } from 'react'
 
 import { TabDropdown } from '@/components/ui/tab-dropdown'
-import { Brain, Cpu, Network, Settings2, ShieldLock, type IconComponent, Users } from '@/lib/icons'
+import { Brain, Cpu, type IconComponent, Network, Settings2, ShieldLock, Users } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
-import type { OverlayNavGroup } from './overlay-split-layout'
 
 /**
  * qiji 螃蟹OPC 设置页专用：顶部大类标签栏 + 左侧分组 rail 的两级导航。
@@ -66,9 +65,11 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
 /** 分组 id → 大类 id（config:model → general） */
 export function categoryOfGroup(groupId: string): string {
   const leaf = groupId.replace(/^config:/, '')
+
   for (const cat of SETTINGS_CATEGORIES) {
-    if (cat.members.includes(leaf)) return cat.id
+    if (cat.members.includes(leaf)) {return cat.id}
   }
+
   return 'system'
 }
 

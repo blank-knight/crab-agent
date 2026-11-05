@@ -28,15 +28,14 @@ import {
   Volume2,
   Wrench
 } from '@/lib/icons'
+// qiji 0.20.5c: 屏幕捕获子页的 macOS 门（见 settingsSubpages 内注释）。
+import { isMacPlatform } from '@/lib/platform'
 
 import { APPEARANCE_SUBPAGES } from './appearance-subpages'
 import { CONFIG_SUBPAGES, configSubpageForField } from './config-subpages'
 import { OTHER_SUBPAGES } from './other-subpages'
 import { settingDefinition } from './settings-manifest'
 import type { SettingsView } from './types'
-
-// qiji 0.20.5c: 屏幕捕获子页的 macOS 门（见 settingsSubpages 内注释）。
-import { isMacPlatform } from '@/lib/platform'
 
 export interface SettingsSubpage {
   id: string

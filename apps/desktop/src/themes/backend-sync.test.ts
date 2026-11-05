@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { DEFAULT_SKIN_NAME } from './presets'
-
 import {
   $backendCustomCSS,
   $backendThemes,
@@ -9,6 +7,7 @@ import {
   __resetBackendSkinSync,
   ingestBackendSkin
 } from './backend-sync'
+import { DEFAULT_SKIN_NAME } from './presets'
 
 const skin = (name: string) => ({
   name,

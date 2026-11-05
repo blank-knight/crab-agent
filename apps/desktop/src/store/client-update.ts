@@ -58,6 +58,7 @@ export function isEnforcedUpdate(state: ClientUpdateState): boolean {
  */
 export function downloadedInstallerPath(): string | null {
   const state = $clientUpdate.get()
+
   return state.status === 'downloaded' ? state.installerPath ?? null : null
 }
 
@@ -108,6 +109,7 @@ export async function checkClientUpdate(options: { manual?: boolean } = {}): Pro
 
       if (savedPath) {
         patch({ status: 'downloaded', installerPath: savedPath })
+
         return
       }
     } catch {
@@ -165,6 +167,7 @@ export async function startClientUpdate(): Promise<void> {
 
   if (!url) {
     notify({ kind: 'error', message: '没有可用的下载地址，请稍后重试' })
+
     return
   }
 
@@ -178,6 +181,7 @@ export async function startClientUpdate(): Promise<void> {
     // 理论上到不了这里（preload 一定有）；兜底走浏览器下载
     notify({ kind: 'warning', title: '无法自动更新', message: '已在浏览器打开下载页面，请手动下载安装' })
     window.hermesDesktop?.openExternal?.(url)
+
     return
   }
 
@@ -275,8 +279,10 @@ export async function installClientUpdate(): Promise<void> {
       try {
         window.localStorage.removeItem(downloadedPathKey(state.info?.newversion ?? ''))
       } catch { /* ignore */ }
+
       patch({ status: 'available', installerPath: undefined })
       notify({ kind: 'warning', title: '安装包已失效', message: '请重新下载更新包' })
+
       return
     }
 
@@ -315,6 +321,7 @@ export async function runEnforcedClientUpdate(): Promise<void> {
 
   if (!bridge) {
     window.hermesDesktop?.openExternal?.(url)
+
     return
   }
 

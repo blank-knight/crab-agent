@@ -24,6 +24,7 @@ export function appBrandName(): string {
 /** 把文案里的默认名替换为当前贴牌名（无贴牌=原样） */
 export function brandText(text: string): string {
   const name = appBrandName()
+
   return name === BRAND.defaultName ? text : text.split(BRAND.defaultName).join(name)
 }
 
@@ -34,23 +35,28 @@ export function registerQijiBrandIpc({ getTray, getMainWindow }: QijiBrandDeps):
     oemBrandState.name = name
     oemBrandState.logo = logo
     const display = appBrandName()
+
     try {
       const tray = getTray()
+
       if (tray && !tray.isDestroyed()) {
         tray.setToolTip(display)
       }
     } catch {
       // ignore
     }
+
     try {
       const win = getMainWindow()
       const destroyed = win?.isDestroyed ? win.isDestroyed() : false
+
       if (win && !destroyed) {
         win.setTitle(display)
       }
     } catch {
       // ignore
     }
+
     return { ok: true }
   })
 }

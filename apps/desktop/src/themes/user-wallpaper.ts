@@ -24,8 +24,10 @@ export interface UserWallpaperPref {
 export function readWallpaperPref(): UserWallpaperPref | null {
   try {
     const raw = window.localStorage.getItem(LS_KEY)
-    if (!raw) return null
+
+    if (!raw) {return null}
     const parsed = JSON.parse(raw) as UserWallpaperPref
+
     return parsed?.file ? parsed : null
   } catch {
     return null
@@ -34,8 +36,8 @@ export function readWallpaperPref(): UserWallpaperPref | null {
 
 export function writeWallpaperPref(pref: UserWallpaperPref | null): void {
   try {
-    if (pref) window.localStorage.setItem(LS_KEY, JSON.stringify(pref))
-    else window.localStorage.removeItem(LS_KEY)
+    if (pref) {window.localStorage.setItem(LS_KEY, JSON.stringify(pref))}
+    else {window.localStorage.removeItem(LS_KEY)}
   } catch {
     // 隐私模式下本次会话生效即可
   }
@@ -54,7 +56,7 @@ function wallpaperDir(): string {
  * 直接操作 CSS 变量（与 applyTheme 的壁纸段同一套变量）。
  */
 export function applyUserWallpaper(url: string | null, pref: { scrim: number; size: string } | null): void {
-  if (typeof document === 'undefined') return
+  if (typeof document === 'undefined') {return}
   const root = document.documentElement
 
   if (url && pref) {
@@ -63,9 +65,11 @@ export function applyUserWallpaper(url: string | null, pref: { scrim: number; si
     root.style.setProperty('--dt-wallpaper-position', 'center')
     // 遮罩：由主题背景色 + 用户浓度合成（CSS 变量在 styles.css 里被引用）
     const bg = getComputedStyle(root).getPropertyValue('--theme-background-seed').trim() || '#222'
+
     const alpha = Math.round(Math.min(100, Math.max(0, pref.scrim)) * 2.55)
       .toString(16)
       .padStart(2, '0')
+
     root.style.setProperty('--dt-wallpaper-scrim', `linear-gradient(${bg}${alpha}, ${bg}${alpha})`)
     root.dataset.hermesWallpaper = 'on'
   } else {

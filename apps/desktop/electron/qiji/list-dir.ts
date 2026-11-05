@@ -12,9 +12,12 @@ export interface ListDirDeps {
 export function registerQijiListDirIpc({ hermesHome }: ListDirDeps): void {
   ipcMain.handle('hermes:listDir', async (_event, relPath: unknown) => {
     const rel = String(relPath || '').replace(/\\/g, '/')
-    if (rel.includes('..')) throw new Error('invalid path')
+
+    if (rel.includes('..')) {throw new Error('invalid path')}
     const dir = path.join(hermesHome, rel)
-    if (!fs.existsSync(dir)) return []
+
+    if (!fs.existsSync(dir)) {return []}
+
     return fs.readdirSync(dir, { withFileTypes: true }).map(d => ({ name: d.name, isDirectory: d.isDirectory() }))
   })
 }

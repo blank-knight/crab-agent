@@ -43,7 +43,7 @@ import { type ChatMessage, chatMessageText } from '@/lib/chat-messages'
 import { isMessagingSource } from '@/lib/session-source'
 import { activateWakeIndicator } from '@/lib/wake-indicator'
 import { playWakeSound } from '@/lib/wake-sound'
-import { $auth, isAuthenticated, isTokenExpired } from '@/store/auth'
+import { $auth, isTokenExpired } from '@/store/auth'
 import { $billingSettingsRequest } from '@/store/billing-block'
 import { $desktopBoot } from '@/store/boot'
 import { checkClientUpdate } from '@/store/client-update'
@@ -120,13 +120,13 @@ import { resetProjectTreeState } from '../right-sidebar/files/use-project-tree'
 import { PersistentTerminal } from '../right-sidebar/terminal/persistent'
 import { closeAllTerminals } from '../right-sidebar/terminal/terminals'
 import {
+  $workspaceIsPage,
   CRON_ROUTE,
   navigateToWorkspacePage,
   routeSessionId,
   sessionRoute,
   SETTINGS_ROUTE,
-  syncWorkspaceRoute,
-  $workspaceIsPage
+  syncWorkspaceRoute
 } from '../routes'
 import { SessionImportView } from '../session-import'
 import { SessionPickerOverlay } from '../session-picker-overlay'

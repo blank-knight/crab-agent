@@ -32,22 +32,28 @@ export function compareDisplayVersions(a: string, b: string): number {
   const parts = (v: string) => String(v || '')
     .split(/[.-]/)
     .map(p => (/^\d+$/.test(p) ? Number(p) : p))
+
   const norm = (p: (number | string)[]) =>
     p.map(x => (typeof x === 'number' ? { n: 1, num: x, s: '' } : { n: 0, num: -1, s: x }))
+
   const A = norm(parts(a))
   const B = norm(parts(b))
   const len = Math.max(A.length, B.length)
+
   for (let i = 0; i < len; i++) {
     const x = A[i] || { n: 0, num: -1, s: '' }
     const y = B[i] || { n: 0, num: -1, s: '' }
+
     // Numeric segments beat letter segments ("0.20.5" < "0.20.5-m" — a suffix is a newer build in our scheme).
-    if (x.n !== y.n) return x.n - y.n
+    if (x.n !== y.n) {return x.n - y.n}
+
     if (x.n === 1) {
-      if (x.num !== y.num) return x.num - y.num
+      if (x.num !== y.num) {return x.num - y.num}
     } else if (x.s !== y.s) {
       return x.s < y.s ? -1 : 1
     }
   }
+
   return 0
 }
 
@@ -65,8 +71,10 @@ export function isRuntimeOutdated(
   marker: RuntimeMarkerLike | null | undefined,
   appVersion: string
 ): boolean {
-  if (!marker || typeof marker !== 'object') return true
+  if (!marker || typeof marker !== 'object') {return true}
   const v = marker.desktopVersion
-  if (typeof v !== 'string' || v.length === 0) return true
+
+  if (typeof v !== 'string' || v.length === 0) {return true}
+
   return compareDisplayVersions(v, appVersion) < 0
 }

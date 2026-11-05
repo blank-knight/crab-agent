@@ -478,9 +478,11 @@ export function SidebarSessionsSection({
   // EVERY row each way — visible as sidebar flicker (0.20.5b acceptance
   // report). Enter at the threshold, but only exit clearly below it.
   const virtualizedRef = useRef(false)
+
   const flatVirtualized = useMemo(() => {
     const eligible =
       !pinned && !showEmptyState && !groups?.length && !projectOverview?.length && !projectContent
+
     const next = virtualizedRef.current
       ? eligible && sessions.length >= VIRTUALIZE_EXIT_THRESHOLD
       : eligible && sessions.length >= VIRTUALIZE_THRESHOLD
@@ -489,7 +491,7 @@ export function SidebarSessionsSection({
 
     return next
     // Length + eligibility only; the ref carries the hysteresis state.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [pinned, showEmptyState, groups, projectOverview, projectContent, sessions.length])
 
   // First paint into the grouped view (e.g. the app restoring the Projects tab)

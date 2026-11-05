@@ -20,6 +20,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { getSkills } from '@/api/skills'
+import { translateSkillField } from '@/app/skills/translations'
 import { Codicon } from '@/components/ui/codicon'
 import {
   Dialog,
@@ -28,10 +29,9 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { requestOneShot } from '@/lib/oneshot'
 import { isZhLocale } from '@/i18n'
+import { requestOneShot } from '@/lib/oneshot'
 import { cn } from '@/lib/utils'
-import { translateSkillField } from '@/app/skills/translations'
 
 import {
   addUserAgent,
@@ -54,6 +54,7 @@ interface SkillOption {
 async function fetchSkillOptions(): Promise<SkillOption[]> {
   try {
     const skills = await getSkills()
+
     return (skills || [])
       .filter(sk => sk && typeof sk.name === 'string' && sk.name.length > 0)
       .map(sk => ({
@@ -69,7 +70,9 @@ async function fetchSkillOptions(): Promise<SkillOption[]> {
 /** 关键字过滤：名称/描述/分类 全字段不区分大小写。 */
 function filterSkills(list: SkillOption[], q: string): SkillOption[] {
   const query = q.trim().toLowerCase()
+
   if (!query) {return list}
+
   return list.filter(
     sk =>
       sk.name.toLowerCase().includes(query) ||
@@ -96,6 +99,7 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
         setLoaded(true)
       }
     })
+
     return () => {
       alive = false
     }
@@ -104,12 +108,15 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
   // 点外面收起下拉
   useEffect(() => {
     if (!open) {return undefined}
+
     const onDown = (e: MouseEvent) => {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
+
     document.addEventListener('mousedown', onDown)
+
     return () => document.removeEventListener('mousedown', onDown)
   }, [open])
 
@@ -137,6 +144,7 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
         onFocus={() => setOpen(true)}
         onKeyDown={e => {
           if (!open || candidates.length === 0) {return}
+
           if (e.key === 'ArrowDown') {
             e.preventDefault()
             setHighlight(h => (h + 1) % candidates.length)
@@ -175,6 +183,7 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
             candidates.map((sk, i) => {
               const nameZh = zh ? translateSkillField(sk.name, 'name', sk.name) : sk.name
               const descZh = zh ? translateSkillField(sk.name, 'description', sk.description) : sk.description
+
               return (
                 <button
                   className={cn(
@@ -208,6 +217,7 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
 /** 生成提示词的 one-shot 指令（结构化、可直接用）。 */
 function buildPromptGenInstructions(hint: string): string {
   const clean = hint.trim().slice(0, 200)
+
   return [
     '你是提示词工程师。根据用户给出的一句话用途，写一段可直接使用的中文提示词。',
     '要求：',
@@ -235,6 +245,7 @@ export function GeneratePromptButton({ hint, onGenerated, label = 'AI 生成' }:
   const run = async () => {
     if (busy) {return}
     setBusy(true)
+
     try {
       const text = await requestOneShot({
         instructions: buildPromptGenInstructions(hint || '通用智能助手'),
@@ -242,6 +253,7 @@ export function GeneratePromptButton({ hint, onGenerated, label = 'AI 生成' }:
         sessionId: null,
         temperature: 0.7
       })
+
       onGenerated(text.trim())
     } catch {
       // 静默降级：老后端/网关断开时按钮只闪一下，不打断填写。
@@ -299,6 +311,7 @@ export function UserAgentDialog({
 
   const submit = () => {
     if (!valid) {return}
+
     if (editing) {
       updateUserAgent(editing.id, {
         title: form.title.trim(),
@@ -314,6 +327,7 @@ export function UserAgentDialog({
         target: form.target.trim()
       })
     }
+
     onSaved()
     onClose()
   }
@@ -526,6 +540,7 @@ export function useUserAgents(): UserAgent[] {
     const sync = () => setList(loadUserAgents())
     window.addEventListener('qiji:user-agents-changed', sync)
     window.addEventListener('storage', sync)
+
     return () => {
       window.removeEventListener('qiji:user-agents-changed', sync)
       window.removeEventListener('storage', sync)

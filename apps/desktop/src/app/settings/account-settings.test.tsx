@@ -1,10 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MemoryRouter } from 'react-router'
-
 import { I18nProvider } from '@/i18n'
-
 import { $auth } from '@/store/auth'
 import { brandText } from '@/store/oem-brand'
 
@@ -68,12 +66,15 @@ describe('AccountSettings（个人中心）', () => {
     globalThis.fetch = vi.fn(async (url: string | URL, init?: RequestInit) => {
       const u = String(url)
       calls.push({ url: u, init })
+
       if (u.endsWith('/api/client/v1/profile')) {
         return jsonResponse({ code: 1, msg: '', data: profileFixture })
       }
+
       if (u.includes('/api/client/v1/profile/scorelogs')) {
         return jsonResponse({ code: 1, msg: '', data: logsFixture })
       }
+
       return jsonResponse({ code: 1, msg: '', data: null })
     }) as unknown as typeof fetch
   })
@@ -183,16 +184,21 @@ describe('AccountSettings（个人中心）', () => {
     globalThis.fetch = vi.fn(async (url: string | URL, init?: RequestInit) => {
       const u = String(url)
       calls.push({ url: u, init })
+
       if (u.endsWith('/api/client/v1/recharge/redeem')) {
         redeemed = true
+
         return jsonResponse({ code: 1, msg: '充值成功', data: { added_score: 50, remaining_score: 92 } })
       }
+
       if (u.endsWith('/api/client/v1/profile')) {
         return jsonResponse({ code: 1, msg: '', data: { ...profileFixture, score: redeemed ? 92 : 42 } })
       }
+
       if (u.includes('/api/client/v1/profile/scorelogs')) {
         return jsonResponse({ code: 1, msg: '', data: logsFixture })
       }
+
       return jsonResponse({ code: 1, msg: '', data: null })
     }) as unknown as typeof fetch
 
@@ -225,16 +231,20 @@ describe('AccountSettings（个人中心）', () => {
     globalThis.fetch = vi.fn(async (url: string | URL, init?: RequestInit) => {
       const u = String(url)
       calls.push({ url: u, init })
+
       if (u.endsWith('/api/client/v1/recharge/redeem')) {
         // TP5 error() 形态：HTTP 200 + code=0
         return jsonResponse({ code: 0, msg: '充值码已被使用', data: null })
       }
+
       if (u.endsWith('/api/client/v1/profile')) {
         return jsonResponse({ code: 1, msg: '', data: profileFixture })
       }
+
       if (u.includes('/api/client/v1/profile/scorelogs')) {
         return jsonResponse({ code: 1, msg: '', data: logsFixture })
       }
+
       return jsonResponse({ code: 1, msg: '', data: null })
     }) as unknown as typeof fetch
 

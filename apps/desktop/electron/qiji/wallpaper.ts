@@ -17,6 +17,7 @@ function wallpapersDir(): string {
 
 function fileToDataUrl(p: string): string {
   const ext = path.extname(p).toLowerCase()
+
   return `data:image/${ext === '.jpg' ? 'jpeg' : ext.slice(1)};base64,` + fs.readFileSync(p).toString('base64')
 }
 
@@ -35,9 +36,12 @@ export function registerQijiWallpaperProtocol(): void {
   protocol.handle(WALLPAPER_PROTOCOL, request => {
     try {
       const name = decodeURIComponent(new URL(request.url).hostname + new URL(request.url).pathname).replace(/[\\/]+/g, '')
-      if (!name || /\.\./.test(name)) return new Response('bad name', { status: 400 })
+
+      if (!name || /\.\./.test(name)) {return new Response('bad name', { status: 400 })}
       const p = path.join(wallpapersDir(), name)
-      if (!fs.existsSync(p)) return new Response('not found', { status: 404 })
+
+      if (!fs.existsSync(p)) {return new Response('not found', { status: 404 })}
+
       return net.fetch(pathToFileURL(p).toString())
     } catch {
       return new Response('error', { status: 500 })
@@ -52,28 +56,35 @@ export function registerQijiWallpaperIpc(): void {
       properties: ['openFile'],
       filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'] }]
     })
-    if (picked.canceled || !picked.filePaths[0]) return null
+
+    if (picked.canceled || !picked.filePaths[0]) {return null}
     const srcPath = picked.filePaths[0]
     const dir = wallpapersDir()
     fs.mkdirSync(dir, { recursive: true })
     const ext = path.extname(srcPath).toLowerCase() || '.png'
     const dest = path.join(dir, `wp-${Date.now()}${ext}`)
     fs.copyFileSync(srcPath, dest)
+
     // data: URL —— 渲染层零限制(协议/CSP全绕开),971KB图≈1.3MB base64,内存可接受
     return { file: path.basename(dest), url: fileToDataUrl(dest) }
   })
 
   ipcMain.handle('hermes:wallpaper:resolve', async (_event, file: unknown) => {
     const name = String(file || '').trim()
-    if (!name || /[\\/]/.test(name)) return null // 只允许裸文件名,防路径穿越
+
+    if (!name || /[\\/]/.test(name)) {return null} // 只允许裸文件名,防路径穿越
     const p = path.join(wallpapersDir(), name)
-    if (!fs.existsSync(p)) return null
+
+    if (!fs.existsSync(p)) {return null}
+
     return fileToDataUrl(p)
   })
 
   ipcMain.handle('hermes:wallpaper:clear', async () => {
     const dir = wallpapersDir()
+
     try { fs.rmSync(dir, { recursive: true, force: true }) } catch { /* best effort */ }
+
     return true
   })
 }

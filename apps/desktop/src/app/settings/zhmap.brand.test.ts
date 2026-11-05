@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { toolsetDisplayLabel } from './helpers'
 
 describe('qiji 工具集中文映射', () => {

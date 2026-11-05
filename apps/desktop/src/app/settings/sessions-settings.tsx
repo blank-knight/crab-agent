@@ -92,6 +92,7 @@ function ArchivedSessionsSettings({ includeDefaultDirectory }: { includeDefaultD
         setLocalSessions(prev => {
           const next = prev.filter(s => s.id !== session.id)
           archivedSessionsCache = next
+
           return next
         })
         // Surface it again in the sidebar without waiting for a full refresh, and
@@ -131,6 +132,7 @@ function ArchivedSessionsSettings({ includeDefaultDirectory }: { includeDefaultD
         setLocalSessions(prev => {
           const next = prev.filter(s => s.id !== session.id)
           archivedSessionsCache = next
+
           return next
         })
         triggerHaptic('warning')

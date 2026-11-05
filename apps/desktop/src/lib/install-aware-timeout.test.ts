@@ -25,6 +25,7 @@ describe('withInstallAwareTimeout', (): void => {
   it('re-arms the window on install activity instead of timing out', async (): Promise<void> => {
     // 承诺 120ms 后完成；无续期时 30ms 窗口必超时——活动信号每 15ms 一次
     const beats: Array<() => void> = []
+
     const sub = (onActivity: () => void) => {
       beats.push(onActivity)
 

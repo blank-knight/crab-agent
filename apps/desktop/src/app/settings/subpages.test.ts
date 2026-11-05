@@ -105,6 +105,7 @@ describe('settings subpage routing', () => {
           // 非 macOS 上它不出现在 settingsSubpages，深链解析也回退到首页——
           // 平台门行的两条断言都跳过。
           const platformGated = setting.subpage === 'screen-capture'
+
           if (!platformGated) {
             expect(subpages).toContain(setting.subpage)
             expect(

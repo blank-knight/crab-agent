@@ -48,6 +48,7 @@ export const $reviewOpen = modeBound('reviewOpen', $reviewOpenPref, open => $rev
 // 旧装机残留的 reviewOpen=true 偏好也在启动时强制落回 false。
 // 上游文件，改动集中在此单点，merge 时以本块为准。
 const BRAND_DISABLE_REVIEW_PANE = true
+
 if (BRAND_DISABLE_REVIEW_PANE) {
   $reviewOpenPref.set(false)
 }
@@ -287,8 +288,10 @@ function refreshShipInfoIfStale(): void {
 export function openReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
   if (BRAND_DISABLE_REVIEW_PANE) {
     noopScopedReview(scopeCwd, scopeTarget)
+
     return
   }
+
   $reviewScopeCwd.set(scopeCwd?.trim() || null)
   $reviewScopeTarget.set(scopeTarget.trim() || 'main')
   $reviewOpen.set(true)
@@ -306,8 +309,10 @@ export function closeReview(): void {
 export function toggleReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
   if (BRAND_DISABLE_REVIEW_PANE) {
     noopScopedReview(scopeCwd, scopeTarget)
+
     return
   }
+
   // Narrow width: the pane is a collapsed overlay (like the sidebar under ⌘B).
   // Make sure its data is loaded, then slide it in/out via the forced-reveal pin
   // — never the docked open state, which a 0px track would render invisibly.
@@ -346,8 +351,10 @@ export function toggleReview(scopeCwd: null | string = null, scopeTarget = 'main
 export function revealReview(scopeCwd: null | string = null, scopeTarget = 'main'): void {
   if (BRAND_DISABLE_REVIEW_PANE) {
     noopScopedReview(scopeCwd, scopeTarget)
+
     return
   }
+
   const wasOpen = $reviewOpen.get()
   const target = scopeTarget.trim() || 'main'
 
@@ -400,8 +407,10 @@ export async function openReviewForPath(
 ): Promise<void> {
   if (BRAND_DISABLE_REVIEW_PANE) {
     noopReview()
+
     return
   }
+
   revealReview(scopeCwd, scopeTarget)
   await refreshReview()
 

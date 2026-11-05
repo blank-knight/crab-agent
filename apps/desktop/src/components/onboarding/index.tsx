@@ -63,8 +63,8 @@ export {
 } from './providers'
 
 import { $gateway, activeGatewayConnectionId } from '@/store/gateway'
-import { captureOnboardingScope, requestOnboardingGateway } from '@/store/onboarding-scope'
 import { brandText } from '@/store/oem-brand'
+import { captureOnboardingScope, requestOnboardingGateway } from '@/store/onboarding-scope'
 
 interface DesktopOnboardingOverlayProps {
   enabled: boolean
@@ -673,6 +673,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
     () => (providers ? sortProviders(providers).filter(p => p.id !== 'nous') : []),
     [providers]
   )
+
   const hasOauth = ordered.length > 0
   const apiKeyOptions = useApiKeyCatalog(ctx.scope)
 

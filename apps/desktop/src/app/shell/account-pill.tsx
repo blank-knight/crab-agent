@@ -21,8 +21,10 @@ export function AccountAvatarButton() {
 
   const avatarRaw = authState.avatar ?? ''
   let emoji = ''
+
   if (avatarRaw.startsWith('avatar://emoji/')) {
     const decoded = decodeURIComponent(avatarRaw.slice('avatar://emoji/'.length))
+
     // 白名单：恰好 1 个字符（emoji）才信
     if (Array.from(decoded).length === 1) {
       emoji = decoded

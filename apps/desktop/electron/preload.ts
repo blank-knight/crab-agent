@@ -653,6 +653,7 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
     onProgress: callback => {
       const listener = (_event, payload) => callback(payload)
       ipcRenderer.on('hermes:clientUpdate:progress', listener)
+
       return () => ipcRenderer.removeListener('hermes:clientUpdate:progress', listener)
     }
   },

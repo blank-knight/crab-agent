@@ -66,6 +66,7 @@ export function getRuntimeI18nLocale(): Locale {
 /** qiji: 当前是否中文（zh / zh-hant）——技能翻译层用 */
 export function isZhLocale(): boolean {
   const locale = $runtimeLocale.get()
+
   return locale === 'zh' || locale === 'zh-hant'
 }
 

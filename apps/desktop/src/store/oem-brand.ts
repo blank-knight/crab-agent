@@ -25,8 +25,10 @@ export interface OemBrand {
 function loadPersistedBrand(): OemBrand {
   try {
     const raw = window.localStorage.getItem(OEM_BRAND_KEY)
-    if (!raw) return { name: '', logo: '' }
+
+    if (!raw) {return { name: '', logo: '' }}
     const parsed = JSON.parse(raw) as Partial<OemBrand> | null
+
     return {
       name: typeof parsed?.name === 'string' ? parsed.name : '',
       logo: typeof parsed?.logo === 'string' ? parsed.logo : ''
@@ -66,6 +68,7 @@ export function setOemBrand(brand: Partial<OemBrand> | null | undefined): void {
     name: typeof brand?.name === 'string' ? brand.name : '',
     logo: typeof brand?.logo === 'string' ? brand.logo : ''
   }
+
   persistBrand(next)
   $oemBrand.set(next)
 }
@@ -77,6 +80,7 @@ export function clearOemBrand(): void {
   } catch {
     // ignore
   }
+
   $oemBrand.set({ name: '', logo: '' })
   $brandPreview.set(null)
 }
@@ -84,6 +88,7 @@ export function clearOemBrand(): void {
 /** React hook：当前生效品牌（含默认回退） */
 export function useOemBrand(): { brand: OemBrand; displayName: string } {
   const brand = useStore($oemBrand)
+
   return { brand, displayName: brandDisplayName(brand) }
 }
 
@@ -93,12 +98,14 @@ export function useOemBrand(): { brand: OemBrand; displayName: string } {
  * 注意：小写 `qiji`（CLI 命令/路径/协议名）不替换。
  */
 export function brandText(text: string): string {
-  if (!text) return text
+  if (!text) {return text}
   const name = brandDisplayName($oemBrand.get())
   let out = text.split('奇计').join(name)
+
   if (out !== text || /\bQiji\b/.test(out)) {
     out = out.replace(/\bQiji\b/g, name)
   }
+
   return out
 }
 
@@ -114,6 +121,7 @@ function pushBrandToMain(brand: OemBrand): void {
 // 品牌变化时：同步主进程 + 更新主窗口标题
 $oemBrand.subscribe(brand => {
   pushBrandToMain(brand)
+
   try {
     if (typeof document !== 'undefined') {
       document.title = brandDisplayName(brand)

@@ -815,8 +815,10 @@ async function runStage({
   // future repairs, and stamp the marker with this app's version so
   // isRuntimeOutdated() can gate future engine upgrades.
   const vendorArgs = []
+
   if (!isPosix && vendorDir) {
     vendorArgs.push('-VendorDir', vendorDir)
+
     if (keepVendor) {
       vendorArgs.push('-KeepVendor')
     }

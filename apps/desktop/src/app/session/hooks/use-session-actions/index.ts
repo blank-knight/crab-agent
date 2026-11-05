@@ -367,6 +367,7 @@ async function desktopSessionCreateParams(
   // 用户实锤"发送闪烁"）。锁的本义是拦"无显式意图的跨账号泄漏"——用户
   // 正看着 default 发消息不存在泄漏，意图==active 时锁不参与。
   const activeKey = normalizeProfileKey($activeGatewayProfile.get())
+
   const intentWinsLock =
     explicitIntent &&
     (!lockedProfile ||

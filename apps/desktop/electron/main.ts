@@ -35,7 +35,6 @@ import {
 import type { Session } from 'electron'
 
 import { type ActiveRuntimeState, classifyActiveRuntime } from './active-runtime-state'
-import { isRuntimeOutdated } from './runtime-upgrade-gate'
 import {
   destroyKeepaliveAgents,
   htmlResponseError,
@@ -249,11 +248,6 @@ import {
 } from './find-in-page'
 import { createFirstRunSetupGate } from './first-run-setup-gate'
 import { registerFsIpc } from './fs-ipc'
-// qiji 商业层（品牌/壁纸/技能市场/客户端更新/诊断/listDir）— 隔离区模块。
-// qiji 0.20.4: appBrandName 同时喂主进程 APP_NAME（窗口标题/托盘/About 单一源）。
-import { registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme, appBrandName, brandText } from './qiji'
-// qiji 0.20.4: 品牌常量（AUMI 等）——与 electron/brand.cjs、qiji/brand.ts 同源同步。
-import { BRAND as QIJI_BRAND } from './qiji/brand'
 import type {
   GatewayFileSaveContext,
   GatewayFileSaveDeps,
@@ -453,6 +447,11 @@ import {
   tagRegistrySessionResponse,
   tagRemoteSessionRows
 } from './profile-session-routing'
+// qiji 商业层（品牌/壁纸/技能市场/客户端更新/诊断/listDir）— 隔离区模块。
+// qiji 0.20.4: appBrandName 同时喂主进程 APP_NAME（窗口标题/托盘/About 单一源）。
+import { appBrandName, brandText, registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme } from './qiji'
+// qiji 0.20.4: 品牌常量（AUMI 等）——与 electron/brand.cjs、qiji/brand.ts 同源同步。
+import { BRAND as QIJI_BRAND } from './qiji/brand'
 import { createQuickEntryShortcut, quickEntryWindowBounds, sanitizeQuickEntrySettings } from './quick-entry'
 import { createQuitFinalization } from './quit-finalization'
 import { type ActiveWork, backendOwnedByApp, mergeActiveWork, normalizeActiveWork, quitPromptFor } from './quit-guard'
@@ -489,6 +488,7 @@ import { loadRendererLoadErrorPage } from './renderer-load-error-page'
 import { attachRendererConsoleCapture, formatRendererBoundaryReport } from './renderer-log'
 import { fetchRosterSourceData } from './roster-source-fetch'
 import { rosterSourceStatus } from './roster-source-status'
+import { isRuntimeOutdated } from './runtime-upgrade-gate'
 import {
   classifyStoredSecret,
   readSecretStoragePolicy,
@@ -1108,6 +1108,7 @@ const BOOT_FAKE_STEP_MS = (() => {
 // 那一处；上游 Hermes 构建未接 qiji 模块时行为不变。
 const APP_NAME: string =
   IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || appBrandName()
+
 const HUD_WINDOW_TITLE = `${APP_NAME} HUD`
 const TITLEBAR_HEIGHT = 34
 const MACOS_TRAFFIC_LIGHTS_HEIGHT = 14
@@ -15347,21 +15348,28 @@ ipcMain.handle('hermes:connection', async (event, profile, extra) => {
 function ensureNamedProfileDir(name: unknown): void {
   try {
     const canon = String(name || '').trim()
+
     if (!canon || canon === 'default' || !PROFILE_NAME_RE.test(canon)) {
       return
     }
+
     // Profiles root mirrors _get_profiles_root(): anchored to the hermes
     // root, not a profile-scoped HERMES_HOME.
     const dir = path.join(HERMES_HOME, 'profiles', canon)
+
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
+
       for (const sub of ['memories', 'sessions', 'skills', 'skins', 'logs', 'plans', 'workspace', 'cron', 'home']) {
         fs.mkdirSync(path.join(dir, sub), { recursive: true })
       }
+
       const envPath = path.join(dir, '.env')
+
       if (!fs.existsSync(envPath)) {
         fs.writeFileSync(envPath, '# Per-profile secrets for this Hermes profile.\n')
       }
+
       rememberLog(`Created profile directory skeleton for "${canon}" at ${dir}`)
     }
   } catch (error) {

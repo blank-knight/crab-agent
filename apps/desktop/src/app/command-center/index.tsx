@@ -38,8 +38,8 @@ import { SidebarLoadMoreRow } from '../chat/sidebar/load-more-row'
 import { useRefreshHotkey } from '../hooks/use-refresh-hotkey'
 import { useRouteEnumParam } from '../hooks/use-route-enum-param'
 import { OverlayMain, OverlaySplitLayout } from '../overlays/overlay-split-layout'
-import { SettingsSideRail } from '../overlays/settings-side-rail'
 import { OverlayView } from '../overlays/overlay-view'
+import { SettingsSideRail } from '../overlays/settings-side-rail'
 
 import { MaintenancePanel } from './maintenance'
 

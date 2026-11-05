@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 // 客户端 URL 更新（qiji 自研，fa_version 通道）：从 PHP 后端发布的下载直链
 // 下载安装包并运行。离线包无 git 仓库，更新统一走
 // GET /api/client/v1/update/check → downloadurl。
@@ -10,7 +11,6 @@
 // 上游同步注意：qiji 隔离区模块（见 electron/qiji/brand.ts 头注）。
 import http from 'node:http'
 import https from 'node:https'
-import fs from 'node:fs'
 import path from 'node:path'
 
 import { app, ipcMain, shell } from 'electron'
@@ -67,11 +67,13 @@ function downloadInstallerAttempt(
       parsed = new URL(String(rawUrl))
     } catch {
       reject(new Error('无效的下载地址'))
+
       return
     }
 
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       reject(new Error(`不支持的下载协议: ${parsed.protocol}`))
+
       return
     }
 
@@ -100,6 +102,7 @@ function downloadInstallerAttempt(
         // fail 由 response 回调赋值;超时可能在响应到来前触发(原 CJS 在此处
         // 引用内层 fail 会 ReferenceError,TS 编译期抓获——这里外提治本)。
         let fail: undefined | ((err: Error) => void)
+
         const req = client.request(parsed, { method: 'GET', headers: reqHeaders }, res => {
           const status = res.statusCode || 0
 
@@ -108,6 +111,7 @@ function downloadInstallerAttempt(
 
             if (redirectsLeft <= 0) {
               reject(new Error('下载地址重定向次数过多'))
+
               return
             }
 
@@ -118,24 +122,31 @@ function downloadInstallerAttempt(
             } catch {
               reject(new Error('无效的重定向地址'))
             }
+
             return
           }
 
           if (status >= 400) {
             res.resume()
+
             // 416 = Range 起点超过文件末尾——多半是本地文件已完整，核对大小后直接用
             if (status === 416) {
               const cl = Number((res.headers['content-range'] as string | undefined)?.split('/')[1] || 0)
+
               if (cl > 0 && start >= cl) {
                 resolve(filePath)
+
                 return
               }
             }
+
             reject(new Error(`下载失败 (HTTP ${status})`))
+
             return
           }
 
           const resumed = status === 206 // Partial Content = 服务器接受续传
+
           if (start > 0 && !resumed) {
             // 服务器不理会 Range（回 200 全量）→ 本地半截文件作废
             start = 0
@@ -147,10 +158,11 @@ function downloadInstallerAttempt(
           let settled = false
 
           const done = (err: Error | null, result?: string) => {
-            if (settled) return
+            if (settled) {return}
             settled = true
-            if (err) reject(err)
-            else resolve(result as string)
+
+            if (err) {reject(err)}
+            else {resolve(result as string)}
           }
 
           fail = err => {
@@ -179,8 +191,10 @@ function downloadInstallerAttempt(
             if (total > 0 && received < total) {
               // 连接正常关闭但字节不够（对端提前断）——交由上层重试续传
               fail(new Error(`下载不完整 (${received}/${total})`))
+
               return
             }
+
             if (onProgress) {
               onProgress({ received, total: total || received, percent: 100 })
             }
@@ -195,7 +209,8 @@ function downloadInstallerAttempt(
         // Idle timeout — resets on data; a stalled CDN link aborts in 60s.
         req.setTimeout(60_000, () => {
           const err = new Error('下载超时')
-          if (fail) fail(err)
+
+          if (fail) {fail(err)}
           else {
             try { req.destroy() } catch { /* already gone */ }
             reject(err)
@@ -216,15 +231,19 @@ function downloadInstallerFile(
   onProgress: ((p: DownloadProgress) => void) | undefined
 ): Promise<string> {
   const MAX_ATTEMPTS = 8
+
   const attempt = (n: number): Promise<string> =>
     downloadInstallerAttempt(rawUrl, onProgress, 5, n).catch(err => {
       if (n >= MAX_ATTEMPTS) {
         throw new Error(`下载失败（已重试 ${MAX_ATTEMPTS} 次）: ${err.message}`)
       }
+
       const delay = Math.min(2000 * Math.pow(2, n - 1), 20000)
       console.log(`[client-update] attempt ${n} failed (${err.message}), retrying in ${delay}ms`)
+
       return new Promise(r => setTimeout(r, delay)).then(() => attempt(n + 1))
     })
+
   return attempt(1)
 }
 
@@ -233,6 +252,7 @@ export function registerQijiClientUpdateIpc({ getMainWindow, rememberLog }: Clie
     try {
       const win = getMainWindow()
       const destroyed = win?.isDestroyed ? win.isDestroyed() : false
+
       if (win && !destroyed) {
         win.webContents?.send?.('hermes:clientUpdate:progress', payload)
       }

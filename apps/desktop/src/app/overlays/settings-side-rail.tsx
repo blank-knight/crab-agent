@@ -4,7 +4,7 @@ import { TabDropdown } from '@/components/ui/tab-dropdown'
 import type { IconComponent } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
-import type { OverlayNavLink, OverlayNavGroup } from './overlay-split-layout'
+import type { OverlayNavGroup } from './overlay-split-layout'
 
 /**
  * qiji 螃蟹OPC 设置页专用：左侧竖排导航 rail（全大写+宽字距+直角）。
@@ -83,8 +83,9 @@ export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups 
       {groups.map(group => {
         const hasChildren = Boolean(group.children?.length)
         const expanded = group.active && activeExpanded
+
         return (
-          <div key={group.id} className="contents">
+          <div className="contents" key={group.id}>
             {group.gapBefore && <div aria-hidden className="h-2" />}
             <div className="relative">
               <RailItem

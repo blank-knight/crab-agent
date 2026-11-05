@@ -54,6 +54,7 @@ function localExperts(roster: { agents?: RosterAgentLike[] } | null): Array<{ co
     const profile = (agent.profile || '').trim()
     const meta = agent.profileMetadata
     const botMeta = meta?.ui_meta?.['hermes-bots'] as { title?: string } | undefined
+
     const label =
       (meta?.display_name || '').trim() ||
       (meta?.title || '').trim() ||

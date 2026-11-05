@@ -28,5 +28,5 @@ export {
   translatePlugin,
   usePluginI18n
 } from './plugin-i18n'
-export { setRuntimeI18nLocale, translateNow, isZhLocale } from './runtime'
+export { isZhLocale, setRuntimeI18nLocale, translateNow } from './runtime'
 export type { Locale, ToolTitleKey, Translations } from './types'
