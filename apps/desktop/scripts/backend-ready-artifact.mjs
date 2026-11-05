@@ -52,8 +52,20 @@ function loadAsarModule() {
   }
 }
 
-function unpackedPathForAsar(asarPath) {
-  return path.join(`${asarPath}.unpacked`, PACKAGED_MAIN_MODULE)
+function unpackedPathForAsar(asarPath, mainModule) {
+  return path.join(`${asarPath}.unpacked`, mainModule)
+}
+
+function resolvePackagedMainModule(asarPath, options = {}) {
+  // crab: asar 内 package.json 的 main 是入口唯一真源(ESM .mjs / CJS .cjs
+  // 两形态),解不出时回退上游常量——旧路径继续工作,新形态被识别。
+  try {
+    const pkgRaw = options.asarModule?.extractFile?.(asarPath, 'package.json')
+      ?? fs.readFileSync(path.join(`${asarPath}.unpacked`, 'package.json'))
+    const pkg = JSON.parse(Buffer.isBuffer(pkgRaw) ? pkgRaw.toString('utf8') : String(pkgRaw))
+    if (pkg?.main) return pkg.main
+  } catch { /* fall through to the upstream default */ }
+  return PACKAGED_MAIN_MODULE
 }
 
 function extractPackagedMainSource(asarPath, options = {}) {
@@ -61,7 +73,8 @@ function extractPackagedMainSource(asarPath, options = {}) {
     throw new Error(`Missing packaged app.asar: ${asarPath}`)
   }
 
-  const unpackedPath = unpackedPathForAsar(asarPath)
+  const mainModule = resolvePackagedMainModule(asarPath, options)
+  const unpackedPath = unpackedPathForAsar(asarPath, mainModule)
   if (fs.existsSync(unpackedPath)) {
     return fs.readFileSync(unpackedPath, 'utf8')
   }
@@ -73,10 +86,10 @@ function extractPackagedMainSource(asarPath, options = {}) {
 
   let source
   try {
-    source = asarModule.extractFile(asarPath, PACKAGED_MAIN_MODULE)
+    source = asarModule.extractFile(asarPath, mainModule)
   } catch (err) {
     throw new Error(
-      `Could not extract ${PACKAGED_MAIN_MODULE} from ${asarPath}: ${err.message}`
+      `Could not extract ${mainModule} from ${asarPath}: ${err.message}`
     )
   }
 
@@ -96,11 +109,12 @@ function assertBackendReadyArtifactSourceAcceptsBothTokens(
 }
 
 function assertPackagedBackendReadyArtifact(asarPath, options = {}) {
+  const mainModule = resolvePackagedMainModule(asarPath, options)
   const source = extractPackagedMainSource(asarPath, options)
-  assertBackendReadyArtifactSourceAcceptsBothTokens(source, PACKAGED_MAIN_MODULE)
+  assertBackendReadyArtifactSourceAcceptsBothTokens(source, mainModule)
   return {
     asarPath,
-    module: PACKAGED_MAIN_MODULE,
+    module: mainModule,
     tokens: READY_TOKENS.slice()
   }
 }
@@ -108,6 +122,7 @@ function assertPackagedBackendReadyArtifact(asarPath, options = {}) {
 export {
   PACKAGED_MAIN_MODULE,
   READY_TOKENS,
+  resolvePackagedMainModule,
   assertBackendReadyArtifactSourceAcceptsBothTokens,
   assertPackagedBackendReadyArtifact,
   extractPackagedMainSource,

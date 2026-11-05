@@ -1515,9 +1515,9 @@ describe('usePromptActions slash.exec dispatch payloads', () => {
       .join('\n')
 
     // The notice still renders, and the busy line reports a queue, not a demand
-    // to /interrupt.
+    // to /interrupt. crab 0.20.5: busy 排队文案中文化(消息已排队),断言随品牌文案。
     expect(renderedText).toContain('⊙ Goal set (20-turn budget): ship the release notes')
-    expect(renderedText).toContain('queued')
+    expect(renderedText).toContain('消息已排队')
 
     dropSessionState(RUNTIME_SESSION_ID)
     $queuedPromptsBySession.set({})
@@ -1574,7 +1574,8 @@ describe('usePromptActions slash.exec dispatch payloads', () => {
       .join('\n')
 
     // Actionable controls, not the non-existent /interrupt dead end.
-    expect(renderedText).toContain('Stop button')
+    // crab 0.20.5: busy 提示文案中文化(停止按钮或 Esc),断言随品牌文案。
+    expect(renderedText).toContain('停止按钮')
     expect(renderedText).not.toContain('/interrupt')
 
     dropSessionState(RUNTIME_SESSION_ID)

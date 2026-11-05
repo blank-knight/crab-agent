@@ -206,38 +206,39 @@ describe('selectReviewFile', () => {
   })
 })
 
+// crab 0.20.3: 品牌客户端禁用 git review 面板(BRAND_DISABLE_REVIEW_PANE),
+// openReview/toggleReview/revealReview 短路为 no-op、$reviewOpenPref 启动时
+// 强制回 false。本组用例断言品牌短路语义;上游 pane 行为保留于 git 历史。
 describe('view state', () => {
-  it('openReview opens the pane and kicks off a refresh', async () => {
+  it('branded openReview is a no-op: pane stays closed, no refresh fires', async () => {
     const review = stubReview()
     openReview()
-    expect($reviewOpen.get()).toBe(true)
-    expect($reviewScopeCwd.get()).toBeNull()
-    // openReview fires refreshReview + refreshShipInfo without awaiting.
+    expect($reviewOpen.get()).toBe(false)
     await Promise.resolve()
     await Promise.resolve()
-    expect(review.list).toHaveBeenCalledWith('/repo', 'uncommitted', null)
+    expect(review.list).not.toHaveBeenCalled()
   })
 
-  it('openReview pins the pane to a tile worktree when scoped', async () => {
+  it('branded openReview ignores tile scoping: no state, no refresh', async () => {
     const review = stubReview({
       list: vi.fn(async () => ({ files: [file('tile.ts')] }))
     })
 
     openReview('/tile-worktree')
-    expect($reviewOpen.get()).toBe(true)
-    expect($reviewScopeCwd.get()).toBe('/tile-worktree')
+    expect($reviewOpen.get()).toBe(false)
+    expect($reviewScopeCwd.get()).toBeNull()
     await Promise.resolve()
     await Promise.resolve()
-    expect(review.list).toHaveBeenCalledWith('/tile-worktree', 'uncommitted', null)
+    expect(review.list).not.toHaveBeenCalled()
   })
 
-  it('revealReview re-homes the origin when the repo stays the same', () => {
+  it('branded revealReview leaves scope state untouched', () => {
     stubReview()
     openReview('/tile-worktree', 'tile:project-a')
 
     revealReview('/tile-worktree', 'tile:project-b')
 
-    expect($reviewScopeTarget.get()).toBe('tile:project-b')
+    expect($reviewScopeTarget.get()).toBe('main')
   })
 
   it('narrow toggle re-homes the origin before showing the overlay', () => {
@@ -254,8 +255,9 @@ describe('view state', () => {
 
       toggleReview('/project-b', 'tile:project-b')
 
-      expect($reviewScopeCwd.get()).toBe('/project-b')
-      expect($reviewScopeTarget.get()).toBe('tile:project-b')
+      // 品牌短路:toggle 不改 scope,面板保持关闭。
+      expect($reviewScopeCwd.get()).toBeNull()
+      expect($reviewScopeTarget.get()).toBe('main')
     } finally {
       Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia })
     }
@@ -292,7 +294,9 @@ describe('view state', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect($reviewScopeCwd.get()).toBe('/tile')
+    // 品牌短路:scope 从未被 openReview 设定,保持 null;主 pane cwd 变化
+    // 同样不触发任何刷新。
+    expect($reviewScopeCwd.get()).toBeNull()
     expect(review.list).not.toHaveBeenCalled()
   })
 })

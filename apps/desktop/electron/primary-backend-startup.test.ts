@@ -116,7 +116,7 @@ test('primary remote descriptor keeps legacy unregistered routes unqualified', (
 })
 
 test('remote apply re-resolves the saved connection without ensuring a local runtime', async () => {
-  const gate = createFirstRunSetupGate({ stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   const savedRemote = { baseUrl: 'https://gateway.example.com/hermes' }
   let configuredRemote: typeof savedRemote | null = null
 
@@ -155,7 +155,7 @@ test('an already-saved remote bypasses every local startup step', async () => {
 })
 
 test('remote apply fails clearly when no saved remote can be resolved', async () => {
-  const gate = createFirstRunSetupGate({ stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   const options = startupOptions({ waitForDecision: gate.wait })
   const pending = runPrimaryBackendStartup(options)
 
@@ -205,7 +205,7 @@ test('a null post-update primary still spawns local exactly once', async () => {
 })
 
 test('continue local waits for update exclusion and ensures the prepared runtime exactly once', async () => {
-  const gate = createFirstRunSetupGate({ stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   const runtimeBackend = { ...bootstrapBackend, command: 'hermes' }
 
   const options = startupOptions({
@@ -256,7 +256,7 @@ test('invalidating a pending runtime discovery prevents setup and bootstrap', as
 })
 
 test('reset rejects with a typed error and never enters either backend', async () => {
-  const gate = createFirstRunSetupGate({ stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   const options = startupOptions({ waitForDecision: gate.wait })
   const pending = runPrimaryBackendStartup(options)
 
