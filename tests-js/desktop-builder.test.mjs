@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, expect, test } from 'vitest'
 import { stageGetWindows, stageNodePtyInto } from '../apps/desktop/scripts/stage-native-deps.mjs'
@@ -95,7 +95,10 @@ test('desktop compiler consumes explicit immutable inputs, replaces variants, an
   rmSync(join(input.out, 'native/helper-fixture'))
   expect(productCurrent({ ...input, product: 'desktop' })).toBe(false)
   expect(files(join(input.out, 'node_modules/node-pty')).some(([name]) => name.endsWith('.node'))).toBe(true)
-  const run = () => JSON.parse(execFileSync(process.execPath, [join(input.out, 'electron-main.mjs')], { cwd: tmpdir(), encoding: 'utf8' }))
+  // crab: 主进程产物两形态——上游 ESM(.mjs)/本产品链 CJS(.cjs),按
+  // apps/desktop/package.json 的 main 解析实际产物名。
+  const mainBasename = basename(JSON.parse(readFileSync(join(repo, 'apps/desktop/package.json'), 'utf8')).main)
+  const run = () => JSON.parse(execFileSync(process.execPath, [join(input.out, mainBasename)], { cwd: tmpdir(), encoding: 'utf8' }))
   expect(run().identity.light).toBe(true)
   put(input.stamp, JSON.stringify({ schemaVersion: 1, payload: 'bundled', updateMechanism: 'microsoft-store', commit: 'b'.repeat(40), tag: null }))
   // Ambient variant/tag must not override explicit stamp inputs or cached CJS identity.

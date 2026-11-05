@@ -34,8 +34,11 @@ test('explicit clears beat inherited homes and prevent Windows registry fallback
     delete env.HERMES_DATA_DIR_SUFFIX
     delete env.HERMES_DESKTOP_USER_DATA_DIR
     const actual = JSON.parse(execFileSync(process.execPath, [outfile], { env, encoding: 'utf8' }))
+    // crab 0.20.5u (B1): CRAB_HOME→QIJI_HOME legacy 链在 env 未定义时各查一次
+    // 注册表(存在性校验后才采纳);HERMES_HOME 空串显式清除仍拦住第三跳的
+    // 注册表回退。registryReads 0→2 是 B1 语义,非回归。
     expect(actual).toEqual({ cleared: '', home: 'C:\\Users\\test\\AppData\\Local\\hermesmagic-test',
-      child: 'C:\\Users\\test\\AppData\\Local\\hermesmagic-test', registryReads: 0 })
+      child: 'C:\\Users\\test\\AppData\\Local\\hermesmagic-test', registryReads: 2 })
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

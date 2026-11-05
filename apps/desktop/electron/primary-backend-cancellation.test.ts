@@ -7,7 +7,7 @@ import { runPrimaryBackendStartup } from './primary-backend-startup'
 
 test('quit cancels first-run startup without entering the installer', async () => {
   const controller = new AbortController()
-  const gate = createFirstRunSetupGate({ stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   let installed = false
 
   const startup = runPrimaryBackendStartup({
