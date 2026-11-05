@@ -273,7 +273,10 @@ export function useGatewayBoot({
     // boot 还未声明（TDZ），回调必须 defer 到微任务后执行。
     // 门控仅在 qiji 打包形态（有 backend 桥 + 生产构建）生效：测试/上游
     // OSS 形态无登录概念，未登录≠不该启动，直接放行。
-    const qijiAuthGate = import.meta.env.PROD
+    // E2E harness (HERMES_DESKTOP_E2E_SKIP_LOGIN=1 via preload flags): the
+    // packaged app under test has no auth server; booting the local backend is
+    // exactly what the suite waits on. The gate stands for real users.
+    const qijiAuthGate = import.meta.env.PROD && window.hermesDesktop?.e2eSkipLogin !== true
     let wantBoot = !qijiAuthGate || isAuthenticated()
     let authUnsub: (() => void) | null = null
 

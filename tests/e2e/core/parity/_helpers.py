@@ -155,6 +155,7 @@ def build_parity_home(root: Path, base_url: str, *, grandchild: bool = True,
         "env": {
             "PARITY_MCP_CANARY": c["mcp"],
             "PARITY_MCP_PID_LOG": str(ph.pid_log),
+            "PARITY_MCP_STDERR_LOG": str(root / "mcp_stderr.log"),
             "PARITY_MCP_SPAWN_GRANDCHILD": "1" if grandchild else "0",
             "PARITY_MCP_DEATH_TOOL": "1" if death_tool else "0",
             "PARITY_TREE_TAG": tag,

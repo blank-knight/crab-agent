@@ -45,6 +45,26 @@ def _spawn_grandchild() -> None:
 
 
 def main() -> None:
+    # CI diagnosis: a spawned-server crash is invisible (MCP owns stdio) and
+    # reads upstream as "server never started". Tee stderr + import failures
+    # into a file when PARITY_MCP_STDERR_LOG is set; behaviour is unchanged
+    # when it is not.
+    _err_log = os.environ.get("PARITY_MCP_STDERR_LOG")
+    if _err_log:
+        import sys as _sys, traceback as _tb
+        class _Tee:
+            def __init__(self, raw, fh): self._raw, self._fh = raw, fh
+            def write(self, data):
+                try: self._fh.write(data); self._fh.flush()
+                except OSError: pass
+                return self._raw.write(data)
+            def flush(self):
+                try: self._fh.flush()
+                except OSError: pass
+                self._raw.flush()
+        _fh = open(_err_log, "a", encoding="utf-8", buffering=1)
+        _sys.stderr = _Tee(_sys.stderr, _fh)
+
     from mcp.server import MCPServer
 
     _log_pid("server", os.getpid())
