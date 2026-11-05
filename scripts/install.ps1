@@ -4025,6 +4025,10 @@ function Get-InstallStage {
     # the 17-stage split. setup=configure (needs-input), prerequisites=git.
     if ($Name -eq "setup") { $Name = "configure" }
     elseif ($Name -eq "prerequisites") { $Name = "git" }
+    elseif ($Name -eq "python-deps") { $Name = "node-deps" }
+    elseif ($Name -eq "venv") { $Name = "python" }
+    elseif ($Name -eq "products") { $Name = "desktop" }
+    elseif ($Name -eq "config") { $Name = "config-templates" }
     foreach ($s in $InstallStages) {
         if ($s.Name -eq $Name) { return $s }
     }
@@ -4128,9 +4132,9 @@ function Get-PinnedGit {
     try {
         New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
         $sfxPath = Join-Path $tmpDir "portable-git.7z.exe"
-        Invoke-WebRequest -Uri $pin.Url -OutFile $sfxPath -UseBasicParsing
-        $hash = (Get-FileHash -Path $sfxPath -Algorithm SHA256).Hash.ToLower()
-        if ($hash -ne $pin.Sha256.ToLower()) { throw "pinned git download hash mismatch: $hash" }
+        # Unified verified download: mirror fallback + the shared "digest
+        # mismatch" failure contract (corruption is fatal, never re-routed).
+        Invoke-VerifiedDownload -Url $pin.Url -MirrorUrl $pin.MirrorUrl -Sha256 $pin.Sha256 -OutFile $sfxPath
         $extractDir = Join-Path $tmpDir "unpacked"
         New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
         Unblock-File -Path $sfxPath -ErrorAction SilentlyContinue
@@ -4175,6 +4179,32 @@ function Set-LauncherUserPath([string]$binDir) {
     if ($currentPath -notlike "*$binDir*") {
         [Environment]::SetEnvironmentVariable("Path", "$binDir;$currentPath", "User")
     }
+}
+
+function Get-BootstrapPython {
+    # Upstream seam: resolve the bootstrap interpreter through uv (find, then
+    # install, then find). Drivers stub Get-Uv to take over acquisition.
+    if ($script:BootstrapPython) { return $script:BootstrapPython }
+    $uv = Get-Uv
+    $lockPath = Join-Path $InstallDir "pm\lock.json"
+    $pyVersion = "3.14"
+    if (Test-Path $lockPath) {
+        try {
+            $lock = Get-Content $lockPath -Raw | ConvertFrom-Json
+            if ($lock.packages.python) { $pyVersion = ($lock.packages.python.version -split '+')[0] -replace '^(\d+\.\d+).*', '$1' }
+        } catch {}
+    }
+    $pyArch = if ((Get-WindowsArch) -eq 'arm64') { 'aarch64' } else { 'x86_64' }
+    $pyRequest = "cpython-$pyVersion-windows-$pyArch-none"
+    $bootPy = (& $uv python find --managed-python --no-project $pyRequest 2>$null | Out-String)
+    if ($LASTEXITCODE -or -not $bootPy.Trim()) {
+        & $uv python install --no-bin --no-registry $pyRequest
+        if ($LASTEXITCODE) { throw "bootstrap Python installation failed" }
+        $bootPy = (& $uv python find --managed-python --no-project $pyRequest | Out-String)
+    }
+    if ($LASTEXITCODE -or -not $bootPy.Trim()) { throw "bootstrap Python lookup failed" }
+    $script:BootstrapPython = $bootPy.Trim()
+    return $script:BootstrapPython
 }
 
 function Publish-UserCommand {

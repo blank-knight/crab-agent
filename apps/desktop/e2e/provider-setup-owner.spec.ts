@@ -324,7 +324,7 @@ test('Settings provider setup stays on its gateway/profile across A → B → A'
       })
     )
     // crab: 产物形态按 package.json main(上游 .mjs / 本产品链 .cjs)。
-    expect(fs.existsSync(path.join(DESKTOP_ROOT, 'dist', path.basename(require(path.join(DESKTOP_ROOT, 'package.json')).main))), 'Build desktop dist before E2E').toBe(true)
+    expect(fs.existsSync(path.join(DESKTOP_ROOT, 'dist', path.basename(JSON.parse(fs.readFileSync(path.join(DESKTOP_ROOT, 'package.json'), 'utf8')).main))), 'Build desktop dist before E2E').toBe(true)
     app = await _electron.launch({
       executablePath: findElectron(),
       args: [DESKTOP_ROOT, '--disable-gpu', '--no-sandbox'],

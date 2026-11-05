@@ -12,14 +12,14 @@ const shipsLocalModels: boolean = process.platform === 'win32' || process.platfo
 
 test('without --local, local models follow the platform on every channel', () => {
   for (const canary of [false, true]) {
-    assert.deepEqual(resolveFeatureFlags({ argv: [], canary }), { localModels: shipsLocalModels })
-    assert.deepEqual(resolveFeatureFlags({ argv: ['Hermes.exe'], canary }), { localModels: shipsLocalModels })
+    assert.deepEqual(resolveFeatureFlags({ argv: [], canary }), { localModels: shipsLocalModels, e2eSkipLogin: false })
+    assert.deepEqual(resolveFeatureFlags({ argv: ['Hermes.exe'], canary }), { localModels: shipsLocalModels, e2eSkipLogin: false })
   }
 })
 
 test('--local in argv opts into local models on any channel and platform', () => {
-  assert.deepEqual(resolveFeatureFlags({ argv: ['Hermes.exe', '--local'], canary: false }), { localModels: true })
-  assert.deepEqual(resolveFeatureFlags({ argv: ['--local'], canary: true }), { localModels: true })
+  assert.deepEqual(resolveFeatureFlags({ argv: ['Hermes.exe', '--local'], canary: false }), { localModels: true, e2eSkipLogin: false })
+  assert.deepEqual(resolveFeatureFlags({ argv: ['--local'], canary: true }), { localModels: true, e2eSkipLogin: false })
 })
 
 test('isCanaryTag recognizes canary stamps and rejects stable/dev tags', () => {
