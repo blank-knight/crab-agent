@@ -355,6 +355,8 @@ declare global {
       localModelsEnabled?: boolean
       /** Launch flag shared with every backend the app starts. */
       guestOnboardingEnabled?: boolean
+      /** E2E harness fact: the qiji login overlay stands down (no credentials granted). */
+      e2eSkipLogin?: boolean
       /** Sanitized local `display.skin`, available before any gateway connects. */
       localSkin?: { profile: string; skin: HermesSkin } | null
       setTranslucency?: (payload: TranslucencyState) => void

@@ -15,7 +15,7 @@ const translucencySupport = ipcRenderer.sendSync('hermes:translucency:support')
 const hudWindowing = ipcRenderer.sendSync('hermes:hud:windowing')
 const hudNativeDrag = hudWindowing?.nativeDrag === true
 
-const launchFlags: { localModels?: boolean; guestOnboarding?: boolean } | undefined =
+const launchFlags: { localModels?: boolean; guestOnboarding?: boolean; e2eSkipLogin?: boolean } | undefined =
   ipcRenderer.sendSync('hermes:feature-flags')
 
 // Local, sanitized skin payload for the first renderer theme paint. This does
@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   // (HERMES_GUEST_ONBOARDING=1 or --guest-onboarding). Read-only; the same
   // decision is stamped onto every backend the app spawns.
   guestOnboardingEnabled: launchFlags?.guestOnboarding === true,
+  // E2E harness fact: the login overlay must stand down (see feature-flags.ts).
+  e2eSkipLogin: launchFlags?.e2eSkipLogin === true,
   localSkin: localSkin && typeof localSkin === 'object' ? localSkin : null,
   getConnection: (profile, opts) => ipcRenderer.invoke('hermes:connection', profile, opts),
   // Registry-scoped backend resolution: { connectionId, profile } → descriptor.
