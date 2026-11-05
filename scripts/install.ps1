@@ -4030,6 +4030,81 @@ function Get-InstallStage {
     }
     return $null
 }
+function Invoke-StageByName([string]$name) {
+    # Upstream seam: drivers dot-source and dispatch a stage by name.
+    # Aliases (setup/prerequisites) resolve through Get-InstallStage.
+    $def = Get-InstallStage $name
+    if (-not $def) { Write-Error "unknown stage: $name"; exit 2 }
+    Invoke-Stage -StageDef $def
+}
+
+function Invoke-InstalledHermes([string[]]$CommandArgs) {
+    # Upstream seam: run the installed hermes via the runtime helper loaded
+    # from TEXT (Restricted policy refuses file loads of the helper).
+    $runtimeHelper = Join-Path $InstallDir "scripts/desktop-update/runtime.ps1"
+    . ([ScriptBlock]::Create([IO.File]::ReadAllText($runtimeHelper)))
+    $runtimeCommand = @(Get-HermesRuntimeCommand -InstallRoot $InstallDir)
+    $runtimeArgs = @($runtimeCommand | Select-Object -Skip 1) + $CommandArgs
+    & $runtimeCommand[0] @runtimeArgs
+    if ($LASTEXITCODE) { throw "hermes $($CommandArgs -join '-') failed (exit $LASTEXITCODE)" }
+}
+
+# --- Upstream verified-download + pinned-uv seams -------------------------------
+# Upstream-shaped drivers dot-source this script and call these directly.
+# Same contract as upstream: verified (sha256) download with mirror fallback;
+# digest mismatch is FATAL (tamper/corruption is never a routing problem).
+function Invoke-VerifiedDownload {
+    param(
+        [Parameter(Mandatory = $true)][string]$Url,
+        [Parameter(Mandatory = $true)][string]$Sha256,
+        [Parameter(Mandatory = $true)][string]$OutFile,
+        [string]$MirrorUrl = ""
+    )
+    $urls = @($Url)
+    if ($MirrorUrl -and $MirrorUrl -ne $Url) { $urls += $MirrorUrl }
+    $httpFailure = ""
+    foreach ($candidate in $urls) {
+        try {
+            Invoke-WebRequest -Uri $candidate -OutFile $OutFile -UseBasicParsing
+        } catch {
+            $httpFailure = $_.Exception.Message
+            continue
+        }
+        $digest = (Get-FileHash -Path $OutFile -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($digest -eq $Sha256.ToLowerInvariant()) { return }
+        Remove-Item -Path $OutFile -Force -ErrorAction SilentlyContinue
+        throw "download digest mismatch for $candidate (expected $Sha256, got $digest)"
+    }
+    $tried = $urls -join " or "
+    throw "failed to download from $tried : $httpFailure"
+}
+
+function Get-Uv {
+    # Upstream seam: always the pinned artifact into the pm store, never PATH uv.
+    $target = "win32-$(Get-WindowsArch)"
+    $pin = $script:UvPinFiles[$target]
+    if (-not $pin) { throw "no pinned uv artifact for $target" }
+    $entry = Join-Path (Get-PmStoreRoot) "uv-$($script:UvPinVersion)-$target"
+    $uvExe = Join-Path $entry "uv.exe"
+    if (Test-Path $uvExe) { return $uvExe }
+    Write-Info "Downloading pinned uv $($script:UvPinVersion) ($target) into the pm store..."
+    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-uv-bootstrap-$PID"
+    try {
+        New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+        $zipPath = Join-Path $tmpDir "uv.zip"
+        Invoke-VerifiedDownload -Url $pin.Url -MirrorUrl $pin.MirrorUrl -Sha256 $pin.Sha256 -OutFile $zipPath
+        $extractDir = Join-Path $tmpDir "unpacked"
+        Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
+        $found = Get-ChildItem -Path $extractDir -Filter "uv.exe" -Recurse | Select-Object -First 1
+        if (-not $found) { throw "pinned uv archive carried no uv.exe" }
+        New-Item -ItemType Directory -Force -Path $entry | Out-Null
+        Copy-Item $found.FullName $uvExe -Force
+        return $uvExe
+    } finally {
+        Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+    }
+}
+
 # --- Upstream pinned-git seam (staged installs / pm store parity) -------------
 # Provisions Git from the same pm/lock.json pins ($script:GitPinFiles above)
 # into the pm store slot (<store>\git-<version>-<target>\), exactly the
