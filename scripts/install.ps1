@@ -78,6 +78,12 @@ param(
     # default delete behaviour.
     [switch]$KeepVendor
 )
+# crab: keep the process env in lockstep with the bound home for BOTH drive
+# modes (-File installs and dot-sourced drivers). Drivers pass -HermesHome
+# explicitly; child processes (launcher publication) must resolve the store
+# under THAT home, not the ambient HERMES_HOME they inherited.
+$env:HERMES_HOME = $HermesHome
+$env:QIJI_HOME = $HermesHome
 
 $ErrorActionPreference = "Stop"
 
@@ -4011,7 +4017,7 @@ function Stage-Configure {
     # needs_user_input stage: under -NonInteractive / -SkipSetup the driver
     # contract is a skipped frame (skipped=true), never a live wizard.
     if ($NonInteractive -or $SkipSetup) {
-        $script:_StageSkippedReason = "interactive setup skipped (-NonInteractive/-SkipSetup)"
+        $script:_StageSkippedReason = "needs user input"
         return
     }
     Invoke-SetupWizard
@@ -4036,10 +4042,28 @@ function Get-InstallStage {
 }
 function Invoke-StageByName([string]$name) {
     # Upstream seam: drivers dot-source and dispatch a stage by name.
-    # Aliases (setup/prerequisites) resolve through Get-InstallStage.
-    $def = Get-InstallStage $name
-    if (-not $def) { Write-Error "unknown stage: $name"; exit 2 }
-    Invoke-Stage -StageDef $def
+    # venv/python-deps keep the upstream driven-mode contract (bootstrap
+    # python via uv find --managed-python, PM as the single install
+    # authority); the interactive ladder keeps its own fast path.
+    switch ($name) {
+        "venv" {
+            $null = Get-BootstrapPython
+            Write-Ok "bootstrap Python ready; PM prepares the dependency environment"
+            return
+        }
+        "python-deps" {
+            $null = Get-BootstrapPython
+            $pmArgs = @("install")
+            if ($SkipBrowser) { $pmArgs = @("install", "--without", "agent-browser") }
+            Invoke-BootstrapPm @pmArgs
+            return
+        }
+        default {
+            $def = Get-InstallStage $name
+            if (-not $def) { Write-Error "unknown stage: $name"; exit 2 }
+            Invoke-Stage -StageDef $def
+        }
+    }
 }
 
 function Invoke-InstalledHermes([string[]]$CommandArgs) {
@@ -4181,6 +4205,21 @@ function Set-LauncherUserPath([string]$binDir) {
     }
 }
 
+function Invoke-BootstrapPm {
+    param([string[]]$PmArgs = @("install"))
+    # Upstream seam: PM runs as its OWN process (never a child of the
+    # bootstrap uv) and is the single install authority for python/deps.
+    $bootPy = Get-BootstrapPython
+    Push-Location $InstallDir
+    try {
+        $env:HERMES_BOOTSTRAP_PYTHON = $bootPy
+        & $bootPy -I -X utf8 -m pm.cli @PmArgs
+        if ($LASTEXITCODE) { throw "pm $($PmArgs -join ' ') failed (exit $LASTEXITCODE)" }
+    } finally {
+        Remove-Item Env:\HERMES_BOOTSTRAP_PYTHON -ErrorAction SilentlyContinue
+        Pop-Location
+    }
+}
 function Get-BootstrapPython {
     # Upstream seam: resolve the bootstrap interpreter through uv (find, then
     # install, then find). Drivers stub Get-Uv to take over acquisition.
