@@ -484,6 +484,13 @@ def _locate_real_git() -> Optional[Path]:
         for base in (r"C:\Program Files", r"C:\Program Files (x86)")
         for arch in ("clangarm64", "mingw64", "mingw32")
     ] + _portable_git_candidates()
+    # crab: `git --exec-path` names the live git-core directory of the PATH git
+    # (any layout, any vendor). When the shim on PATH is a broken trampoline the
+    # exec-path value still points at the real git-core tree.
+    with suppress(Exception):
+        out = subprocess.run(["git", "--exec-path"], timeout=10, **_GIT_TEXT_KW)
+        if out.returncode == 0 and (out.stdout or "").strip():
+            candidates.append(Path(out.stdout.strip()) / "git.exe")
     return next((c for c in candidates if c.exists() and _probe_fork_bomb([str(c)]) is False), None)
 
 

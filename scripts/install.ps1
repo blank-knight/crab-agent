@@ -836,6 +836,12 @@ include-system-site-packages = false
 # A scriptblock literal records the file its text was parsed from;
 # iex'd text has none. ($MyInvocation.MyCommand.Path is the CALLER's
 # script under iex, so it cannot tell the two apart.)
+# crab: main-guard probe. Under -File / iex, MyInvocation.MyCommand is the
+# script itself (Path set); under dot-sourcing the INVOKER owns the command,
+# so the script was sourced as a LIBRARY (tests dot-source + call internal
+# seam functions). $script:DotSourced gates the whole executable tail.
+$script:DotSourced = ($MyInvocation.InvocationName -eq '.')
+
 $script:RunAsFile = [bool]{}.File
 $script:RobocopyMT = 8  # sensible default
 
@@ -4001,7 +4007,15 @@ function Stage-Path             { Set-PathVariable }
 function Stage-ConfigTemplates  { Copy-ConfigTemplates }
 function Stage-PlatformSdks     { Resolve-UvCmd; Install-PlatformSdks }
 function Stage-BootstrapMarker  { Write-BootstrapMarker }
-function Stage-Configure        { Invoke-SetupWizard }
+function Stage-Configure {
+    # needs_user_input stage: under -NonInteractive / -SkipSetup the driver
+    # contract is a skipped frame (skipped=true), never a live wizard.
+    if ($NonInteractive -or $SkipSetup) {
+        $script:_StageSkippedReason = "interactive setup skipped (-NonInteractive/-SkipSetup)"
+        return
+    }
+    Invoke-SetupWizard
+}
 function Stage-Gateway          { Start-GatewayIfConfigured }
 
 function Get-InstallStage {
@@ -4282,6 +4296,10 @@ function Main {
 # iex` PowerShell session, and so failures in stage-driver mode produce a
 # structured JSON error frame instead of a bare exception.
 
+# crab: main guard -- everything below runs only when EXECUTED (-File/iex),
+# never when dot-sourced as a function library (upstream tests do exactly
+# that; the old tail ran the whole interactive ladder on dot-source).
+if (-not $script:DotSourced) {
 try {
     if ($Ensure -ne "") {
         if ($PSBoundParameters.ContainsKey("Stage")) {
@@ -4379,4 +4397,5 @@ try {
     Write-Host ""
 } finally {
     try { Stop-Transcript -ErrorAction SilentlyContinue } catch {}
+}
 }
