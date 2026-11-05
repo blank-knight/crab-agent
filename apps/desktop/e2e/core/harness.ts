@@ -160,7 +160,9 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
 }
 
 export async function launchCoreApp(env: Record<string, string>): Promise<{ app: ElectronApplication; page: Page }> {
-  if (!fs.existsSync(path.join(DESKTOP_ROOT, 'dist', 'electron-main.mjs'))) {
+  // crab: 按 package.json main 探测产物形态(上游 .mjs / 本产品链 .cjs)。
+  const mainEntry = path.join(DESKTOP_ROOT, 'dist', path.basename(require(path.join(DESKTOP_ROOT, 'package.json')).main))
+  if (!fs.existsSync(mainEntry)) {
     throw new Error("Desktop dist not built: run 'npm run build' in apps/desktop first")
   }
 

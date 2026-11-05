@@ -169,7 +169,9 @@ stdenv.mkDerivation {
     # Standard nixpkgs pattern for electron-builder apps: patch process.resourcesPath
     # to point to the app's directory. In Nix, unpackaged electron defaults this
     # to the electron distribution's resources path, breaking extraResources lookups.
-    substituteInPlace $out/share/hermes-desktop/dist/electron-main.mjs \
+    # crab: 本产品链主进程是 CJS 形态(electron-main.cjs,见 bundle-electron-main.mjs
+    # 的 QIJI_CJS_MAIN 默认翻转),不是上游的 .mjs。
+    substituteInPlace $out/share/hermes-desktop/dist/electron-main.cjs \
       --replace-fail "process.resourcesPath" "'$out/share/hermes-desktop'"
 
     # Wrap the nixpkgs electron binary to launch our app.  Set

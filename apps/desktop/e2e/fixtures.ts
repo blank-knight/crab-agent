@@ -233,7 +233,10 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
  */
 function assertDistBuilt(): void {
   const distDir = path.join(DESKTOP_ROOT, 'dist')
-  const electronMain = path.join(distDir, 'electron-main.mjs')
+  // crab: main 产物两形态——上游 ESM(.mjs)/本产品链 CJS(.cjs),按 package.json
+  // main 字段探测(与 electron 启动时读到的入口恒一致),存在其一即可。
+  const pkgMain = require(path.join(DESKTOP_ROOT, 'package.json')).main
+  const electronMain = path.join(distDir, path.basename(pkgMain))
   const indexHtml = path.join(distDir, 'index.html')
 
   if (!fs.existsSync(electronMain)) {
