@@ -73,8 +73,19 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
     ...common,
     // entry.ts picks the Linux ozone platform (native Wayland/WSLg) and
     // relaunches before main.ts loads; Electron reads it only from argv.
-    ...(process.env.QIJI_CJS_MAIN === '1'
+    //
+    // crab: CJS 是本产品链默认(package.json main = dist/electron-main.cjs,
+    // qiji 加密链 afterpack-encrypt 的 bootstrap 走 Module._compile 需要 CJS)。
+    // QIJI_CJS_MAIN=0 显式回退上游 ESM 形态;不设或=1 一律 CJS——CI/installer
+    // 驱动的构建不再依赖外部注入 env,产物入口与 package.json 恒一致。
+    ...(process.env.QIJI_CJS_MAIN === '0'
       ? {
+          entryPoints: [join(source, 'apps/desktop/electron/entry.ts')],
+          format: 'esm',
+          outfile: join(out, 'electron-main.mjs'),
+          banner: { js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);" + envBanner }
+        }
+      : {
           // qiji: 加密链需要 CJS 主进程(afterpack-encrypt 的 bootstrap 走 Module._compile)。
           // entry.ts 唯一的 TLA(末尾 await import('./main'))在 CJS 下不可打包——
           // 预写去 TLA 的 entry 副本(void import + catch 兜底),入口指向它。
@@ -82,12 +93,6 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
           format: 'cjs',
           outfile: join(out, 'electron-main.cjs'),
           banner: { js: envBanner }
-        }
-      : {
-          entryPoints: [join(source, 'apps/desktop/electron/entry.ts')],
-          format: 'esm',
-          outfile: join(out, 'electron-main.mjs'),
-          banner: { js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);" + envBanner }
         }),
   })
   await build({
