@@ -24,9 +24,16 @@ def test_windows_update_writes_locale_independent_marker_and_result(tmp_path, mo
         "& $env:HERMES_TIMESTAMP_TEST_SCRIPT -InstallRoot $env:HERMES_HOME -NoUi -NoMarkerCleanup -SelfTestMarker"
     )
     started = int(time.time())
+    env = {**os.environ, "HERMES_TIMESTAMP_TEST_SCRIPT": str(script)}
+    # crab/ci-diagnosis: split the wait so a CI hang tells us WHICH half froze —
+    # a hung `powershell -Command echo` means the shell/env is the problem;
+    # only the script half pointing at windows.ps1 is a script problem. The
+    # probe is cheap (<1s healthy) and its output lands in the assert message.
+    probe = subprocess.run([shell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "echo probe-alive"],
+                           env=env, capture_output=True, text=True, timeout=30)
+    assert "probe-alive" in probe.stdout, f"powershell probe hung/failed: rc={probe.returncode} {probe.stdout}{probe.stderr}"
     result = subprocess.run([shell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", command],
-                            env={**os.environ, "HERMES_TIMESTAMP_TEST_SCRIPT": str(script)},
-                            capture_output=True, text=True, timeout=60)
+                            env=env, capture_output=True, text=True, timeout=120)
     finished = int(time.time())
     assert result.returncode == 0, result.stdout + result.stderr
     marker = (tmp_path / ".hermes-update-in-progress").read_text(encoding="utf-8-sig").splitlines()
