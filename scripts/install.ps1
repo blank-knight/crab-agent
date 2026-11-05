@@ -194,13 +194,21 @@ if ($Manifest) {
 # Customers installing via NSIS exe can't see the console; this file is the
 # ONLY trace we get when they report "it didn't work".
 # ============================================================================
+# Stage-driver mode (-Stage / -ProtocolVersion / -Manifest) never starts a
+# transcript or creates $HermesHome\logs: drivers own logging and the desktop
+# E2E boundary forbids writes outside the install dir (upstream has no
+# transcript at all; this log is an interactive-install affordance).
+if ($Stage -or $Manifest -or $ProtocolVersion) { $_InstallLog = $null } else {
 $_InstallLogDir = Join-Path $HermesHome "logs"
 New-Item -ItemType Directory -Force -Path $_InstallLogDir -ErrorAction SilentlyContinue | Out-Null
 $_InstallLog = Join-Path $_InstallLogDir "install.log"
-try {
-    Start-Transcript -Path $_InstallLog -Force -ErrorAction SilentlyContinue | Out-Null
-} catch {
-    # Some hosts disallow transcript. Install still works; we just lose the log.
+if ($_InstallLog) {
+    try {
+        Start-Transcript -Path $_InstallLog -Force -ErrorAction SilentlyContinue | Out-Null
+    } catch {
+        # Some hosts disallow transcript. Install still works; we just lose the log.
+    }
+}
 }
 
 # Suppress Invoke-WebRequest's per-chunk progress bar.  Windows PowerShell
@@ -3986,11 +3994,51 @@ function Stage-Gateway          { Start-GatewayIfConfigured }
 
 function Get-InstallStage {
     param([string]$Name)
+    # Upstream stage-name aliases: wrappers written against the upstream
+    # 8-stage ladder (tests, hermes-desktop bootstrap) keep working against
+    # the 17-stage split. setup=configure (needs-input), prerequisites=git.
+    if ($Name -eq "setup") { $Name = "configure" }
+    elseif ($Name -eq "prerequisites") { $Name = "git" }
     foreach ($s in $InstallStages) {
         if ($s.Name -eq $Name) { return $s }
     }
     return $null
 }
+# ----------------------------------------------------------------------------
+# Upstream seam functions (compat layer). Upstream-shaped wrappers dot-
+# source this script and call these directly. crab resolved paths at
+# param() binding time, so Initialize-ResolvedPaths is a verification
+# no-op; Publish-UserCommand stages launchers then hands PATH publication
+# to Set-LauncherUserPath (overridable seam, exactly the upstream shape).
+# ----------------------------------------------------------------------------
+function Initialize-ResolvedPaths {
+    if (-not $HermesHome -or -not $InstallDir) { throw "paths unresolved" }
+}
+
+function Set-LauncherUserPath([string]$binDir) {
+    $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+    if ($currentPath -notlike "*$binDir*") {
+        [Environment]::SetEnvironmentVariable("Path", "$binDir;$currentPath", "User")
+    }
+}
+
+function Publish-UserCommand {
+    $binDir = Join-Path $HermesHome "bin"
+    New-Item -ItemType Directory -Force -Path $binDir -ErrorAction SilentlyContinue | Out-Null
+    $bootPy = if (Get-Command Get-BootstrapPython -ErrorAction SilentlyContinue) { Get-BootstrapPython } else { $null }
+    if ($bootPy -and (Test-Path (Join-Path $InstallDir "hermes_cli\_launchers.py"))) {
+        Push-Location $InstallDir
+        try {
+            & $bootPy -I -X utf8 hermes_cli/_launchers.py $binDir
+            $code = $LASTEXITCODE
+        } finally { Pop-Location }
+        if ($code) { throw "launcher staging failed (exit $code)" }
+    }
+    Set-LauncherUserPath $binDir
+    Write-Info "hermes command installed at $binDir"
+}
+
+
 
 function Step-OutOfInstallDir {
     # Windows refuses to delete a directory any shell is currently cd'd

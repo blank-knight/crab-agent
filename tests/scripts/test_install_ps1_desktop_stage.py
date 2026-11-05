@@ -182,16 +182,16 @@ def test_manifest_without_flag_lists_no_desktop(tmp_path: Path) -> None:
 
 
 def test_manifest_with_include_desktop_selects_the_desktop_product(tmp_path: Path) -> None:
-    """-IncludeDesktop selects the desktop product inside the shared ``products`` stage
-    (the bootstrap installer's manifest contract); it never adds a second build stage."""
+    """crab architecture: -IncludeDesktop appends ``desktop`` as its own stage in the
+    17-stage split (the GUI onboarding wizard drives stages individually); it is not
+    folded into a shared ``products`` stage as upstream does."""
     powershell = shutil.which("powershell")
     if not powershell:
         pytest.skip("Windows PowerShell is required")
     stages = json.loads(_run(powershell, tmp_path, ["-Manifest", "-IncludeDesktop"]).stdout)["stages"]
     names = [s["name"] for s in stages]
-    assert "desktop" not in names
-    assert names.index("products") < names.index("complete") and names[-1] == "complete"
-    assert "desktop" in next(s for s in stages if s["name"] == "products")["title"].lower()
+    assert "desktop" in names
+    assert names[-1] == "complete"
 
 
 def test_unknown_stage_is_rejected(tmp_path: Path) -> None:
