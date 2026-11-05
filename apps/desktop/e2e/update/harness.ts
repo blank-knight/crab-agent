@@ -201,6 +201,8 @@ export function appEnv(facts: InstallFacts, extra: Record<string, string> = {}):
     ...displayEnv(),
     HERMES_DESKTOP_USER_DATA_DIR: userDataDir(facts),
     HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    // qiji login wall stands down under E2E (fake backend, no auth server).
+    HERMES_DESKTOP_E2E_SKIP_LOGIN: '1',
     HERMES_DESKTOP_CDP_PORT: 'off',
     ...extra
   }
@@ -222,10 +224,13 @@ export interface LaunchedApp {
 export async function launchInstalledApp(facts: InstallFacts, env: Record<string, string>): Promise<LaunchedApp> {
   const logs: string[] = []
 
+  // qiji login wall: the packaged app under test has no auth server; the flag
+  // only mutes the overlay (wiring.tsx needLogin), never grants credentials.
+  const launchEnv = { ...env, HERMES_DESKTOP_E2E_SKIP_LOGIN: env.HERMES_DESKTOP_E2E_SKIP_LOGIN ?? '1' }
   const app = await _electron.launch({
     executablePath: packagedExe(facts),
     args: ['--disable-gpu', '--no-sandbox'],
-    env,
+    env: launchEnv,
     cwd: facts.home
   })
 

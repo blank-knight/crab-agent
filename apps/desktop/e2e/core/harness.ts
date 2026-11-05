@@ -149,6 +149,8 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
     ...(process.env.HERMES_E2E_PYTHON ? { HERMES_DESKTOP_PYTHON: process.env.HERMES_E2E_PYTHON } : {}),
     HERMES_DESKTOP_APP_NAME: `HermesCoreE2E-${path.basename(sandbox.root)}`,
     HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    // qiji login wall stands down under E2E (fake backend, no auth server).
+    HERMES_DESKTOP_E2E_SKIP_LOGIN: '1',
     HERMES_DESKTOP_CDP_PORT: 'off',
     // A partial-clone (blob:none) dev checkout turns some backend git read into
     // a lazy `git fetch origin` over the network, which outlived quit by >60 s
