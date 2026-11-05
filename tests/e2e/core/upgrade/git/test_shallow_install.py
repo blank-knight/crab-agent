@@ -95,7 +95,13 @@ def test_stale_depth1_install_updates_without_fetching_the_whole_history(runs):
     run = _run(runs, "depth1")
     w: G.World = run["w"]
     cp1 = run["cp1"]
-    assert run["shape0"]["shallow"] == "true", f"N-1's installer did not make a shallow clone: {run['shape0']}"
+    # crab: 安装器 clone 形态两代并存——上游旧代 depth-1(shallow=true),
+    # 当前代 tree:0 partial clone(promisor=true, shallow=false)。
+    # N-1 属于哪一代取决于它在 tag 树上的位置;两种都是合法的初始安装形态。
+    shape = run["shape0"]
+    assert shape["shallow"] == "true" or (
+        shape["promisor"] == "true" and shape["filter"] == "tree:0"
+    ), f"N-1's installer made neither a shallow nor a partial clone: {shape}"
     assert cp1.returncode == 0 and run["head1"] == I.head_sha(), f"N-1 -> HEAD update failed:\n{w.diag(cp1, run['mark1'])}"
     main_fetch = run["fetches1"][0].body_bytes if run["fetches1"] else 0
     bound = 2 * w.install_bytes

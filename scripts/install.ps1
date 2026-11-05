@@ -831,6 +831,11 @@ include-system-site-packages = false
 # Must run BEFORE Stage-VendorFiles so the exclusion is active when the
 # first large robocopy fires.  The Defender cmdlets are only present on
 # Windows with real-time protection enabled; everything else no-ops.
+# True when this script runs as a file (-File); false under irm|iex.
+# A scriptblock literal records the file its text was parsed from;
+# iex'd text has none. ($MyInvocation.MyCommand.Path is the CALLER's
+# script under iex, so it cannot tell the two apart.)
+$script:RunAsFile = [bool]{}.File
 $script:RobocopyMT = 8  # sensible default
 
 if ($env:OS -eq "Windows_NT") {
@@ -2014,6 +2019,18 @@ function Install-Repository {
     if (Test-Path (Join-Path $InstallDir "cli.py")) {
         Write-Success "Repository ready (vendor-staged, offline)"
         return
+    }
+
+    # Refuse an occupied non-checkout before provisioning anything (upstream
+    # Stage-Repository semantics): a directory that exists, has no .git, and
+    # is not empty holds user data -- never move it aside, never clone over
+    # it. An empty directory stays clonable.
+    if (-not (Test-Path (Join-Path $InstallDir ".git")) -and (Test-Path -LiteralPath $InstallDir)) {
+        $item = Get-Item -LiteralPath $InstallDir -Force
+        $empty = $item.PSIsContainer -and -not $item.LinkType -and -not (Get-ChildItem -LiteralPath $InstallDir -Force | Select-Object -First 1)
+        if (-not $empty) {
+            throw "$InstallDir exists and is not a Hermes git checkout. Move it aside, or install elsewhere with -InstallDir <path>."
+        }
     }
 
     $didUpdate = $false
@@ -4221,6 +4238,11 @@ try {
     # Interactive mode: keep today's friendly recovery hint.
     Write-Host ""
     Write-Err "Installation failed: $_"
+    # Upstream exit-code semantics: a script-file run (-File) exits 1 so
+    # callers and CI see the failure; an irm|iex run only sets
+    # $global:LASTEXITCODE so the user's PowerShell window stays open.
+    if ($script:RunAsFile) { exit 1 }
+    $global:LASTEXITCODE = 1
     Write-Host ""
     Write-Info "Full install log saved to:"
     Write-Host "  $_InstallLog" -ForegroundColor Yellow

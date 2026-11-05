@@ -57,11 +57,18 @@ function unpackedPathForAsar(asarPath, mainModule) {
 }
 
 function resolvePackagedMainModule(asarPath, options = {}) {
-  // crab: asar 内 package.json 的 main 是入口唯一真源(ESM .mjs / CJS .cjs
-  // 两形态),解不出时回退上游常量——旧路径继续工作,新形态被识别。
+  // crab: 主进程产物两形态(上游 ESM .mjs / 本产品链 CJS .cjs)。electron-builder
+  // 的 asar.unpack 含 dist/**,产物必在 <asar>.unpacked/dist/ 下——直接探测磁盘
+  // 实际产物名,再看 asar 内 package.json 的 main,最后回退上游常量。
+  for (const candidate of ['dist/electron-main.cjs', 'dist/electron-main.mjs']) {
+    if (fs.existsSync(path.join(`${asarPath}.unpacked`, candidate))) {
+      return candidate
+    }
+  }
+
   try {
-    const pkgRaw = options.asarModule?.extractFile?.(asarPath, 'package.json')
-      ?? fs.readFileSync(path.join(`${asarPath}.unpacked`, 'package.json'))
+    const asarModule = options.asarModule ?? loadAsarModule()
+    const pkgRaw = asarModule?.extractFile?.(asarPath, 'package.json')
     const pkg = JSON.parse(Buffer.isBuffer(pkgRaw) ? pkgRaw.toString('utf8') : String(pkgRaw))
     if (pkg?.main) return pkg.main
   } catch { /* fall through to the upstream default */ }
