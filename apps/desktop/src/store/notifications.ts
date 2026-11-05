@@ -297,6 +297,14 @@ export function notifyError(
 }
 
 export function dismissNotification(id: string) {
+  // The auto-dismiss timer can fire after the jsdom environment has been torn
+  // down (vitest unloads the window between test files); a bare `window` deref
+  // then becomes an unhandled ReferenceError that fails the whole suite even
+  // though every test passed. Guard the deref and bail out early.
+  if (typeof window === 'undefined') {
+    timers.delete(id)
+    return
+  }
   window.clearTimeout(timers.get(id))
   timers.delete(id)
   const dismissed = $notifications.get().find(item => item.id === id)
