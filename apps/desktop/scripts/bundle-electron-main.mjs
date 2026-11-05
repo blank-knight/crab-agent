@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { parseArgs } from 'node:util'
@@ -27,19 +27,20 @@ function productIdentity(source, stamp) {
   }).trim()
 }
 
-/** qiji: 写一份去 TLA 的 entry 副本(CJS 打包用),返回路径。 */
-function qijiCjsEntry(source, out) {
-  const entryPath = join(source, 'apps/desktop/electron/entry.ts')
-  let code = readFileSync(entryPath, 'utf8')
+/** qiji: 去 TLA 的 entry 内容(CJS 打包用),经 esbuild stdin 虚拟入口——
+ * 不落盘。旧实现写 electron/qiji-entry-cjs.gen.ts 到源树,Nix 纯函数式
+ * 沙箱里源树被中途写入 = sourceHash 前后不一致,"Build inputs changed
+ * during compilation" 必炸(freshness.mjs 的 generated 排除集不含
+ * electron/ 下的散落文件)。stdin + resolveDir 指向 electron/ 源目录,
+ * 相对 import('./main')/'./data-paths' 照常解析,产物与源树解耦。 */
+function qijiCjsEntry(source) {
+  const entryDir = join(source, 'apps/desktop/electron')
+  let code = readFileSync(join(entryDir, 'entry.ts'), 'utf8')
   const tla = "await import('./main')"
   if (code.includes(tla)) {
     code = code.replace(tla, "import('./main').catch((e) => { console.error('[qiji-cjs] main import failed:', e); process.exit(1) })")
   }
-  // 临时 entry 必须待在 electron/ 源目录(相对 import './data-paths' 解析依赖兄弟文件);
-  // 放产物目录会 Could not resolve。文件名带生成标记,源仓 .gitignore 已含 *.gen.ts 类规则。
-  const tmp = join(source, 'apps/desktop/electron/qiji-entry-cjs.gen.ts')
-  writeFileSync(tmp, code)
-  return tmp
+  return { contents: code, resolveDir: entryDir, loader: 'ts' }
 }
 
 /** Bundle main/preload using only the prepared workspace's compiler. */
@@ -88,8 +89,8 @@ export async function bundleElectronMain({ source, out, stamp, dev = false }) {
       : {
           // qiji: 加密链需要 CJS 主进程(afterpack-encrypt 的 bootstrap 走 Module._compile)。
           // entry.ts 唯一的 TLA(末尾 await import('./main'))在 CJS 下不可打包——
-          // 预写去 TLA 的 entry 副本(void import + catch 兜底),入口指向它。
-          entryPoints: [qijiCjsEntry(source, out)],
+          // stdin 虚拟入口注入去 TLA 变换,不写源树(Nix 沙箱安全)。
+          stdin: qijiCjsEntry(source),
           format: 'cjs',
           outfile: join(out, 'electron-main.cjs'),
           banner: { js: envBanner }
