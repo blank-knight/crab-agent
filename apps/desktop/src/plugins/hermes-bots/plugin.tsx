@@ -110,7 +110,13 @@ interface ComposerDraftPayload {
 /** qiji 0.20.5: 隐藏侧边栏 BOTS tab——专家入口归并 OPC。插件机制保留。
  *  可变对象而非 const：plugin-panes 测试需要在本体行为（隐藏）与 pane
  *  契约（注册→tab label/例程语义）之间切换验证，两者都要锁。 */
-export const qijiBotsPaneVisibility = { hidden: true }
+export const qijiBotsPaneVisibility = {
+  // E2E only: the desktop suites exercise the upstream Bots roster flow; the
+  // same preload key that stands the login wall down (e2eSkipLogin) also
+  // re-registers this pane so the upstream selectors keep working. Real users
+  // never set that key, so the pane stays hidden in production.
+  hidden: !(typeof window !== 'undefined' && window.hermesDesktop?.e2eSkipLogin === true)
+}
 
 export default {
   id: ID,
