@@ -15,6 +15,9 @@
 param(
     [switch]$NoVenv,
     [switch]$SkipSetup,
+    # PM's persisted opt-outs, handed to `pm install` as `--without <extra>`.
+    [switch]$SkipBrowser,
+    [switch]$SkipComputerUse,
     [string]$Branch = "main",
     # -Commit and -Tag are higher-precedence variants of -Branch for users
     # who need reproducible installs (desktop installer pinning, CI, release
@@ -189,7 +192,10 @@ if ($ProtocolVersion) {
 if ($Manifest) {
     $payload = @{
         protocol_version = $InstallStageProtocolVersion
-        stages = @($InstallStages | ForEach-Object {
+        # desktop follows -IncludeDesktop in the manifest (upstream contract:
+        # the flag inserts it into both the manifest and the ladder; drivers
+        # dispatch it by name regardless).
+        stages = @($InstallStages | Where-Object { $_.RunByDefault -ne $false } | ForEach-Object {
             @{
                 name             = $_.Name
                 title            = $_.Title
@@ -954,6 +960,62 @@ function Write-Success {
 function Write-Warn {
     param([string]$Message)
     Write-Host "[!] $Message" -ForegroundColor Yellow
+}
+
+function Invoke-Logged {
+    param([string]$StatusLabel, [scriptblock]$NativeBlock, [switch]$MayFail)
+    $logWriter = $null
+    if (Test-QuietOutput) {
+        $logPath = Join-Path (Join-Path $HermesHome 'logs') 'install.log'
+        try {
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $logPath) | Out-Null
+            $logWriter = New-Object System.IO.StreamWriter($logPath, $true, (New-Object System.Text.UTF8Encoding($false)))
+        } catch {
+            # An unwritable log must not stop the install: stream instead.
+            $logWriter = $null
+        }
+    }
+    if (-not $logWriter) {
+        Log $StatusLabel
+        Invoke-Native $NativeBlock | Out-Host
+        return
+    }
+    $columns = 80
+    try { $columns = [Math]::Max(20, $Host.UI.RawUI.WindowSize.Width) } catch { $columns = 80 }
+    $recentLines = New-Object 'System.Collections.Generic.Queue[string]'
+    try {
+        $logWriter.WriteLine("==> $StatusLabel ($((Get-Date).ToUniversalTime().ToString('s'))Z)")
+        Write-StatusLine $StatusLabel $columns
+        Invoke-Native { & $NativeBlock 2>&1 } | ForEach-Object {
+            $outputLine = "$_".TrimEnd("`r")
+            $logWriter.WriteLine($outputLine)
+            $recentLines.Enqueue($outputLine)
+            if ($recentLines.Count -gt 20) { [void]$recentLines.Dequeue() }
+            # git and uv redraw progress with bare CRs; show the newest.
+            $newest = ($outputLine -split "`r")[-1].Trim()
+            if ($newest) { Write-StatusLine "${StatusLabel}: $newest" $columns }
+        }
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $logWriter.Dispose()
+        Write-Host ("`r" + (' ' * ($columns - 1)) + "`r") -NoNewline
+    }
+    if ($exitCode -and -not $MayFail) {
+        Write-Err "$StatusLabel failed (exit $exitCode). Last output:"
+        foreach ($recent in $recentLines) { Write-Host "    $recent" }
+        Write-Host "    full log: $logPath"
+    }
+    $global:LASTEXITCODE = $exitCode
+}
+
+# Does the uv at $Path run, and is it at least the pinned version? The
+# bootstrap passes flags an older uv lacks (`python install --no-bin` arrived
+# in 0.7), and a broken shim can exist without running.
+
+function Fail([string]$msg) {
+    # Throw, never exit: the entry points below own reporting and the exit
+    # code, and the stage dispatcher's catch emits the -Json failure frame.
+    throw $msg
 }
 
 function Write-Err {
@@ -4032,7 +4094,9 @@ function Invoke-StageByName([string]$name) {
         "python-deps" {
             $null = Get-BootstrapPython
             $pmArgs = @("install")
-            if ($SkipBrowser) { $pmArgs = @("install", "--without", "agent-browser") }
+            if ($SkipBrowser -and $SkipComputerUse) { $pmArgs = @("install", "--without", "agent-browser", "--without", "cua-driver") }
+            elseif ($SkipBrowser) { $pmArgs = @("install", "--without", "agent-browser") }
+            elseif ($SkipComputerUse) { $pmArgs = @("install", "--without", "cua-driver") }
             Invoke-BootstrapPm @pmArgs
             return
         }
@@ -4427,8 +4491,10 @@ function Get-BootstrapPython {
 }
 
 function Publish-UserCommand {
+    # Upstream contract: the bin directory is created by _launchers.py on the
+    # Python side; the PS layer must not pre-create it (boundary tests stub
+    # New-Item and only allow writes inside the install dir).
     $binDir = Join-Path $HermesHome "bin"
-    New-Item -ItemType Directory -Force -Path $binDir -ErrorAction SilentlyContinue | Out-Null
     $bootPy = if (Get-Command Get-BootstrapPython -ErrorAction SilentlyContinue) { Get-BootstrapPython } else { $null }
     if ($bootPy -and (Test-Path (Join-Path $InstallDir "hermes_cli\_launchers.py"))) {
         Push-Location $InstallDir
