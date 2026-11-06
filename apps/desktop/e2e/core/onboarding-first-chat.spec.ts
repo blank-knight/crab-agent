@@ -45,6 +45,10 @@ const A = (n: number) => `A${n}-${nonce}`
 test('onboarding (custom endpoint) then first chat renders exactly once', async () => {
   const provider = await startScriptedProvider()
   const sandbox = createCoreSandbox('onboard')
+  // The suite's UI assertions are locale-pinned to the English strings; qiji's
+  // out-of-box locale is zh and would hide them. Seeding ONLY display.language
+  // keeps the "no provider configured" premise intact.
+  fs.writeFileSync(path.join(sandbox.hermesHome, 'config.yaml'), 'display:\n  language: en\n')
   const { app, page } = await launchCoreApp(coreAppEnv(sandbox))
   const ws = recordWebSockets(page)
 

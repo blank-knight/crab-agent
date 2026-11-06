@@ -172,7 +172,10 @@ export async function launchCoreApp(env: Record<string, string>): Promise<{ app:
 
   const app = await _electron.launch({
     executablePath: resolveElectronBinary([DESKTOP_ROOT, REPO_ROOT]),
-    args: [DESKTOP_ROOT, '--disable-gpu', '--no-sandbox'],
+    // --lang pins the Chromium locale: the suite's UI assertions are written
+    // against the English strings, and qiji's out-of-box locale probe defaults
+    // to zh when no display.language is saved yet (fresh sandboxes).
+    args: [DESKTOP_ROOT, '--disable-gpu', '--no-sandbox', '--lang=en-US'],
     env,
     cwd: DESKTOP_ROOT
   })
