@@ -449,7 +449,13 @@ import {
 } from './profile-session-routing'
 // qiji 商业层（品牌/壁纸/技能市场/客户端更新/诊断/listDir）— 隔离区模块。
 // qiji 0.20.4: appBrandName 同时喂主进程 APP_NAME（窗口标题/托盘/About 单一源）。
-import { appBrandName, brandText, registerQijiIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme } from './qiji'
+import {
+  appBrandName,
+  brandText,
+  registerQijiIpc,
+  registerQijiWallpaperProtocol,
+  registerQijiWallpaperScheme
+} from './qiji'
 // qiji 0.20.4: 品牌常量（AUMI 等）——与 electron/brand.cjs、qiji/brand.ts 同源同步。
 import { BRAND as QIJI_BRAND } from './qiji/brand'
 import { createQuickEntryShortcut, quickEntryWindowBounds, sanitizeQuickEntrySettings } from './quick-entry'
@@ -1106,8 +1112,7 @@ const BOOT_FAKE_STEP_MS = (() => {
 // qiji 0.20.4: 主进程品牌单一源收敛——APP_NAME 优先取 qiji 品牌默认名
 // （electron/qiji/brand.ts，与 brand.cjs/渲染层 oem-brand 同源）。改名只改
 // 那一处；上游 Hermes 构建未接 qiji 模块时行为不变。
-const APP_NAME: string =
-  IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || appBrandName()
+const APP_NAME: string = IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || appBrandName()
 
 const HUD_WINDOW_TITLE = `${APP_NAME} HUD`
 const TITLEBAR_HEIGHT = 34

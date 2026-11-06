@@ -36,7 +36,18 @@ export interface AuthState {
 
 function readPersisted(): AuthState {
   if (typeof window === 'undefined') {
-    return { token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null }
+    return {
+      token: null,
+      username: null,
+      isCustomKey: false,
+      allowModelSelect: true,
+      platformModels: [],
+      mode: 'trial',
+      score: 0,
+      loginAt: null,
+      apiKey: null,
+      avatar: null
+    }
   }
 
   try {
@@ -56,12 +67,25 @@ function readPersisted(): AuthState {
       avatar: window.localStorage.getItem(AUTH_AVATAR_KEY) || null
     }
   } catch {
-    return { token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null }
+    return {
+      token: null,
+      username: null,
+      isCustomKey: false,
+      allowModelSelect: true,
+      platformModels: [],
+      mode: 'trial',
+      score: 0,
+      loginAt: null,
+      apiKey: null,
+      avatar: null
+    }
   }
 }
 
 function persist(state: AuthState) {
-  if (typeof window === 'undefined') {return}
+  if (typeof window === 'undefined') {
+    return
+  }
 
   try {
     window.localStorage.setItem(AUTH_TOKEN_KEY, state.token ?? '')
@@ -159,7 +183,9 @@ export function isAuthenticated(): boolean {
 export function isTokenExpired(): boolean {
   const { loginAt } = $auth.get()
 
-  if (!loginAt) {return true}
+  if (!loginAt) {
+    return true
+  }
 
   return Date.now() - loginAt > TOKEN_TTL_MS
 }
@@ -186,7 +212,9 @@ export async function login(username: string, password: string): Promise<LoginRe
     username: data.username ?? username,
     isCustomKey: data.is_custom_key === 1,
     allowModelSelect: data.allow_model_select === undefined ? true : data.allow_model_select === 1,
-    platformModels: Array.isArray(data.models) ? data.models.filter((m: unknown): m is string => typeof m === 'string' && m !== '') : [],
+    platformModels: Array.isArray(data.models)
+      ? data.models.filter((m: unknown): m is string => typeof m === 'string' && m !== '')
+      : [],
     mode: data.mode,
     score: data.score ?? 0,
     loginAt: Date.now(),
@@ -207,7 +235,9 @@ export async function login(username: string, password: string): Promise<LoginRe
 export async function register(mobile: string, password: string, inviteCode?: string): Promise<LoginResponse> {
   const body: Record<string, string> = { mobile, password }
 
-  if (inviteCode) {body.invite_code = inviteCode}
+  if (inviteCode) {
+    body.invite_code = inviteCode
+  }
 
   const res = await backendPost<LoginResponse>('/api/client/v1/auth/register', body)
 
@@ -223,7 +253,9 @@ export async function register(mobile: string, password: string, inviteCode?: st
     username: data.username ?? mobile,
     isCustomKey: data.is_custom_key === 1,
     allowModelSelect: data.allow_model_select === undefined ? true : data.allow_model_select === 1,
-    platformModels: Array.isArray(data.models) ? data.models.filter((m: unknown): m is string => typeof m === 'string' && m !== '') : [],
+    platformModels: Array.isArray(data.models)
+      ? data.models.filter((m: unknown): m is string => typeof m === 'string' && m !== '')
+      : [],
     mode: data.mode,
     score: data.score ?? 0,
     loginAt: Date.now(),
@@ -242,7 +274,18 @@ export async function register(mobile: string, password: string, inviteCode?: st
 
 /** 登出 / 清空 auth 状态（401 时也调这个） */
 export function clearAuth() {
-  patch({ token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null })
+  patch({
+    token: null,
+    username: null,
+    isCustomKey: false,
+    allowModelSelect: true,
+    platformModels: [],
+    mode: 'trial',
+    score: 0,
+    loginAt: null,
+    apiKey: null,
+    avatar: null
+  })
   // OEM 品牌一并清回官方默认
   clearOemBrand()
 

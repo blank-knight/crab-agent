@@ -168,7 +168,8 @@ function writeCachedSkipped(value: boolean) {
 // 初值（configured 未探明、首启未跳过），覆盖层才会出现；真实用户没有
 // 这把钥匙，看到的仍是"永不弹"的产品行为。
 const E2E_SKIP_LOGIN =
-  typeof window !== 'undefined' && (window as { hermesDesktop?: { e2eSkipLogin?: boolean } }).hermesDesktop?.e2eSkipLogin === true
+  typeof window !== 'undefined' &&
+  (window as { hermesDesktop?: { e2eSkipLogin?: boolean } }).hermesDesktop?.e2eSkipLogin === true
 
 const INITIAL: DesktopOnboardingState = E2E_SKIP_LOGIN
   ? {

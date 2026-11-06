@@ -40,7 +40,9 @@ interface RailEntry {
 function categoryHue(id: string): number {
   let h = 0
 
-  for (const ch of id) {h = (h * 31 + ch.charCodeAt(0)) % 360}
+  for (const ch of id) {
+    h = (h * 31 + ch.charCodeAt(0)) % 360
+  }
 
   return h
 }
@@ -158,20 +160,10 @@ function SkillCard({
           </div>
           <p className="mt-1 line-clamp-2 text-[0.76rem] leading-relaxed text-(--ui-text-tertiary)">{zhDesc}</p>
         </div>
-        <Switch
-          aria-label={zhName}
-          checked={skill.enabled}
-          onCheckedChange={onToggle}
-          size="xs"
-        />
+        <Switch aria-label={zhName} checked={skill.enabled} onCheckedChange={onToggle} size="xs" />
       </div>
       <div className="mt-3 flex items-center justify-end border-t border-(--ui-border)/50 pt-2.5">
-        <Button
-          className="h-7 rounded-lg px-3 text-[0.74rem]"
-          onClick={onUse}
-          size="sm"
-          type="button"
-        >
+        <Button className="h-7 rounded-lg px-3 text-[0.74rem]" onClick={onUse} size="sm" type="button">
           {t.skills.useSkill}
         </Button>
       </div>
@@ -200,19 +192,23 @@ function SkillsPane({
   const { t } = useI18n()
   const [activeCategory, setActiveCategory] = useState('__all')
 
-
   // qiji 0.20.5f: 搜索先于分类过滤——技能名(中/英)/描述/别名 匹配。
   // normalize 剥音标，中文原文直比；空串不过滤。
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase()
 
-    if (!q) {return skills}
+    if (!q) {
+      return skills
+    }
 
-    return skills.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      skillNameZh(s.name, s.name).toLowerCase().includes(q) ||
-      (s.description || '').toLowerCase().includes(q) ||
-      skillDescZh(s.name, s.description || '').toLowerCase().includes(q)
+    return skills.filter(
+      s =>
+        s.name.toLowerCase().includes(q) ||
+        skillNameZh(s.name, s.name).toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q) ||
+        skillDescZh(s.name, s.description || '')
+          .toLowerCase()
+          .includes(q)
     )
   }, [skills, query])
 
@@ -234,9 +230,13 @@ function SkillsPane({
   }, [searched])
 
   const visible = useMemo(() => {
-    if (activeCategory === '__all') {return searched}
+    if (activeCategory === '__all') {
+      return searched
+    }
 
-    if (activeCategory === '__enabled') {return searched.filter(s => s.enabled)}
+    if (activeCategory === '__enabled') {
+      return searched.filter(s => s.enabled)
+    }
 
     return searched.filter(s => (s.category || 'general') === activeCategory)
   }, [searched, activeCategory])
@@ -373,10 +373,7 @@ export function QijiCapabilitiesHub({
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent">
       <div className="shrink-0 px-4 pt-[calc(var(--titlebar-height)/2+0.375rem)]">
-        <div
-          className="flex shrink-0 items-center gap-1 overflow-x-auto pb-1"
-          data-tour="hub-categories"
-        >
+        <div className="flex shrink-0 items-center gap-1 overflow-x-auto pb-1" data-tour="hub-categories">
           {HUB_CATEGORIES.map(cat => (
             <CategoryTab
               active={cat.id === activeCategory}
@@ -395,7 +392,13 @@ export function QijiCapabilitiesHub({
               <p className="text-[0.85rem] text-(--ui-text-tertiary)">正在加载能力…</p>
             </div>
           ) : (
-            <SkillsPane marketEntry={marketEntry} onRefresh={onRefresh} profile={profile} query={query} skills={skills} />
+            <SkillsPane
+              marketEntry={marketEntry}
+              onRefresh={onRefresh}
+              profile={profile}
+              query={query}
+              skills={skills}
+            />
           )
         ) : (
           // qiji 0.20.4→0.20.5: 连接器/插件沿用旧 tab 组件——外套同款视觉壳

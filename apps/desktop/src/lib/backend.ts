@@ -103,10 +103,7 @@ export function setUnauthorizedHandler(handler: (() => void) | null) {
  * 统一的后端请求包装。自动带 Authorization header，401 时清 auth store 并触发登录页。
  * 返回后端响应体 {code, data, msg}；code=0 时抛错（由调用方决定怎么提示）。
  */
-export async function backendFetch<T = unknown>(
-  path: string,
-  options: RequestInit = {}
-): Promise<BackendResponse<T>> {
+export async function backendFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<BackendResponse<T>> {
   const token = getToken()
 
   const headers: Record<string, string> = {
@@ -125,7 +122,11 @@ export async function backendFetch<T = unknown>(
   if (res.status === 401) {
     // token 失效：清状态，弹登录页。记录标记让登录页说明原因（qiji 0.19.3-fix：
     // 升级/久未登录的用户点个人中心突然被弹回登录页，没头没脑——告知是登录过期）
-    try { window.sessionStorage.setItem('qiji-auth-expired', '1') } catch { /* ignore */ }
+    try {
+      window.sessionStorage.setItem('qiji-auth-expired', '1')
+    } catch {
+      /* ignore */
+    }
     clearAuth()
     unauthorizedHandler?.()
     throw new BackendError('登录已过期，请重新登录', 401)

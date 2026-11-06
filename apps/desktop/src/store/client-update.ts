@@ -50,7 +50,12 @@ let progressUnsub: (() => void) | null = null
 
 /** 当前版本是否有强制更新待处理（用于阻断式弹窗） */
 export function isEnforcedUpdate(state: ClientUpdateState): boolean {
-  return Boolean(state.info?.enforce) && state.status !== 'idle' && state.status !== 'checking' && state.status !== 'uptodate'
+  return (
+    Boolean(state.info?.enforce) &&
+    state.status !== 'idle' &&
+    state.status !== 'checking' &&
+    state.status !== 'uptodate'
+  )
 }
 
 /**
@@ -59,7 +64,7 @@ export function isEnforcedUpdate(state: ClientUpdateState): boolean {
 export function downloadedInstallerPath(): string | null {
   const state = $clientUpdate.get()
 
-  return state.status === 'downloaded' ? state.installerPath ?? null : null
+  return state.status === 'downloaded' ? (state.installerPath ?? null) : null
 }
 
 /**
@@ -278,7 +283,9 @@ export async function installClientUpdate(): Promise<void> {
     if (message.includes('安装包不存在')) {
       try {
         window.localStorage.removeItem(downloadedPathKey(state.info?.newversion ?? ''))
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       patch({ status: 'available', installerPath: undefined })
       notify({ kind: 'warning', title: '安装包已失效', message: '请重新下载更新包' })
@@ -300,7 +307,9 @@ export async function discardDownloadedInstaller(): Promise<void> {
 
   try {
     window.localStorage.removeItem(downloadedPathKey(state.info?.newversion ?? ''))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   patch({ status: 'available', installerPath: undefined, progressPercent: 0 })
 }

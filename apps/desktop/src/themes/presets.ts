@@ -615,7 +615,6 @@ export const matchaTheme: DesktopTheme = {
   }
 }
 
-
 /**
  * Paper — 纸白极简。黑白灰三色,无彩色干扰,默认主题。
  * 亮=纸白底黑字;暗=碳黑底灰白字。黑=文字,白=留白,灰=层级。
@@ -761,7 +760,8 @@ export const roseDuskTheme: DesktopTheme = {
   typography: {
     fontSans: `"Fraunces", ${SYSTEM_SANS}`,
     fontMono: `"DM Mono", ${SYSTEM_MONO}`,
-    fontUrl: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Mono:wght@400;500&display=swap'
+    fontUrl:
+      'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Mono:wght@400;500&display=swap'
   }
 }
 

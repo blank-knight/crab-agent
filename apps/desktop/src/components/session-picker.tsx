@@ -64,9 +64,8 @@ export function SessionPickerDialog({ activeStoredSessionId, onOpenChange, onRes
 
                   // crab 0.20.5l: preview 同侧栏行——技能脚手架/英文 slug
                   // 先清洗再显示，与 sessionTitle 一条链。
-                  const preview = localizeSkillPlaceholder(
-                    stripSkillScaffolding(session.preview?.trim() ?? '')
-                  ).trim() || null
+                  const preview =
+                    localizeSkillPlaceholder(stripSkillScaffolding(session.preview?.trim() ?? '')).trim() || null
 
                   return (
                     <CommandItem

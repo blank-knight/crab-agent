@@ -3160,7 +3160,8 @@ export const ja = defineLocale({
     done: '完了',
     applyingBody:
       '螃蟹OPC アップデーターが独自のウィンドウで引き継ぎ、完了後に自動的に 螃蟹OPC を再度開きます。更新中はご自分で 螃蟹OPC を開き直さないでください。',
-    applyingBodyBackend: 'リモートバックエンドが更新を適用して再起動します。復帰すると 螃蟹OPC が自動的に再接続します。',
+    applyingBodyBackend:
+      'リモートバックエンドが更新を適用して再起動します。復帰すると 螃蟹OPC が自動的に再接続します。',
     applyingClose: 'このウィンドウは更新中に閉じ、その後 螃蟹OPC が自動的に再度開きます。',
     errorTitle: '更新が完了しませんでした',
     errorBody: 'ご安心ください。何も失われていません。今すぐ再試行できます。',
@@ -3863,7 +3864,8 @@ export const ja = defineLocale({
         },
         invalid_response: {
           title: 'AI サービスが読み取れない応答を返しました',
-          body: provider => `${provider} は 螃蟹OPC が読み取れない内容を返しました。しばらくしてから再試行してください。`
+          body: provider =>
+            `${provider} は 螃蟹OPC が読み取れない内容を返しました。しばらくしてから再試行してください。`
         },
         empty_response: {
           title: 'AI サービスが空の応答を返しました',

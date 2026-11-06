@@ -832,14 +832,7 @@ async function runStage({
         '--json',
         ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit })
       ]
-    : [
-        '-Stage',
-        stage.name,
-        '-NonInteractive',
-        '-Json',
-        ...buildPinArgs(installStamp, { pinCommit }),
-        ...vendorArgs
-      ]
+    : ['-Stage', stage.name, '-NonInteractive', '-Json', ...buildPinArgs(installStamp, { pinCommit }), ...vendorArgs]
 
   const result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
     emit,
@@ -996,7 +989,14 @@ async function runBootstrap(opts) {
     }
 
     // 1. Resolve the platform installer.
-    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit, pinCommit, resourcesPath })
+    const scriptInfo = await resolveInstallScript({
+      installStamp,
+      sourceRepoRoot,
+      hermesHome,
+      emit,
+      pinCommit,
+      resourcesPath
+    })
     abortSignal?.throwIfAborted()
 
     const installerKind = scriptInfo.kind || 'powershell'

@@ -232,11 +232,7 @@ export const $sidebarRecentsOpen = atom(true)
 // scheduler's `[IMPORTANT: …]` first-message previews don't spam recents.
 export const $sidebarCronOpen = persistentAtom(SIDEBAR_CRON_OPEN_STORAGE_KEY, false, Codecs.bool)
 // crab 0.20.5o: 专家会话分组头默认收起，展开状态持久化（用户拍板的设计）。
-export const $sidebarExpertSessionsOpen = persistentAtom(
-  SIDEBAR_EXPERT_SESSIONS_OPEN_STORAGE_KEY,
-  false,
-  Codecs.bool
-)
+export const $sidebarExpertSessionsOpen = persistentAtom(SIDEBAR_EXPERT_SESSIONS_OPEN_STORAGE_KEY, false, Codecs.bool)
 // Messaging platform sections collapse by default (they can be numerous and
 // tall). We persist the ids the user has *explicitly expanded*, so the default
 // stays collapsed unless they've opened a platform before.

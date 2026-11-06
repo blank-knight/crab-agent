@@ -12,18 +12,9 @@ import { registerQijiListDirIpc } from './list-dir'
 //   registerQijiWallpaperProtocol() // app ready 后（与 registerMediaProtocol 同区）
 import { appBrandName, brandText, registerQijiBrandIpc } from './oem-brand'
 import { registerQijiSkillMarketIpc } from './skill-market'
-import {
-  registerQijiWallpaperIpc,
-  registerQijiWallpaperProtocol,
-  registerQijiWallpaperScheme
-} from './wallpaper'
+import { registerQijiWallpaperIpc, registerQijiWallpaperProtocol, registerQijiWallpaperScheme } from './wallpaper'
 
-export {
-  appBrandName,
-  brandText,
-  registerQijiWallpaperProtocol,
-  registerQijiWallpaperScheme
-}
+export { appBrandName, brandText, registerQijiWallpaperProtocol, registerQijiWallpaperScheme }
 
 export interface QijiIpcDeps {
   hermesHome: string

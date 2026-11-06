@@ -49,7 +49,13 @@ import type { SetStatusbarItemGroup } from '../shell/statusbar-controls'
 
 import { FeishuQrSetup } from './feishu-qr-setup'
 import { PlatformAvatar } from './platform-icon'
-import { groupPlatformsByRegion, PLATFORM_DESC_ZH, PLATFORM_NAME_ZH, platformRegion, type PlatformRegion } from './platforms-zh'
+import {
+  groupPlatformsByRegion,
+  PLATFORM_DESC_ZH,
+  PLATFORM_NAME_ZH,
+  platformRegion,
+  type PlatformRegion
+} from './platforms-zh'
 import { QqQrSetup } from './qq-qr-setup'
 import { TelegramQrSetup } from './telegram-qr-setup'
 import { WeixinQrSetup } from './weixin-qr-setup'
@@ -866,7 +872,9 @@ function PlatformRow({
     >
       <PlatformAvatar platformId={platform.id} platformName={platform.name} />
       <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-        <span className="truncate text-[length:var(--conversation-text-font-size)] font-normal">{PLATFORM_NAME_ZH[platform.id] ?? platform.name}</span>
+        <span className="truncate text-[length:var(--conversation-text-font-size)] font-normal">
+          {PLATFORM_NAME_ZH[platform.id] ?? platform.name}
+        </span>
         <span className="flex shrink-0 items-center gap-1.5">
           {/* Someone is waiting to be let in — the only way this page tells
               you so before you open the platform. */}
@@ -936,7 +944,9 @@ function PlatformDetail({
         <PlatformAvatar platformId={platform.id} platformName={platform.name} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">{PLATFORM_NAME_ZH[platform.id] ?? platform.name}</h3>
+            <h3 className="min-w-0 truncate text-[0.9375rem] font-semibold tracking-tight">
+              {PLATFORM_NAME_ZH[platform.id] ?? platform.name}
+            </h3>
             <StatePill tone={stateTone(platform)}>{stateLabel(platform.state, m)}</StatePill>
             {/* Resting states earn no pill — only actionable ones. */}
             {!platform.configured && <SetupPill active={false}>{m.needsSetup}</SetupPill>}
@@ -1056,10 +1066,10 @@ function PlatformDetail({
         <p className="mt-1 text-[length:var(--conversation-caption-font-size)] leading-(--conversation-caption-line-height) text-(--ui-text-tertiary)">
           {introCopy(platform, m)}
         </p>
-        {platform.docs_url && (
+        {platform.docs_url &&
           // qiji 0.20.5b: 设置指南跳转暂时隐藏（指向上游 hermes 文档站）。
           // 后续换成自有帮助站后恢复接线：把 BRAND_SHOW_SETUP_GUIDE 打开即可。
-          BRAND_SHOW_SETUP_GUIDE ? (
+          (BRAND_SHOW_SETUP_GUIDE ? (
             <div className="mt-3">
               <Button asChild size="sm" variant="textStrong">
                 <a
@@ -1083,8 +1093,7 @@ function PlatformDetail({
                 </a>
               </Button>
             </div>
-          ) : null
-        )}
+          ) : null)}
       </section>
 
       <section>
@@ -1228,7 +1237,7 @@ const PLATFORM_INTRO: Record<string, string> = {
   wecom_callback:
     'Set up a WeCom self-built app, expose its callback URL, and provide the corp ID, secret, agent ID, and AES key.',
   weixin:
-    'Prefer Quick setup above: scan the QR with WeChat and confirm on your phone — no manual credentials. Connects through Tencent\'s iLink Bot API.',
+    "Prefer Quick setup above: scan the QR with WeChat and confirm on your phone — no manual credentials. Connects through Tencent's iLink Bot API.",
   qqbot:
     'Prefer Quick setup above (scan to create the bot). Manual: register an app on the QQ Open Platform (q.qq.com) and copy the App ID and Client Secret.',
   api_server:

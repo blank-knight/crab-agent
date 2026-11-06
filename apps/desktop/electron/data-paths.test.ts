@@ -146,8 +146,7 @@ test('win32 legacy home chain: CRAB_HOME beats QIJI_HOME, missing dirs fall thro
       env: {},
       platform: 'win32',
       directoryExists: (): boolean => false,
-      readWindowsHome: (name: string): string | null =>
-        name === 'QIJI_HOME' ? 'C:\\gone\\qiji' : 'C:\\custom'
+      readWindowsHome: (name: string): string | null => (name === 'QIJI_HOME' ? 'C:\\gone\\qiji' : 'C:\\custom')
     }),
     'C:\\custom'
   )

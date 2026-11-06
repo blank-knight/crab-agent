@@ -4,10 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DesktopVersionInfo } from '@/global'
 import { I18nProvider } from '@/i18n'
 import { $auth } from '@/store/auth'
-import {
-  checkClientUpdate,
-  type ClientUpdateState
-} from '@/store/client-update'
+import { checkClientUpdate, type ClientUpdateState } from '@/store/client-update'
 import { refreshDesktopVersion } from '@/store/updates'
 
 import { AboutSettings } from './about-settings'
@@ -77,8 +74,26 @@ describe('AboutSettings（qiji 关于页）', () => {
     const { $desktopVersion: versionAtom } = await import('@/store/updates')
     versionAtom.set(null)
     const { $clientUpdate: updateAtom } = await import('@/store/client-update')
-    updateAtom.set({ status: 'idle', error: undefined, info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
-    $auth.set({ token: 't', username: 'u', isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'formal', score: 5, loginAt: Date.now(), apiKey: null, avatar: null })
+    updateAtom.set({
+      status: 'idle',
+      error: undefined,
+      info: null,
+      lastCheckedAt: undefined,
+      progressPercent: 0,
+      progressIndeterminate: false
+    })
+    $auth.set({
+      token: 't',
+      username: 'u',
+      isCustomKey: false,
+      allowModelSelect: true,
+      platformModels: [],
+      mode: 'formal',
+      score: 5,
+      loginAt: Date.now(),
+      apiKey: null,
+      avatar: null
+    })
   })
 
   it('渲染品牌标题/版本号/额度与更新卡片（螃蟹OPC 品牌）', async () => {
@@ -108,7 +123,14 @@ describe('AboutSettings（qiji 关于页）', () => {
   it('检查中状态渲染 spinner 文案', async () => {
     const { $clientUpdate: updateAtom } = await import('@/store/client-update')
     renderAbout()
-    updateAtom.set({ status: 'checking', error: undefined, info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
+    updateAtom.set({
+      status: 'checking',
+      error: undefined,
+      info: null,
+      lastCheckedAt: undefined,
+      progressPercent: 0,
+      progressIndeterminate: false
+    })
     await waitFor(() => expect(screen.getByText('检查中…')).toBeTruthy())
   })
 
@@ -132,12 +154,30 @@ describe('AboutSettings（qiji 关于页）', () => {
   it('检查失败显示错误文案', async () => {
     const { $clientUpdate: updateAtom } = await import('@/store/client-update')
     renderAbout()
-    updateAtom.set({ status: 'error', error: '无法连接更新服务器', info: null, lastCheckedAt: undefined, progressPercent: 0, progressIndeterminate: false })
+    updateAtom.set({
+      status: 'error',
+      error: '无法连接更新服务器',
+      info: null,
+      lastCheckedAt: undefined,
+      progressPercent: 0,
+      progressIndeterminate: false
+    })
     await waitFor(() => expect(screen.getByText('无法连接更新服务器')).toBeTruthy())
   })
 
   it('未登录（无 token）时账户区仍渲染（score=0）', () => {
-    $auth.set({ token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null })
+    $auth.set({
+      token: null,
+      username: null,
+      isCustomKey: false,
+      allowModelSelect: true,
+      platformModels: [],
+      mode: 'trial',
+      score: 0,
+      loginAt: null,
+      apiKey: null,
+      avatar: null
+    })
     renderAbout()
     expect(screen.getByText('体验')).toBeTruthy()
     expect(screen.getByText('0')).toBeTruthy()

@@ -13,12 +13,16 @@ const STORE_KEY = 'qiji.savedAccounts'
 const MAX_ACCOUNTS = 5
 
 function decodeSaved(raw: string | null): SavedAccount[] {
-  if (!raw) {return []}
+  if (!raw) {
+    return []
+  }
 
   try {
     const arr = JSON.parse(raw) as SavedAccount[]
 
-    if (!Array.isArray(arr)) {return []}
+    if (!Array.isArray(arr)) {
+      return []
+    }
 
     return arr.filter(a => a && typeof a.username === 'string' && a.username.length > 0)
   } catch {
@@ -48,13 +52,15 @@ function persist(list: SavedAccount[]) {
 export function saveAccount(username: string, password: string | undefined, rememberPassword: boolean) {
   const u = username.trim()
 
-  if (!u) {return}
+  if (!u) {
+    return
+  }
   const list = loadSavedAccounts().filter(a => a.username !== u)
 
   const entry: SavedAccount = {
     username: u,
     password: rememberPassword && password ? btoa(password) : undefined,
-    loginAt: Date.now(),
+    loginAt: Date.now()
   }
 
   persist([entry, ...list])

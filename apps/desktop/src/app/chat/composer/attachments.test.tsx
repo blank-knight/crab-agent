@@ -18,7 +18,12 @@ async function renderWithI18n(ui: React.ReactNode) {
   let result: ReturnType<typeof render>
   await act(async () => {
     result = render(
-      <I18nProvider configClient={{ getConfig: async () => ({ display: { language: 'en' } }), saveConfig: async () => ({ ok: true }) }}>
+      <I18nProvider
+        configClient={{
+          getConfig: async () => ({ display: { language: 'en' } }),
+          saveConfig: async () => ({ ok: true })
+        }}
+      >
         {ui}
       </I18nProvider>
     )
@@ -191,7 +196,12 @@ describe('AttachmentList', () => {
     expect(readFileDataUrl).toHaveBeenCalledWith('/tmp/old.png')
 
     rerender(
-      <I18nProvider configClient={{ getConfig: async () => ({ display: { language: 'en' } }), saveConfig: async () => ({ ok: true }) }}>
+      <I18nProvider
+        configClient={{
+          getConfig: async () => ({ display: { language: 'en' } }),
+          saveConfig: async () => ({ ok: true })
+        }}
+      >
         <AttachmentList attachments={[replacement]} />
       </I18nProvider>
     )

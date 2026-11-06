@@ -172,10 +172,7 @@ function OAuthPicker({
 
   // qiji 0.20.4: 隐藏 Nous Portal 行（中转站未定；接自家中转时移除此过滤）。
   // OEM 层后续可用品牌配置开关，暂按产品要求硬过滤。
-  const ordered = useMemo(
-    () => sortProviders(providers).filter(p => p.id !== 'nous'),
-    [providers]
-  )
+  const ordered = useMemo(() => sortProviders(providers).filter(p => p.id !== 'nous'), [providers])
 
   if (ordered.length === 0) {
     return null

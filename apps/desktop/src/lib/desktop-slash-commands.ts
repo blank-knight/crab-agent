@@ -475,8 +475,7 @@ function isAliasCommand(command: string): boolean {
 
 const UNAVAILABLE_MESSAGE: Record<DesktopUnavailableReason, (command: string) => string> = {
   // qiji 0.20.5v: 中文文案（2026-11-03 用户报障"对话框提示中英混杂"）。
-  advanced: command =>
-    `${command} 不在桌面端命令面板中。请使用对应的桌面控件或在终端中使用。`,
+  advanced: command => `${command} 不在桌面端命令面板中。请使用对应的桌面控件或在终端中使用。`,
   'composer-voice': () =>
     '语音对话就在输入框这里：点击麦克风按钮并选择「开始语音对话」，或在 设置 → 键盘快捷键 中使用语音快捷键。',
   messaging: command => `${command} 仅在消息平台中使用。`,

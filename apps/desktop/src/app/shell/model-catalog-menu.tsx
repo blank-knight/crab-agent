@@ -263,7 +263,9 @@ export function ModelCatalogMenu({
   const filteredProviders = useMemo(() => {
     const list = pickerProviders
 
-    if (!platformModels.length) {return list}
+    if (!platformModels.length) {
+      return list
+    }
     const allow = new Set(platformModels.map(m => m.toLowerCase()))
 
     return list

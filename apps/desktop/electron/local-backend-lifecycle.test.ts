@@ -89,7 +89,7 @@ test('shutdown is bounded even if startup ignores cancellation', async () => {
 })
 
 test('the quit barrier cancels real first-run startup and waits for both local and SSH drains', async () => {
-  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 }) // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
   const localExit = deferred()
   const sshExit = deferred()
   const finalQuit = vi.fn()

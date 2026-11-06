@@ -1276,7 +1276,9 @@ function CronEditorDialog({
                 ))}
               </SelectContent>
             </Select>
-            {blueprint?.description && <FieldHint>{BLUEPRINT_ZH[blueprint.key]?.description ?? blueprint.description}</FieldHint>}
+            {blueprint?.description && (
+              <FieldHint>{BLUEPRINT_ZH[blueprint.key]?.description ?? blueprint.description}</FieldHint>
+            )}
           </Field>
         )}
 

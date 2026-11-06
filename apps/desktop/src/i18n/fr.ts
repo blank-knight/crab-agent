@@ -1642,7 +1642,8 @@ export const frOverrides = {
       updateNow: 'Mettre à jour',
       lastChecked: age => `Dernière vérification ${age}`,
       automaticUpdates: 'Mises à jour automatiques',
-      automaticUpdatesDesc: '螃蟹OPC vérifie automatiquement les mises à jour en arrière-plan et vous avertit quand une est prête.',
+      automaticUpdatesDesc:
+        '螃蟹OPC vérifie automatiquement les mises à jour en arrière-plan et vous avertit quand une est prête.',
       never: 'jamais',
       justNow: 'à l’instant',
       minAgo: count => `il y a ${count} min`,
@@ -5357,7 +5358,8 @@ export const frOverrides = {
       askRestart: 'Demander à 螃蟹OPC de redémarrer le serveur',
       lookingRestart: taskId => `螃蟹OPC recherche un serveur d'aperçu à redémarrer (${taskId})`,
       restartingTitle: "Redémarrage du serveur d'aperçu",
-      restartingMessage: "螃蟹OPC travaille en arrière-plan. Surveillez la console d'aperçu pour suivre la progression.",
+      restartingMessage:
+        "螃蟹OPC travaille en arrière-plan. Surveillez la console d'aperçu pour suivre la progression.",
       startRestartFailed: message => `Impossible de démarrer le redémarrage du serveur : ${message}`,
       restartFailed: 'Échec du redémarrage du serveur',
       hideConsole: "Masquer la console d'aperçu",

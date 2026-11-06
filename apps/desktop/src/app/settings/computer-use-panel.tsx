@@ -16,7 +16,6 @@ interface ComputerUsePanelProps {
   onConfiguredChange?: () => void
 }
 
-
 function tone(granted: boolean | null) {
   return granted === true ? 'primary' : 'muted'
 }
@@ -179,11 +178,13 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
           {status.can_grant ? (
             <p className="text-[0.72rem] text-muted-foreground">{t.settings.computerUse.macTccNote}</p>
           ) : (
-            <p className="text-[0.72rem] text-muted-foreground">{status.platform === 'linux'
-              ? t.settings.computerUse.linuxNote
-              : status.platform === 'win32'
-                ? t.settings.computerUse.win32Note
-                : ''}</p>
+            <p className="text-[0.72rem] text-muted-foreground">
+              {status.platform === 'linux'
+                ? t.settings.computerUse.linuxNote
+                : status.platform === 'win32'
+                  ? t.settings.computerUse.win32Note
+                  : ''}
+            </p>
           )}
           {status.version && <p className="text-[0.68rem] text-muted-foreground/80">{status.version}</p>}
         </div>

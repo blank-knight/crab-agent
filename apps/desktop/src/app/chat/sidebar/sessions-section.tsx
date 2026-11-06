@@ -480,8 +480,7 @@ export function SidebarSessionsSection({
   const virtualizedRef = useRef(false)
 
   const flatVirtualized = useMemo(() => {
-    const eligible =
-      !pinned && !showEmptyState && !groups?.length && !projectOverview?.length && !projectContent
+    const eligible = !pinned && !showEmptyState && !groups?.length && !projectOverview?.length && !projectContent
 
     const next = virtualizedRef.current
       ? eligible && sessions.length >= VIRTUALIZE_EXIT_THRESHOLD
@@ -491,7 +490,6 @@ export function SidebarSessionsSection({
 
     return next
     // Length + eligibility only; the ref carries the hysteresis state.
-     
   }, [pinned, showEmptyState, groups, projectOverview, projectContent, sessions.length])
 
   // First paint into the grouped view (e.g. the app restoring the Projects tab)

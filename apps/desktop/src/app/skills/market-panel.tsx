@@ -61,29 +61,41 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
     }
   }, [requestGateway])
 
-  const installGithub = useCallback(async (repo: string, subdir?: string) => {
-    setGhBusy(true)
-    setMsg('')
+  const installGithub = useCallback(
+    async (repo: string, subdir?: string) => {
+      setGhBusy(true)
+      setMsg('')
 
-    try {
-      const r = await window.hermesDesktop.skillMarket.installGithub(repo, subdir)
-      const names = 'allNames' in r && Array.isArray((r as { allNames?: string[] }).allNames) ? (r as { allNames: string[] }).allNames : [r.name]
-      setInstalled(prev => { const s = new Set(prev);
+      try {
+        const r = await window.hermesDesktop.skillMarket.installGithub(repo, subdir)
+        const names =
+          'allNames' in r && Array.isArray((r as { allNames?: string[] }).allNames)
+            ? (r as { allNames: string[] }).allNames
+            : [r.name]
+        setInstalled(prev => {
+          const s = new Set(prev)
 
- for (const n of names) {s.add(n);}
+          for (const n of names) {
+            s.add(n)
+          }
 
- return s })
-      await notifyBackendOfSkillsChange()
-      setMsg(`已安装 ${names.length > 1 ? names.length + ' 个技能(' + names.slice(0, 3).join('、') + (names.length > 3 ? '…' : '') + ')' : '「' + r.name + '」'}(来自 GitHub ${repo})`)
-      setMsgOk(true)
-      setGhRepo('')
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : String(e))
-      setMsgOk(false)
-    } finally {
-      setGhBusy(false)
-    }
-  }, [notifyBackendOfSkillsChange])
+          return s
+        })
+        await notifyBackendOfSkillsChange()
+        setMsg(
+          `已安装 ${names.length > 1 ? names.length + ' 个技能(' + names.slice(0, 3).join('、') + (names.length > 3 ? '…' : '') + ')' : '「' + r.name + '」'}(来自 GitHub ${repo})`
+        )
+        setMsgOk(true)
+        setGhRepo('')
+      } catch (e) {
+        setMsg(e instanceof Error ? e.message : String(e))
+        setMsgOk(false)
+      } finally {
+        setGhBusy(false)
+      }
+    },
+    [notifyBackendOfSkillsChange]
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -97,9 +109,13 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
         const r = await window.hermesDesktop.listDir('skills/market')
 
         for (const item of r) {
-          if (item.isDirectory) {installedNames.push(item.name)}
+          if (item.isDirectory) {
+            installedNames.push(item.name)
+          }
         }
-      } catch { /* 目录不存在=没装过 */ }
+      } catch {
+        /* 目录不存在=没装过 */
+      }
 
       setSkills(rows)
       setInstalled(new Set(installedNames))
@@ -112,16 +128,21 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
 
   /** qiji 0.19.8: 卸载市场技能（按用户偏好不加确认弹窗），卸完刷新已装集合 */
   async function uninstall(sk: MarketSkill) {
-    if (uninstalling) {return}
+    if (uninstalling) {
+      return
+    }
     setUninstalling(sk.name)
     setMsgOk(false)
     setMsg('')
 
     try {
       await window.hermesDesktop.skillMarket.uninstall(sk.name)
-      setInstalled(prev => { const s = new Set(prev); s.delete(sk.name);
+      setInstalled(prev => {
+        const s = new Set(prev)
+        s.delete(sk.name)
 
- return s })
+        return s
+      })
       await notifyBackendOfSkillsChange()
       setMsgOk(true)
       setMsg(`「${sk.title}」已卸载`)
@@ -133,10 +154,14 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
     }
   }
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
   async function install(sk: MarketSkill) {
-    if (installing) {return}
+    if (installing) {
+      return
+    }
     setInstalling(sk.name)
     setMsg('')
 
@@ -190,12 +215,19 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
               >
                 <div className="flex items-start gap-2">
                   {/* qiji 0.19.4: 市场技能图标（名→类别→兜底 + 语义彩色底） */}
-                  <span className={cn('flex size-7 shrink-0 items-center justify-center rounded-lg border', skillIconTone(resolveSkillIconName(sk.name)))}>
+                  <span
+                    className={cn(
+                      'flex size-7 shrink-0 items-center justify-center rounded-lg border',
+                      skillIconTone(resolveSkillIconName(sk.name))
+                    )}
+                  >
                     <SkillIcon name={sk.name} />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{titleZh}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">v{sk.version} · {sk.download_count} 次下载</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      v{sk.version} · {sk.download_count} 次下载
+                    </p>
                   </div>
                 </div>
                 {sk.description ? (
@@ -240,15 +272,15 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
           <input
             className="flex-1 rounded-md border bg-transparent px-2 py-1.5 text-xs outline-none focus:border-primary/50"
             onChange={e => setGhRepo(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && ghRepo.trim()) {void installGithub(ghRepo.trim())} }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && ghRepo.trim()) {
+                void installGithub(ghRepo.trim())
+              }
+            }}
             placeholder="owner/repo（支持粘贴 github.com 链接）"
             value={ghRepo}
           />
-          <Button
-            disabled={ghBusy || !ghRepo.trim()}
-            onClick={() => void installGithub(ghRepo.trim())}
-            size="sm"
-          >
+          <Button disabled={ghBusy || !ghRepo.trim()} onClick={() => void installGithub(ghRepo.trim())} size="sm">
             {ghBusy ? <Loader2 className="size-3 animate-spin" /> : null}
             {ghBusy ? '安装中…' : '安装'}
           </Button>
@@ -257,7 +289,7 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
           {[
             ['anthropics/skills', '⭐ Anthropic 官方集(20个)'],
             ['vercel-labs/skills', '🔥 Vercel 热门'],
-            ['vercel-labs/agent-browser', '🌐 浏览器自动化'],
+            ['vercel-labs/agent-browser', '🌐 浏览器自动化']
           ].map(([repo, label]) => (
             <button
               className="rounded-md border px-2 py-0.5 text-[11px] text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
@@ -265,8 +297,11 @@ export function MarketPanel(_props: React.ComponentProps<'section'>) {
               onClick={() => {
                 const parts = repo.split('/')
 
-                if (parts.length > 2) {void installGithub(parts.slice(0, 2).join('/'), parts.slice(2).join('/'))}
-                else {void installGithub(repo)}
+                if (parts.length > 2) {
+                  void installGithub(parts.slice(0, 2).join('/'), parts.slice(2).join('/'))
+                } else {
+                  void installGithub(repo)
+                }
               }}
               type="button"
             >

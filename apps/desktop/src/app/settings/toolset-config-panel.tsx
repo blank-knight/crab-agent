@@ -578,10 +578,7 @@ export function ToolsetConfigPanel({ toolset, onConfiguredChange, profile }: Too
   // qiji 0.20.4: 隐藏 Nous 订阅提供方行（requires_nous_auth；中转站未定，
   // 接自家中转时移除此过滤）。连接器/工具的 Nous 托管行由后端
   // tools_config_providers.py 在未登录时已隐藏，此处兜底已登录场景。
-  const providers = useMemo(
-    () => (cfg?.providers ?? []).filter(p => !p.requires_nous_auth),
-    [cfg]
-  )
+  const providers = useMemo(() => (cfg?.providers ?? []).filter(p => !p.requires_nous_auth), [cfg])
 
   // Default the expanded provider to the one actually active in config
   // (`is_active` / `cfg.active_provider`, mirroring the CLI picker), then the

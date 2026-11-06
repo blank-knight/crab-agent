@@ -29,12 +29,16 @@ export interface UserAgent {
 const KEY = 'qiji-user-agents'
 
 function parse(raw: string | null): UserAgent[] {
-  if (!raw) {return []}
+  if (!raw) {
+    return []
+  }
 
   try {
     const arr = JSON.parse(raw)
 
-    if (!Array.isArray(arr)) {return []}
+    if (!Array.isArray(arr)) {
+      return []
+    }
 
     return arr.filter(
       (u): u is UserAgent =>

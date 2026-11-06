@@ -1637,7 +1637,8 @@ export const deOverrides = {
       updateNow: 'Jetzt aktualisieren',
       lastChecked: age => `Zuletzt geprüft ${age}`,
       automaticUpdates: 'Automatische Updates',
-      automaticUpdatesDesc: '螃蟹OPC prüft automatisch im Hintergrund auf Updates und benachrichtigt dich, wenn eines bereit ist.',
+      automaticUpdatesDesc:
+        '螃蟹OPC prüft automatisch im Hintergrund auf Updates und benachrichtigt dich, wenn eines bereit ist.',
       never: 'nie',
       justNow: 'gerade eben',
       minAgo: count => `vor ${count} Min.`,

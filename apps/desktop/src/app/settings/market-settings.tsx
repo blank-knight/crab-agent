@@ -45,13 +45,14 @@ export function MarketSettings() {
   const [pageSize, setPageSize] = useState(12)
 
   // 换搜索词或每页条数时回到第1页
-  useEffect(() => { setPage(1) }, [debounced, pageSize])
+  useEffect(() => {
+    setPage(1)
+  }, [debounced, pageSize])
 
   const search = useQuery({
     // 空查询 = 市场热门榜(安装量Top), 有词 = 定向搜索。翻页走市场API的pageNumber。
     queryFn: () =>
-      window.hermesDesktop?.themes?.searchMarketplace(debounced, { limit: pageSize, page }) ??
-      Promise.resolve([]),
+      window.hermesDesktop?.themes?.searchMarketplace(debounced, { limit: pageSize, page }) ?? Promise.resolve([]),
     queryKey: ['marketplace-themes-page', debounced || '__hot__', page, pageSize],
     staleTime: 5 * 60 * 1000
   })
@@ -118,12 +119,16 @@ export function MarketSettings() {
         ) : (search.data ?? []).length === 0 ? (
           <>
             {header}
-            <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">{copy.empty}</p>
+            <p className="text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
+              {copy.empty}
+            </p>
           </>
         ) : (
           <>
             {header}
-            {error && <p className="mb-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-red)">{error}</p>}
+            {error && (
+              <p className="mb-2 text-[length:var(--conversation-caption-font-size)] text-(--ui-red)">{error}</p>
+            )}
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {(search.data ?? []).map(item => {
                 const busy = installingId === item.extensionId

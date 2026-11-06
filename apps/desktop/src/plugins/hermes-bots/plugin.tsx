@@ -468,289 +468,289 @@ export default {
         }
       }
     } else {
-    ctx.register({
-      id: 'pane',
-      area: 'panes',
-      // `title` is sampled at register (module import, before the locale has
-      // loaded) — the tab renders `tabTitle` below so BOTS follows the locale.
-      title: translateNow('common.bots'),
-      // dock: explicit adoption gesture — CENTER-STACK into the sessions zone
-      // so the sidebar grows a SESSIONS | BOTS tab strip instead of splitting
-      // two cramped panes down the column. Center is safe now: insertAtGroup
-      // pins the zone's header explicitly shown on a center gain (and it
-      // stays shown once the zone has stacked), so the sessions pane can
-      // never vanish behind a stripless Bots tab — the lone-pane auto-hide
-      // trap this dock used to work around with a 'bottom' split.
-      // enforce: standing invariant, not a one-shot migration — the pane
-      // re-homes into the sessions strip at EVERY boot it isn't already
-      // there, whatever tokens or user placement an older install persisted.
-      // The one-time heal ('sessions-tab-v1') burned its token even when its
-      // guards skipped the move, so exactly the users who had fought the old
-      // stacked layout (dragged panes → $userPlacedPanes) stayed stacked
-      // forever. Owner's order: SESSIONS | BOTS is always a tab strip.
-      // An intra-session drag still sticks until the next launch (the
-      // invariant runs at adoption time only — see enforceDockedPanes in the
-      // tree store).
-      // collapsible: the pane lives in the sessions zone, so it must LEAVE
-      // the grid with that zone below the sidebar-collapse breakpoint. The
-      // sessions pane collapses alone without this flag. The zone then keeps
-      // a stranded BOTS tab on screen. The narrow edge overlay mirrors the
-      // zone's tab strip, so the pane stays reachable while collapsed.
-      data: {
-        placement: 'left',
-        width: '260px',
-        collapsible: true,
-        hideOnly: true,
-        tabTitle: () => <LocalizedTabTitle select={t => t.common.bots} />,
-        tabTitleText: () => translateNow('common.bots'),
-        dock: {
-          pane: 'sessions',
-          pos: 'center',
-          enforce: true
-        }
-      },
-      render: () => <BotsPane />
-    })
-
-    // Routines — its OWN tiling pane splitting the workspace's right edge
-    // (NOT the collapsible right sidebar; placement 'right' is that sidebar's
-    // role and hides the pane until "Show Right Sidebar").
-    //
-
-    // Registered ONLY while Bot Mode is on screen: the pane exists while the
-    // Bots pane is visible (its zone's active tab, or a lone pane in a
-    // stacked pre-heal layout) and unregisters when the user tabs back to
-    // Sessions — no Cronjobs tile squatting beside the chat outside Bot Mode.
-    // `ctx.register` returns the disposer that makes this cheap; the tree
-    // keeps the pane's spot, so re-registering re-adopts it where it was.
-    // host.paneVisibility is feature-detected: older desktops without the SDK
-    // export keep the always-registered behavior.
-    const registerRoutinesPane = (restoreDismissed: boolean) => {
-      const dispose = ctx.register({
-        id: 'routines',
+      ctx.register({
+        id: 'pane',
         area: 'panes',
-        // The app's noun for these, so the tab agrees with the pane header and
-        // with the core Scheduled jobs surface. `translateNow`, not `useI18n`:
-        // a pane title is read at registration, outside React.
-        title: translateNow('cron.title'),
+        // `title` is sampled at register (module import, before the locale has
+        // loaded) — the tab renders `tabTitle` below so BOTS follows the locale.
+        title: translateNow('common.bots'),
+        // dock: explicit adoption gesture — CENTER-STACK into the sessions zone
+        // so the sidebar grows a SESSIONS | BOTS tab strip instead of splitting
+        // two cramped panes down the column. Center is safe now: insertAtGroup
+        // pins the zone's header explicitly shown on a center gain (and it
+        // stays shown once the zone has stacked), so the sessions pane can
+        // never vanish behind a stripless Bots tab — the lone-pane auto-hide
+        // trap this dock used to work around with a 'bottom' split.
+        // enforce: standing invariant, not a one-shot migration — the pane
+        // re-homes into the sessions strip at EVERY boot it isn't already
+        // there, whatever tokens or user placement an older install persisted.
+        // The one-time heal ('sessions-tab-v1') burned its token even when its
+        // guards skipped the move, so exactly the users who had fought the old
+        // stacked layout (dragged panes → $userPlacedPanes) stayed stacked
+        // forever. Owner's order: SESSIONS | BOTS is always a tab strip.
+        // An intra-session drag still sticks until the next launch (the
+        // invariant runs at adoption time only — see enforceDockedPanes in the
+        // tree store).
+        // collapsible: the pane lives in the sessions zone, so it must LEAVE
+        // the grid with that zone below the sidebar-collapse breakpoint. The
+        // sessions pane collapses alone without this flag. The zone then keeps
+        // a stranded BOTS tab on screen. The narrow edge overlay mirrors the
+        // zone's tab strip, so the pane stays reachable while collapsed.
         data: {
-          tabTitle: () => <LocalizedTabTitle select={t => t.cron.title} />,
-          tabTitleText: () => translateNow('cron.title'),
-          placement: 'main',
-          // Repair persisted layouts that stranded Cronjobs in the Bots tab strip.
+          placement: 'left',
+          width: '260px',
+          collapsible: true,
+          hideOnly: true,
+          tabTitle: () => <LocalizedTabTitle select={t => t.common.bots} />,
+          tabTitleText: () => translateNow('common.bots'),
           dock: {
-            pane: 'workspace',
-            pos: 'right',
+            pane: 'sessions',
+            pos: 'center',
             enforce: true
-          },
-          // A bot's schedule is glanceable, not something you sit in — it
-          // arrives as the right edge's vertical tab and takes no width off the
-          // chat until the user opens it.
-          defaultCollapsed: true,
-          width: '250px'
+          }
         },
-        render: () => <RoutinesPane />
+        render: () => <BotsPane />
       })
 
-      // The pane's ✕ remembers a Close across launches, and nothing else ever
-      // shows this pane again — it only comes back by being registered here.
-      // Entering Bot Mode is the user asking for their bot's chrome, so a
-      // remembered Close is dropped and the pane returns the way it first
-      // arrived: as the collapsed right-edge tab (#102224). Only on ENTRY:
-      // the pane also re-registers whenever a bot chat regains the workspace
-      // inside one Bots session (a group room and back), and a ✕ from that
-      // same session must survive those.
-      if (restoreDismissed && typeof host.undismissPane === 'function') {
-        host.undismissPane(`${ID}:routines`)
-      }
-
-      return dispose
-    }
-
-    if (typeof host.paneVisibility === 'function') {
-      // The contribution-scoped pane id (`register` prefixes `${ID}:`).
-      const $sidebarVisible = host.paneVisibility(`${ID}:pane`)
-      let unregisterRoutines: null | (() => void) = null
-      // Armed by each Bots-tab entry, spent by the first registration after it.
-      let restoreDismissedOnRegister = true
-
-      const syncRoutinesPane = () => {
-        if (botChatOwnsWorkspace()) {
-          if (!unregisterRoutines) {
-            unregisterRoutines = registerRoutinesPane(restoreDismissedOnRegister)
-            restoreDismissedOnRegister = false
-          }
-        } else if (unregisterRoutines) {
-          // Clicking the Cronjobs tile moves focus onto the tile itself, which
-          // drops bot-chat workspace ownership for a beat. While Bot Mode is
-          // still on screen and the tile is the one holding focus, keep it —
-          // a pane must never unregister itself out from under its own click.
-          // Leaving Bot Mode ($botsPaneVisible false) still unregisters.
-          const $self = host.paneVisibility(`${ID}:routines`)
-
-          if ($botsPaneVisible.get() && $self && typeof $self.get === 'function' && $self.get()) {
-            return
-          }
-
-          unregisterRoutines()
-          unregisterRoutines = null
-        }
-      }
-
-      const stopSidebarSync = $sidebarVisible.listen(visible => {
-        $botsPaneVisible.set(Boolean(visible))
-
-        if (visible) {
-          restoreDismissedOnRegister = true
-
-          const group = $groupChatWorkspace.get()
-          const selected = selectedRosterBot($lastRoster.get(), $selectedRosterKey.get())
-
-          // Owner routing only. With neither a group nor a selected bot there
-          // is no bot-owned surface to scope, so leave the workspace on
-          // whatever the user was already looking at — the roster-hydration
-          // effect in BotsPane scopes it the moment a real owner exists.
-          //
-          // This is where the Bots home used to claim the center and refuse a
-          // new chat with "Select a Bot or group first." Deleting the home
-          // deleted the dead end it was apologizing for: with nothing selected
-          // the center is an ordinary session and `+` works there. The refusal
-          // itself still stands for the cases that remain — a group room, and
-          // a selected row too orphaned to route (setBotsWorkspaceOwner's
-          // blocked target).
-          if (group) {
-            setBotsWorkspaceOwner(
-              groupWorkspaceOwnerKey(group),
-              null,
-              'New group conversations start in the group composer.'
-            )
-          } else if (selected) {
-            setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)
-          }
-        } else {
-          // Strand any owner wake still dialing. Its SDK open will fail the
-          // workspace token too; this plugin generation prevents that expected
-          // cancellation from showing an error after the user deliberately
-          // returned to Sessions.
-          bumpBotOpenGeneration()
-          host.setWorkspaceScope?.('sessions')
-        }
-
-        syncRoutinesPane()
-      })
-
-      const stopGroupSync = $groupChatWorkspace.listen(syncRoutinesPane)
-
-      // React on the NEXT tick — a layout notification arrives mid-mutation,
-      // and registering/unregistering panes from inside it would re-enter the
-      // tree store.
-      const scheduleRoutinesSync = () => {
-        try {
-          setTimeout(syncRoutinesPane, 0)
-        } catch {
-          syncRoutinesPane()
-        }
-      }
-
-      // Tab focus moves without swapping the gateway socket, so the focused
-      // STORED session is the truth about session focus; older shells fall
-      // back to the active session id.
-      const focusStore = host.state.focusedStoredSessionId || host.state.activeSessionId
-
-      const stopFocusSync =
-        typeof focusStore?.listen === 'function'
-          ? focusStore.listen(id => {
-              $botChatFocused.set(Boolean(id))
-              releaseStaleOpenBotChat(id)
-              syncRoutinesPane()
-            })
-          : null
-
-      // Proactive reclaim refresh: when the gateway reaps the runtime behind
-      // the OPEN bot chat (idle TTL, LRU cap, WS-orphan reap — the mass-reap
-      // shape hits every background bot at once), re-resume the canonical
-      // chat immediately instead of letting the user's next send eat the
-      // stale-id error + recovery retry. Matched on the STORED id (the
-      // claim's ids are stored ids; the payload carries both). Best-effort:
-      // a failed re-resume (backend still down) leaves the lazy recovery on
-      // next send as the backstop. Feature-detected — older shells have no
-      // host.onEvent.
+      // Routines — its OWN tiling pane splitting the workspace's right edge
+      // (NOT the collapsible right sidebar; placement 'right' is that sidebar's
+      // role and hides the pane until "Show Right Sidebar").
       //
-      // This is a BACKGROUND wake: it refreshes in place (refreshInPlace
-      // through openBotCanonicalChat) and never navigates, so a user
-      // reading the Kanban board — or any other route — keeps their view
-      // (issue 121874).
-      const stopReclaimSync =
-        typeof host.onEvent === 'function'
-          ? host.onEvent('session.reclaimed', event => {
-              const payload = (event?.payload || {}) as { stored_session_id?: string }
-              const stored = String(payload.stored_session_id || '')
-              const claim = $openBotChat.get()
 
-              if (!stored || !claim) {
-                return
-              }
-
-              const owned = [claim.openedSessionId, claim.openedRegistryId].filter(Boolean)
-
-              if (!owned.includes(stored)) {
-                return
-              }
-
-              // A claim without a registry id is the legacy newChat draft
-              // fallback: re-resolving the canonical chat here would replace
-              // a draft the user is typing into. Its tile recovers on the next
-              // send like any tab.
-              if (!claim.openedRegistryId) {
-                return
-              }
-
-              const bot = selectedRosterBot($lastRoster.get(), $selectedRosterKey.get())
-
-              if (!bot) {
-                return
-              }
-
-              const generation = getBotOpenGeneration()
-              void openBotCanonicalChat(bot, { background: true })
-                .then(opened => {
-                  // A user action while the re-resume ran owns the center now.
-                  if (!opened || generation !== getBotOpenGeneration()) {
-                    return
-                  }
-
-                  $openBotChat.set({
-                    key: claim.key,
-                    openedRegistryId: opened.registryId,
-                    openedSessionId: opened.openedId
-                  })
-                })
-                .catch(() => {
-                  /* backend still down — next send recovers via the ladder */
-                })
-            })
-          : null
-
-      $botsPaneVisible.set(Boolean($sidebarVisible.get()))
-      $botChatFocused.set(sessionOwnsWorkspace())
-      // A persisted layout can boot directly into Bot Mode. Reconcile now,
-      // then once more after the layout mutation finishes.
-      syncRoutinesPane()
-      scheduleRoutinesSync()
-
-      if (typeof ctx.onDispose === 'function') {
-        // The registration disposer is already tracked by ctx.register; only
-        // the listeners need explicit teardown or they survive plugin disable.
-        ctx.onDispose(() => {
-          stopSidebarSync()
-          stopGroupSync()
-          stopFocusSync?.()
-          stopReclaimSync?.()
+      // Registered ONLY while Bot Mode is on screen: the pane exists while the
+      // Bots pane is visible (its zone's active tab, or a lone pane in a
+      // stacked pre-heal layout) and unregisters when the user tabs back to
+      // Sessions — no Cronjobs tile squatting beside the chat outside Bot Mode.
+      // `ctx.register` returns the disposer that makes this cheap; the tree
+      // keeps the pane's spot, so re-registering re-adopts it where it was.
+      // host.paneVisibility is feature-detected: older desktops without the SDK
+      // export keep the always-registered behavior.
+      const registerRoutinesPane = (restoreDismissed: boolean) => {
+        const dispose = ctx.register({
+          id: 'routines',
+          area: 'panes',
+          // The app's noun for these, so the tab agrees with the pane header and
+          // with the core Scheduled jobs surface. `translateNow`, not `useI18n`:
+          // a pane title is read at registration, outside React.
+          title: translateNow('cron.title'),
+          data: {
+            tabTitle: () => <LocalizedTabTitle select={t => t.cron.title} />,
+            tabTitleText: () => translateNow('cron.title'),
+            placement: 'main',
+            // Repair persisted layouts that stranded Cronjobs in the Bots tab strip.
+            dock: {
+              pane: 'workspace',
+              pos: 'right',
+              enforce: true
+            },
+            // A bot's schedule is glanceable, not something you sit in — it
+            // arrives as the right edge's vertical tab and takes no width off the
+            // chat until the user opens it.
+            defaultCollapsed: true,
+            width: '250px'
+          },
+          render: () => <RoutinesPane />
         })
+
+        // The pane's ✕ remembers a Close across launches, and nothing else ever
+        // shows this pane again — it only comes back by being registered here.
+        // Entering Bot Mode is the user asking for their bot's chrome, so a
+        // remembered Close is dropped and the pane returns the way it first
+        // arrived: as the collapsed right-edge tab (#102224). Only on ENTRY:
+        // the pane also re-registers whenever a bot chat regains the workspace
+        // inside one Bots session (a group room and back), and a ✕ from that
+        // same session must survive those.
+        if (restoreDismissed && typeof host.undismissPane === 'function') {
+          host.undismissPane(`${ID}:routines`)
+        }
+
+        return dispose
       }
-    } else {
-      registerRoutinesPane(true)
-    }
+
+      if (typeof host.paneVisibility === 'function') {
+        // The contribution-scoped pane id (`register` prefixes `${ID}:`).
+        const $sidebarVisible = host.paneVisibility(`${ID}:pane`)
+        let unregisterRoutines: null | (() => void) = null
+        // Armed by each Bots-tab entry, spent by the first registration after it.
+        let restoreDismissedOnRegister = true
+
+        const syncRoutinesPane = () => {
+          if (botChatOwnsWorkspace()) {
+            if (!unregisterRoutines) {
+              unregisterRoutines = registerRoutinesPane(restoreDismissedOnRegister)
+              restoreDismissedOnRegister = false
+            }
+          } else if (unregisterRoutines) {
+            // Clicking the Cronjobs tile moves focus onto the tile itself, which
+            // drops bot-chat workspace ownership for a beat. While Bot Mode is
+            // still on screen and the tile is the one holding focus, keep it —
+            // a pane must never unregister itself out from under its own click.
+            // Leaving Bot Mode ($botsPaneVisible false) still unregisters.
+            const $self = host.paneVisibility(`${ID}:routines`)
+
+            if ($botsPaneVisible.get() && $self && typeof $self.get === 'function' && $self.get()) {
+              return
+            }
+
+            unregisterRoutines()
+            unregisterRoutines = null
+          }
+        }
+
+        const stopSidebarSync = $sidebarVisible.listen(visible => {
+          $botsPaneVisible.set(Boolean(visible))
+
+          if (visible) {
+            restoreDismissedOnRegister = true
+
+            const group = $groupChatWorkspace.get()
+            const selected = selectedRosterBot($lastRoster.get(), $selectedRosterKey.get())
+
+            // Owner routing only. With neither a group nor a selected bot there
+            // is no bot-owned surface to scope, so leave the workspace on
+            // whatever the user was already looking at — the roster-hydration
+            // effect in BotsPane scopes it the moment a real owner exists.
+            //
+            // This is where the Bots home used to claim the center and refuse a
+            // new chat with "Select a Bot or group first." Deleting the home
+            // deleted the dead end it was apologizing for: with nothing selected
+            // the center is an ordinary session and `+` works there. The refusal
+            // itself still stands for the cases that remain — a group room, and
+            // a selected row too orphaned to route (setBotsWorkspaceOwner's
+            // blocked target).
+            if (group) {
+              setBotsWorkspaceOwner(
+                groupWorkspaceOwnerKey(group),
+                null,
+                'New group conversations start in the group composer.'
+              )
+            } else if (selected) {
+              setBotsWorkspaceOwner(botWorkspaceOwnerKey(selected), selected)
+            }
+          } else {
+            // Strand any owner wake still dialing. Its SDK open will fail the
+            // workspace token too; this plugin generation prevents that expected
+            // cancellation from showing an error after the user deliberately
+            // returned to Sessions.
+            bumpBotOpenGeneration()
+            host.setWorkspaceScope?.('sessions')
+          }
+
+          syncRoutinesPane()
+        })
+
+        const stopGroupSync = $groupChatWorkspace.listen(syncRoutinesPane)
+
+        // React on the NEXT tick — a layout notification arrives mid-mutation,
+        // and registering/unregistering panes from inside it would re-enter the
+        // tree store.
+        const scheduleRoutinesSync = () => {
+          try {
+            setTimeout(syncRoutinesPane, 0)
+          } catch {
+            syncRoutinesPane()
+          }
+        }
+
+        // Tab focus moves without swapping the gateway socket, so the focused
+        // STORED session is the truth about session focus; older shells fall
+        // back to the active session id.
+        const focusStore = host.state.focusedStoredSessionId || host.state.activeSessionId
+
+        const stopFocusSync =
+          typeof focusStore?.listen === 'function'
+            ? focusStore.listen(id => {
+                $botChatFocused.set(Boolean(id))
+                releaseStaleOpenBotChat(id)
+                syncRoutinesPane()
+              })
+            : null
+
+        // Proactive reclaim refresh: when the gateway reaps the runtime behind
+        // the OPEN bot chat (idle TTL, LRU cap, WS-orphan reap — the mass-reap
+        // shape hits every background bot at once), re-resume the canonical
+        // chat immediately instead of letting the user's next send eat the
+        // stale-id error + recovery retry. Matched on the STORED id (the
+        // claim's ids are stored ids; the payload carries both). Best-effort:
+        // a failed re-resume (backend still down) leaves the lazy recovery on
+        // next send as the backstop. Feature-detected — older shells have no
+        // host.onEvent.
+        //
+        // This is a BACKGROUND wake: it refreshes in place (refreshInPlace
+        // through openBotCanonicalChat) and never navigates, so a user
+        // reading the Kanban board — or any other route — keeps their view
+        // (issue 121874).
+        const stopReclaimSync =
+          typeof host.onEvent === 'function'
+            ? host.onEvent('session.reclaimed', event => {
+                const payload = (event?.payload || {}) as { stored_session_id?: string }
+                const stored = String(payload.stored_session_id || '')
+                const claim = $openBotChat.get()
+
+                if (!stored || !claim) {
+                  return
+                }
+
+                const owned = [claim.openedSessionId, claim.openedRegistryId].filter(Boolean)
+
+                if (!owned.includes(stored)) {
+                  return
+                }
+
+                // A claim without a registry id is the legacy newChat draft
+                // fallback: re-resolving the canonical chat here would replace
+                // a draft the user is typing into. Its tile recovers on the next
+                // send like any tab.
+                if (!claim.openedRegistryId) {
+                  return
+                }
+
+                const bot = selectedRosterBot($lastRoster.get(), $selectedRosterKey.get())
+
+                if (!bot) {
+                  return
+                }
+
+                const generation = getBotOpenGeneration()
+                void openBotCanonicalChat(bot, { background: true })
+                  .then(opened => {
+                    // A user action while the re-resume ran owns the center now.
+                    if (!opened || generation !== getBotOpenGeneration()) {
+                      return
+                    }
+
+                    $openBotChat.set({
+                      key: claim.key,
+                      openedRegistryId: opened.registryId,
+                      openedSessionId: opened.openedId
+                    })
+                  })
+                  .catch(() => {
+                    /* backend still down — next send recovers via the ladder */
+                  })
+              })
+            : null
+
+        $botsPaneVisible.set(Boolean($sidebarVisible.get()))
+        $botChatFocused.set(sessionOwnsWorkspace())
+        // A persisted layout can boot directly into Bot Mode. Reconcile now,
+        // then once more after the layout mutation finishes.
+        syncRoutinesPane()
+        scheduleRoutinesSync()
+
+        if (typeof ctx.onDispose === 'function') {
+          // The registration disposer is already tracked by ctx.register; only
+          // the listeners need explicit teardown or they survive plugin disable.
+          ctx.onDispose(() => {
+            stopSidebarSync()
+            stopGroupSync()
+            stopFocusSync?.()
+            stopReclaimSync?.()
+          })
+        }
+      } else {
+        registerRoutinesPane(true)
+      }
     } // qiji: else 闭合——pane 注册及其可见性/例程联动整体跳过（入口归并 OPC）
 
     // A bot's chat before it has spoken: core's splash is Hermes' wordmark and

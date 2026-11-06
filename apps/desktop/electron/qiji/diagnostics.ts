@@ -19,7 +19,9 @@ export interface DiagnosticsDeps {
 
 function readTail(p: string, maxBytes = 64 * 1024): string {
   try {
-    if (!fs.existsSync(p)) {return '(文件不存在)'}
+    if (!fs.existsSync(p)) {
+      return '(文件不存在)'
+    }
     const stat = fs.statSync(p)
     const start = Math.max(0, stat.size - maxBytes)
     const fd = fs.openSync(p, 'r')
@@ -54,7 +56,9 @@ export function registerQijiDiagnosticsIpc({
     const sections: string[] = []
     sections.push(`==== ${BRAND.defaultName}诊断快照 ====`)
     sections.push(`导出时间: ${new Date().toISOString()}`)
-    sections.push(`版本: ${resolveHermesVersion()}  Electron: ${process.versions.electron}  Node: ${process.versions.node}`)
+    sections.push(
+      `版本: ${resolveHermesVersion()}  Electron: ${process.versions.electron}  Node: ${process.versions.node}`
+    )
     sections.push(`系统: ${process.platform} ${os.release()} ${process.arch}  主机: ${os.hostname()}`)
     sections.push(`数据目录: ${hermesHome}`)
     sections.push(`标记文件: ${readBootstrapMarker() ? JSON.stringify(readBootstrapMarker()) : '(缺失!)'}`)

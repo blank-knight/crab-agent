@@ -65,7 +65,9 @@ export function useCapabilityScope({
   // crab 0.20.5s-r3: 专家档是密封预设(bot_title 标记),不可配置。active 停在
   // 专家档时(用户刚跟专家聊完),配置 scope 不得跟随——回落 default。
   const activeIsExpert = useMemo(() => {
-    if (!activeProfile || !profilesData?.profiles) {return false}
+    if (!activeProfile || !profilesData?.profiles) {
+      return false
+    }
 
     const row = profilesData.profiles.find(p => normalizeProfileKey(p.name) === normalizeProfileKey(activeProfile))
 
@@ -78,7 +80,7 @@ export function useCapabilityScope({
         ? fixedConnection
           ? { connectionId: fixedConnection, profile: fixedProfile }
           : fixedProfile
-        : ((scopeOverride ?? (activeIsExpert ? 'default' : activeProfile)) ?? null),
+        : (scopeOverride ?? (activeIsExpert ? 'default' : activeProfile) ?? null),
     [activeProfile, activeIsExpert, fixedConnection, fixedProfile, scopeOverride]
   )
 

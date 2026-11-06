@@ -103,7 +103,9 @@ export function AccountSettings() {
       const res = await backendGet<ProfileData>('/api/client/v1/profile')
       const d = res.data
 
-      if (!d) {throw new Error('empty')}
+      if (!d) {
+        throw new Error('empty')
+      }
       setProfile(d)
       setNickname(d.nickname || '')
       setEmail(d.email || '')
@@ -123,7 +125,6 @@ export function AccountSettings() {
     }
   }, [])
 
-
   const loadLogs = useCallback(async (page: number, append: boolean) => {
     setLoadingLogs(true)
 
@@ -134,7 +135,9 @@ export function AccountSettings() {
 
       const d = res.data
 
-      if (!d) {return}
+      if (!d) {
+        return
+      }
       setLogsTotal(d.total)
       setLogsPage(page)
       setLogs(prev => (append ? [...prev, ...d.rows] : d.rows))
@@ -165,7 +168,9 @@ export function AccountSettings() {
   }, [authState.token])
 
   async function saveProfile() {
-    if (!profile || savingProfile) {return}
+    if (!profile || savingProfile) {
+      return
+    }
     setSavingProfile(true)
     setProfileError(null)
     setProfileSaved(false)
@@ -173,9 +178,13 @@ export function AccountSettings() {
     try {
       const body: Record<string, string> = {}
 
-      if (nickname !== profile.nickname) {body.nickname = nickname}
+      if (nickname !== profile.nickname) {
+        body.nickname = nickname
+      }
 
-      if (email !== profile.email) {body.email = email}
+      if (email !== profile.email) {
+        body.email = email
+      }
 
       if (Object.keys(body).length > 0) {
         await backendPost('/api/client/v1/profile/update', body)
@@ -197,14 +206,16 @@ export function AccountSettings() {
   }
 
   async function buyPlan(plan: Plan) {
-    if (buyingId !== null) {return}
+    if (buyingId !== null) {
+      return
+    }
     setBuyingId(plan.id)
     setPlanMsg(null)
 
     try {
       const res = await backendPost<{ order_no: string; pay_url: string }>('/api/client/v1/plan/order', {
         plan_id: plan.id,
-        pay_type: 'alipay',
+        pay_type: 'alipay'
       })
 
       const payUrl = res.data?.pay_url
@@ -249,7 +260,9 @@ export function AccountSettings() {
   }
 
   async function redeem() {
-    if (!code.trim() || redeeming) {return}
+    if (!code.trim() || redeeming) {
+      return
+    }
     setRedeeming(true)
     setRechargeMsg(null)
 
@@ -278,9 +291,7 @@ export function AccountSettings() {
   if (!authState.token) {
     return (
       <SettingsContent>
-        <div className="mx-auto max-w-2xl pt-10 text-center text-sm text-muted-foreground">
-          {a.notLoggedIn}
-        </div>
+        <div className="mx-auto max-w-2xl pt-10 text-center text-sm text-muted-foreground">{a.notLoggedIn}</div>
       </SettingsContent>
     )
   }
@@ -318,14 +329,15 @@ export function AccountSettings() {
               {profile?.agent_name && <span>{profile.agent_name}</span>}
               <span>
                 {a.score.balance}：
-                <span className={cn('font-semibold', (profile?.score ?? 0) <= 0 ? 'text-destructive' : 'text-foreground')}>
+                <span
+                  className={cn('font-semibold', (profile?.score ?? 0) <= 0 ? 'text-destructive' : 'text-foreground')}
+                >
                   {' '}
                   {profile?.score ?? authState.score}
                 </span>
               </span>
               <span>
-                {a.score.mode}：
-                {profile?.mode === 'formal' ? a.score.modeFormal : a.score.modeTrial}
+                {a.score.mode}：{profile?.mode === 'formal' ? a.score.modeFormal : a.score.modeTrial}
               </span>
             </div>
           </div>
@@ -410,9 +422,7 @@ export function AccountSettings() {
               >
                 <div>
                   <p className="text-sm font-medium">{p.name}</p>
-                  <p className="mt-0.5 text-xl font-semibold">
-                    {p.price > 0 ? `¥${p.price.toFixed(2)}` : '免费'}
-                  </p>
+                  <p className="mt-0.5 text-xl font-semibold">{p.price > 0 ? `¥${p.price.toFixed(2)}` : '免费'}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {p.score.toLocaleString()} {a.plans.unit}
                   </p>
@@ -450,7 +460,9 @@ export function AccountSettings() {
               className="h-9 min-w-0 flex-1 rounded-md border border-border bg-transparent px-3 text-sm outline-none focus:border-primary"
               onChange={e => setCode(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') {void redeem()}
+                if (e.key === 'Enter') {
+                  void redeem()
+                }
               }}
               placeholder={a.recharge.placeholder}
               value={code}
@@ -461,7 +473,9 @@ export function AccountSettings() {
             </Button>
           </div>
           {rechargeMsg && (
-            <p className={cn('mt-2 text-xs', rechargeOk ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive')}>
+            <p
+              className={cn('mt-2 text-xs', rechargeOk ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive')}
+            >
               {rechargeMsg}
             </p>
           )}
@@ -544,15 +558,7 @@ export function AccountSettings() {
   )
 }
 
-function ProfileField({
-  label,
-  children,
-  last = false
-}: {
-  label: string
-  children: React.ReactNode
-  last?: boolean
-}) {
+function ProfileField({ label, children, last = false }: { label: string; children: React.ReactNode; last?: boolean }) {
   return (
     <div
       className={cn(

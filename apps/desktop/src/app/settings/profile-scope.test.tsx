@@ -60,15 +60,14 @@ describe('hideScopeSelectorEntirely (crab 0.20.5p-r2)', () => {
 })
 
 describe('SettingsProfileScope', () => {
-
-// qiji: scope 选择器默认收起为内联下拉——先展开再点 chip
-function expandChips() {
-  // 折叠态按钮的 accessible name = "<当前选中项>"(aria-hidden 的 › 不计入 name)。
-  // 通过排除法点它：它带有 hover:bg-(--chrome-action-hover) 类（chip 没有）。
-  const toggle = screen.getAllByRole('button').find(b => b.className.includes('chrome-action-hover'))
-  expect(toggle).toBeTruthy()
-  fireEvent.click(toggle!)
-}
+  // qiji: scope 选择器默认收起为内联下拉——先展开再点 chip
+  function expandChips() {
+    // 折叠态按钮的 accessible name = "<当前选中项>"(aria-hidden 的 › 不计入 name)。
+    // 通过排除法点它：它带有 hover:bg-(--chrome-action-hover) 类（chip 没有）。
+    const toggle = screen.getAllByRole('button').find(b => b.className.includes('chrome-action-hover'))
+    expect(toggle).toBeTruthy()
+    fireEvent.click(toggle!)
+  }
 
   it('renders nothing with fewer than two profiles', () => {
     $profiles.set([profile('default', true)])

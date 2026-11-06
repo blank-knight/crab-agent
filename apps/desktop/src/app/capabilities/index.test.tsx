@@ -514,7 +514,14 @@ describe('CapabilitiesView toolset management', { timeout: 60_000 }, () => {
       render(
         <QueryClientProvider client={queryClient}>
           <MemoryRouter initialEntries={['/capabilities?tab=skills']}>
-            <SkillsTab installedPending={false} onQueryChange={vi.fn()} onRefresh={vi.fn()} profile={undefined} query="" skills={installedNow} />
+            <SkillsTab
+              installedPending={false}
+              onQueryChange={vi.fn()}
+              onRefresh={vi.fn()}
+              profile={undefined}
+              query=""
+              skills={installedNow}
+            />
           </MemoryRouter>
         </QueryClientProvider>
       )

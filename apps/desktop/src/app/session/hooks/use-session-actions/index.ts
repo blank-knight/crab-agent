@@ -370,15 +370,9 @@ async function desktopSessionCreateParams(
 
   const intentWinsLock =
     explicitIntent &&
-    (!lockedProfile ||
-      isAccountLockException(explicitIntent) ||
-      normalizeProfileKey(explicitIntent) === activeKey)
+    (!lockedProfile || isAccountLockException(explicitIntent) || normalizeProfileKey(explicitIntent) === activeKey)
 
-  const profile =
-    (intentWinsLock ? explicitIntent : undefined) ||
-    lockedProfile ||
-    explicitIntent ||
-    activeKey
+  const profile = (intentWinsLock ? explicitIntent : undefined) || lockedProfile || explicitIntent || activeKey
 
   if (capturedRoute) {
     await ensureGatewayAgent(capturedRoute.connectionId, profile)
@@ -1273,9 +1267,7 @@ export function useSessionActions({
       // 拦截，维持“确认是他人的才拒”的保守取向。
       const lockedProfile = accountLockedProfile()
 
-      const sessionProfileKey = storedForProfile
-        ? normalizeProfileKey(storedForProfile.profile || 'default')
-        : null
+      const sessionProfileKey = storedForProfile ? normalizeProfileKey(storedForProfile.profile || 'default') : null
 
       const isOwnExpertProfile = await (async () => {
         if (!lockedProfile || sessionProfileKey === null) {

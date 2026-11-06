@@ -6,7 +6,12 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { applyUserFont } from '@/themes/apply-user-font'
 import { FONT_PRESETS, getFontPreset, readStoredFontPref, writeStoredFontPref } from '@/themes/font-presets'
-import { applyUserWallpaper, readWallpaperPref, type UserWallpaperPref, writeWallpaperPref } from '@/themes/user-wallpaper'
+import {
+  applyUserWallpaper,
+  readWallpaperPref,
+  type UserWallpaperPref,
+  writeWallpaperPref
+} from '@/themes/user-wallpaper'
 
 import { ListRow } from './primitives'
 
@@ -116,7 +121,12 @@ export function QijiTypographyRows() {
               选择图片…
             </Button>
             {wallpaper ? (
-              <Button className="text-destructive hover:text-destructive" onClick={clearWallpaper} size="xs" variant="ghost">
+              <Button
+                className="text-destructive hover:text-destructive"
+                onClick={clearWallpaper}
+                size="xs"
+                variant="ghost"
+              >
                 清除
               </Button>
             ) : null}

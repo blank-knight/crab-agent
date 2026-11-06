@@ -474,9 +474,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
 
   // qiji 螃蟹OPC: 两级导航——当前分组所属大类 + 该大类下的可见分组 + 大类切换
   const activeCategory = useMemo(
-    () => navGroups.find(group => group.active)
-      ? categoryOfGroup(navGroups.find(group => group.active)!.id)
-      : 'general',
+    () =>
+      navGroups.find(group => group.active) ? categoryOfGroup(navGroups.find(group => group.active)!.id) : 'general',
     [navGroups]
   )
 

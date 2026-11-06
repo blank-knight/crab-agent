@@ -36,9 +36,7 @@ describe('toOpcExpertRows', () => {
 
   it('ui_meta.title 覆盖 display_name（title 链更高）', () => {
     const rows = toOpcExpertRows({
-      profiles: [
-        { name: 'geo', display_name: 'GEO 运营官', title: '品牌可见度专家', description: '人设描述' }
-      ]
+      profiles: [{ name: 'geo', display_name: 'GEO 运营官', title: '品牌可见度专家', description: '人设描述' }]
     })
 
     expect(rows[0].label).toBe('品牌可见度专家')
@@ -47,7 +45,10 @@ describe('toOpcExpertRows', () => {
 
   it('缺 description 则 desc 空串', () => {
     const [a, b] = toOpcExpertRows({
-      profiles: [{ name: 'a', description: '备胎描述' }, { name: 'b', display_name: 'B' }]
+      profiles: [
+        { name: 'a', description: '备胎描述' },
+        { name: 'b', display_name: 'B' }
+      ]
     })
 
     expect(a.desc).toBe('备胎描述')
@@ -61,7 +62,10 @@ describe('toOpcExpertRows', () => {
 
   it('worker_session.last_active 数值透传，非数值忽略', () => {
     const [a, b] = toOpcExpertRows({
-      profiles: [{ name: 'a', worker_session: { last_active: 1700000000 } }, { name: 'b', worker_session: null }]
+      profiles: [
+        { name: 'a', worker_session: { last_active: 1700000000 } },
+        { name: 'b', worker_session: null }
+      ]
     })
 
     expect(a.lastActive).toBe(1700000000)

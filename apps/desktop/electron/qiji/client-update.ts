@@ -158,15 +158,24 @@ function downloadInstallerAttempt(
           let settled = false
 
           const done = (err: Error | null, result?: string) => {
-            if (settled) {return}
+            if (settled) {
+              return
+            }
             settled = true
 
-            if (err) {reject(err)}
-            else {resolve(result as string)}
+            if (err) {
+              reject(err)
+            } else {
+              resolve(result as string)
+            }
           }
 
           fail = err => {
-            try { req.destroy() } catch { /* already gone */ }
+            try {
+              req.destroy()
+            } catch {
+              /* already gone */
+            }
             done(err)
           }
 
@@ -210,9 +219,14 @@ function downloadInstallerAttempt(
         req.setTimeout(60_000, () => {
           const err = new Error('下载超时')
 
-          if (fail) {fail(err)}
-          else {
-            try { req.destroy() } catch { /* already gone */ }
+          if (fail) {
+            fail(err)
+          } else {
+            try {
+              req.destroy()
+            } catch {
+              /* already gone */
+            }
             reject(err)
           }
         })
@@ -256,7 +270,9 @@ export function registerQijiClientUpdateIpc({ getMainWindow, rememberLog }: Clie
       if (win && !destroyed) {
         win.webContents?.send?.('hermes:clientUpdate:progress', payload)
       }
-    } catch { /* window may be mid-teardown while quitting */ }
+    } catch {
+      /* window may be mid-teardown while quitting */
+    }
   }
 
   ipcMain.handle('hermes:clientUpdate:downloadAndRun', async (_event, rawUrl: unknown) => {

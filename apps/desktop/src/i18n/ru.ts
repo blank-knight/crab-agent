@@ -3915,7 +3915,8 @@ export const ru = defineLocale({
       address: 'Адрес',
       addressPlaceholder: 'Введите адрес',
       blankPageBody: 'Введите адрес выше, чтобы просматривать, или попросите 螃蟹OPC открыть страницу.',
-      finishedRestarting: message => `螃蟹OPC завершил перезапуск сервера предпросмотра${message ? `: ${message}` : ''}`,
+      finishedRestarting: message =>
+        `螃蟹OPC завершил перезапуск сервера предпросмотра${message ? `: ${message}` : ''}`,
       failedRestarting: message => `Перезапуск сервера не удался: ${message}`,
       unknownError: 'неизвестная ошибка',
       restartedTitle: 'Сервер предпросмотра перезапущен',

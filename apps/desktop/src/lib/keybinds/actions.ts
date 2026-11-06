@@ -12,7 +12,6 @@ import type { Contribution } from '@/contrib/types'
 // 并行求值下 TDZ 崩(白屏);upstream 固有,生产 rollup 串联可容忍。语义与 combo.ts 同源。
 const IS_MAC = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform || navigator.userAgent || '')
 
-
 export type KeybindCategory = 'composer' | 'profiles' | 'session' | 'navigation' | 'view'
 
 // The self-referential opener — bound + dispatched like any action, but shown in

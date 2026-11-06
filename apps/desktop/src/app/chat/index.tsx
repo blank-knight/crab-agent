@@ -34,7 +34,13 @@ import { brandText } from '@/store/oem-brand'
 import { $guideOpening, $onboardingGate } from '@/store/onboarding-gate'
 import { $petActive } from '@/store/pet'
 import { $petOverlayActive } from '@/store/pet-overlay'
-import { $activeGatewayProfile, $gatewaySwapTarget, $hydrationSyncProfile, $profiles, pinNewChatProfile } from '@/store/profile'
+import {
+  $activeGatewayProfile,
+  $gatewaySwapTarget,
+  $hydrationSyncProfile,
+  $profiles,
+  pinNewChatProfile
+} from '@/store/profile'
 import {
   $connection,
   $contextSuggestions,

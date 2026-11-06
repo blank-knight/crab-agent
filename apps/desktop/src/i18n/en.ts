@@ -198,7 +198,8 @@ export const en: Translations = {
       freeTierNote: 'Connections stay on this computer until you sign in.',
       signInLine: 'Sign in to Nous to use managed apps.',
       signIn: 'Sign in',
-      managedUnavailable: 'The installed engine version does not support hosted connectors (local MCP servers still work). Install the latest version to use them.',
+      managedUnavailable:
+        'The installed engine version does not support hosted connectors (local MCP servers still work). Install the latest version to use them.',
       writeFailed: 'That change was not saved.',
       refreshFailed: 'The tool list was not refreshed.',
       disconnectNoAccount: '螃蟹OPC has no account to disconnect here. Refresh the page and try again.',
@@ -4602,9 +4603,15 @@ export const en: Translations = {
     localModelsPitch: 'No account needed — download a model and run it on this machine',
     openRouterPitch: 'One key, hundreds of models — a solid default',
     apiKeyOptions: {
-      'qiji-relay': { short: 'Qiji relay', description: 'Official Qiji relay — works out of the box, no proxy needed.' },
+      'qiji-relay': {
+        short: 'Qiji relay',
+        description: 'Official Qiji relay — works out of the box, no proxy needed.'
+      },
       'cn-deepseek': { short: 'China direct', description: 'Paste your DeepSeek API key; the endpoint is pre-filled.' },
-      'cn-doubao': { short: 'China direct', description: 'Paste your Volcengine Ark API key; the endpoint is pre-filled.' },
+      'cn-doubao': {
+        short: 'China direct',
+        description: 'Paste your Volcengine Ark API key; the endpoint is pre-filled.'
+      },
       'cn-hunyuan': { short: 'China direct', description: 'Paste your Hunyuan API key; the endpoint is pre-filled.' },
       'cn-qianwen': { short: 'China direct', description: 'Paste your DashScope API key; the endpoint is pre-filled.' },
       'cn-qianfan': { short: 'China direct', description: 'Paste your Qianfan API key; the endpoint is pre-filled.' },
@@ -4621,7 +4628,8 @@ export const en: Translations = {
       xai: { short: 'Grok models', description: 'Direct access to xAI Grok models.' },
       local: {
         short: 'self-hosted',
-        description: 'Point 螃蟹OPC at a local or self-hosted OpenAI-compatible endpoint (vLLM, llama.cpp, Ollama, etc).'
+        description:
+          'Point 螃蟹OPC at a local or self-hosted OpenAI-compatible endpoint (vLLM, llama.cpp, Ollama, etc).'
       }
     },
     backToSignIn: 'Back to sign in',

@@ -25,14 +25,21 @@ function collectPlatform(): string {
   let os = 'unknown'
   let arch = ''
 
-  if (nav.includes('Windows NT 10.0')) {os = 'Win10/11'}
-  else if (nav.includes('Windows NT 6.3')) {os = 'Win8.1'}
-  else if (nav.includes('Mac OS X')) {os = 'macOS'}
-  else if (nav.includes('Linux')) {os = 'Linux'}
+  if (nav.includes('Windows NT 10.0')) {
+    os = 'Win10/11'
+  } else if (nav.includes('Windows NT 6.3')) {
+    os = 'Win8.1'
+  } else if (nav.includes('Mac OS X')) {
+    os = 'macOS'
+  } else if (nav.includes('Linux')) {
+    os = 'Linux'
+  }
 
   const m = nav.match(/\(([^)]+)\)/)
 
-  if (m) {arch = m[1].slice(0, 60)}
+  if (m) {
+    arch = m[1].slice(0, 60)
+  }
   const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory
 
   return `${os} | ${arch}${mem ? ` | ${mem}GB` : ''}`
@@ -57,7 +64,9 @@ async function collectVersion(): Promise<string> {
   try {
     const v = await window.hermesDesktop?.getVersion?.()
 
-    if (typeof v === 'string') {return v}
+    if (typeof v === 'string') {
+      return v
+    }
     const info = v as { version?: string } | null | undefined
 
     return info?.version ?? 'unknown'
@@ -74,11 +83,7 @@ export interface ReportResult {
 /**
  * 提交上报。digest 是给运营看的一行摘要; 详细内容在 logs 里。
  */
-export async function submitReport(
-  type: ReportType,
-  digest: string,
-  extraLogs = ''
-): Promise<ReportResult> {
+export async function submitReport(type: ReportType, digest: string, extraLogs = ''): Promise<ReportResult> {
   try {
     const [version, platform, logs] = await Promise.all([
       collectVersion(),
@@ -113,7 +118,9 @@ export async function submitReport(
 let autoReportCount = 0
 
 export async function autoReportCrash(reason: string): Promise<void> {
-  if (autoReportCount >= 3) {return}
+  if (autoReportCount >= 3) {
+    return
+  }
   autoReportCount++
 
   try {

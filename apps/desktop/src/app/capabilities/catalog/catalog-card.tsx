@@ -93,7 +93,12 @@ export function CatalogCard({ entry, action, accentIndex, onOpen, onCategory, on
               detail; real controls sit above it (`relative`). One focus stop per card. */}
           {/* qiji 0.19.4→0.20.5: 技能图标（名→类别→兜底三级 + 语义彩色底），中文环境名称走翻译层。
               0.20.5: 圆片升 size-9/rounded-xl，对齐 OPC 卡的图标位。 */}
-          <span className={cn('flex size-9 shrink-0 items-center justify-center rounded-xl border', skillIconTone(resolveSkillIconName(entry.name, entry.category)))}>
+          <span
+            className={cn(
+              'flex size-9 shrink-0 items-center justify-center rounded-xl border',
+              skillIconTone(resolveSkillIconName(entry.name, entry.category))
+            )}
+          >
             <SkillIcon category={entry.category} name={entry.name} />
           </span>
           <RowButton

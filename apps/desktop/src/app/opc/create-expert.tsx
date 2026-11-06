@@ -15,13 +15,7 @@ import { useState } from 'react'
 
 import { useGatewayRequest } from '@/app/gateway/hooks/use-gateway-request'
 import { Codicon } from '@/components/ui/codicon'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { refreshAccountLockExceptions } from '@/store/profile'
 
@@ -45,7 +39,9 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
   const valid = title.trim().length > 0
 
   const submit = async () => {
-    if (!valid || busy) {return}
+    if (!valid || busy) {
+      return
+    }
     setBusy(true)
     setError(null)
 
@@ -107,7 +103,9 @@ export function CreateExpertDialog({ onClose }: { onClose: (created: boolean) =>
           </label>
           <label className="flex flex-col gap-1">
             <span className="flex items-center justify-between">
-              <span className="text-[0.78rem] font-medium text-(--ui-text-secondary)">人设（它擅长什么、说话风格…）</span>
+              <span className="text-[0.78rem] font-medium text-(--ui-text-secondary)">
+                人设（它擅长什么、说话风格…）
+              </span>
               <GeneratePromptButton
                 hint={title || persona}
                 label="AI 生成人设"

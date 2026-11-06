@@ -35,7 +35,9 @@ function ChangePasswordPanel({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
 
   async function submit() {
-    if (busy) {return}
+    if (busy) {
+      return
+    }
 
     if (newpwd.length < 6) {
       setError('新密码长度不能少于6位')
@@ -187,7 +189,9 @@ function QijiAboutSettings(): ReactElement {
 
   // 一键上报: 打包最近日志直接传平台后台(用户不用自己发文件)
   async function handleSubmitReport() {
-    if (reportBusy) {return}
+    if (reportBusy) {
+      return
+    }
     setReportBusy(true)
     setReportMsg(null)
     const r = await submitReport('manual', '用户手动上报(设置-关于页)')
@@ -287,9 +291,7 @@ function QijiAboutSettings(): ReactElement {
         <div className="mb-4 rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">剩余额度</span>
-            <span className={cn('font-medium', authState.score <= 0 && 'text-destructive')}>
-              {authState.score}
-            </span>
+            <span className={cn('font-medium', authState.score <= 0 && 'text-destructive')}>{authState.score}</span>
           </div>
           <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
             <span>账号模式</span>
@@ -305,12 +307,7 @@ function QijiAboutSettings(): ReactElement {
             </span>
           </div>
           <div className="mt-3 border-t border-border/50 pt-3">
-            <Button
-              className="w-full"
-              onClick={() => setShowChangePwd(true)}
-              size="sm"
-              variant="ghost"
-            >
+            <Button className="w-full" onClick={() => setShowChangePwd(true)} size="sm" variant="ghost">
               修改密码
             </Button>
             <Button
@@ -418,20 +415,12 @@ function QijiAboutSettings(): ReactElement {
           <p className="text-xs text-muted-foreground">
             遇到问题时点击下方按钮，客户端会把运行日志与环境信息打包成一个文本文件放到桌面，发给客服即可（不含任何密钥明文）。
           </p>
-          <Button
-            className="mt-2"
-            disabled={diagBusy}
-            onClick={handleExportDiagnostics}
-            size="sm"
-            variant="textStrong"
-          >
+          <Button className="mt-2" disabled={diagBusy} onClick={handleExportDiagnostics} size="sm" variant="textStrong">
             {diagBusy ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />}
             {diagBusy ? '正在导出…' : '导出诊断日志'}
           </Button>
           {diagMsg ? (
-            <p className={cn('mt-2 text-xs', diagOk ? 'text-emerald-600' : 'text-destructive')}>
-              {diagMsg}
-            </p>
+            <p className={cn('mt-2 text-xs', diagOk ? 'text-emerald-600' : 'text-destructive')}>{diagMsg}</p>
           ) : null}
         </div>
 
@@ -440,20 +429,12 @@ function QijiAboutSettings(): ReactElement {
           <p className="text-xs text-muted-foreground">
             或者直接把最近日志一键上传给平台（自动附带版本与环境信息，不含密钥明文），技术支持会在后台收到。
           </p>
-          <Button
-            className="mt-2"
-            disabled={reportBusy}
-            onClick={handleSubmitReport}
-            size="sm"
-            variant="textStrong"
-          >
+          <Button className="mt-2" disabled={reportBusy} onClick={handleSubmitReport} size="sm" variant="textStrong">
             {reportBusy ? <Loader2 className="size-3 animate-spin" /> : <Send className="size-3" />}
             {reportBusy ? '正在上报…' : '一键上报日志'}
           </Button>
           {reportMsg ? (
-            <p className={cn('mt-2 text-xs', reportOk ? 'text-emerald-600' : 'text-destructive')}>
-              {reportMsg}
-            </p>
+            <p className={cn('mt-2 text-xs', reportOk ? 'text-emerald-600' : 'text-destructive')}>{reportMsg}</p>
           ) : null}
         </div>
 
@@ -462,12 +443,7 @@ function QijiAboutSettings(): ReactElement {
             开发者工具集行）；打开即全量放出，后端功能与已存配置不受影响。 */}
         <SectionHeading icon={Wrench} title="高级功能" />
         <ListRow
-          action={
-            <Switch
-              checked={advancedFeatures}
-              onCheckedChange={setAdvancedFeatures}
-            />
-          }
+          action={<Switch checked={advancedFeatures} onCheckedChange={setAdvancedFeatures} />}
           description="显示面向开发者的设置与工具（高级子页、后端预热参数、开发者工具集）。普通用户无需开启。"
           title="显示高级功能"
         />
@@ -477,9 +453,7 @@ function QijiAboutSettings(): ReactElement {
             开发者工具集行）；打开即全量放出，后端功能与已存配置不受影响。 */}
         <SectionHeading icon={Wrench} title="高级功能" />
         <ListRow
-          action={
-            <Switch checked={advancedFeatures} onCheckedChange={setAdvancedFeatures} />
-          }
+          action={<Switch checked={advancedFeatures} onCheckedChange={setAdvancedFeatures} />}
           description="显示面向开发者的设置与工具（高级子页、后端预热参数、开发者工具集）。普通用户无需开启。"
           title="显示高级功能"
         />

@@ -39,7 +39,9 @@ interface ToolsetsTabProps {
 function toolsetHue(name: string): number {
   let h = 0
 
-  for (const ch of name) {h = (h * 31 + ch.charCodeAt(0)) % 360}
+  for (const ch of name) {
+    h = (h * 31 + ch.charCodeAt(0)) % 360
+  }
 
   return h
 }
@@ -62,7 +64,7 @@ function ToolsetCard({
 }) {
   const label = toolsetDisplayLabel(toolset)
   const desc = TOOLSET_DESC_ZH[toolset.name] ?? asText(toolset.description)
-  const tools = toolset ? toolset.tools?.length ?? 0 : 0
+  const tools = toolset ? (toolset.tools?.length ?? 0) : 0
 
   return (
     <div
@@ -77,11 +79,7 @@ function ToolsetCard({
       data-tour={`toolset-card-${toolset.name}`}
     >
       <div className="flex items-start gap-3">
-        <button
-          className="min-w-0 flex-1 cursor-pointer text-left"
-          onClick={onConfigure}
-          type="button"
-        >
+        <button className="min-w-0 flex-1 cursor-pointer text-left" onClick={onConfigure} type="button">
           <div className="flex items-center gap-2">
             <span
               className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-[0.8rem] font-bold text-white"
@@ -95,13 +93,7 @@ function ToolsetCard({
             <p className="mt-1.5 line-clamp-2 text-[0.75rem] leading-relaxed text-(--ui-text-tertiary)">{desc}</p>
           )}
         </button>
-        <Switch
-          aria-label={label}
-          checked={toolset.enabled}
-          disabled={busy}
-          onCheckedChange={onToggle}
-          size="xs"
-        />
+        <Switch aria-label={label} checked={toolset.enabled} disabled={busy} onCheckedChange={onToggle} size="xs" />
       </div>
       <div className="mt-2.5 flex items-center gap-1.5">
         {calls === null ? (
@@ -240,7 +232,12 @@ export function ToolsetsTab({ profile, query, toolsets }: ToolsetsTabProps) {
               bulkBusy ? 'opacity-50' : 'text-(--ui-primary) hover:bg-(--ui-primary)/10'
             )}
             disabled={bulkBusy}
-            onClick={() => void bulkApply(bulkToolsets.filter(row => row.enabled !== !allOn), !allOn)}
+            onClick={() =>
+              void bulkApply(
+                bulkToolsets.filter(row => row.enabled !== !allOn),
+                !allOn
+              )
+            }
             type="button"
           >
             {allOn ? '全部停用' : '全部启用'}

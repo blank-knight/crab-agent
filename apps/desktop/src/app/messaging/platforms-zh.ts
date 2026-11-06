@@ -78,15 +78,7 @@ export const PLATFORM_DESC_ZH: Readonly<Record<string, string>> = {
 }
 
 /** 国内平台 id 集——分组依据是产品定位（主打国内），不是平台归属地事实。 */
-const CN_PLATFORM_IDS = new Set([
-  'weixin',
-  'wecom',
-  'wecom_callback',
-  'dingtalk',
-  'feishu',
-  'qqbot',
-  'yuanbao'
-])
+const CN_PLATFORM_IDS = new Set(['weixin', 'wecom', 'wecom_callback', 'dingtalk', 'feishu', 'qqbot', 'yuanbao'])
 
 /** 海外平台 id 集——Telegram/Discord 等国际主流。 */
 const OVERSEAS_PLATFORM_IDS = new Set([

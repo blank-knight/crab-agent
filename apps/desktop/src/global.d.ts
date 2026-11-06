@@ -634,7 +634,10 @@ declare global {
         fetchMarketplace: (id: string) => Promise<DesktopMarketplaceThemeResult>
         // Search the Marketplace for color-theme extensions. An empty query
         // returns the most-installed themes.
-        searchMarketplace: (query: string, opts?: { limit?: number; page?: number }) => Promise<DesktopMarketplaceSearchItem[]>
+        searchMarketplace: (
+          query: string,
+          opts?: { limit?: number; page?: number }
+        ) => Promise<DesktopMarketplaceSearchItem[]>
       }
       // Find-in-page: delegates to Electron's webContents.findInPage on the
       // IPC sender's window so Cmd+F from a secondary session window

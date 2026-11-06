@@ -15,12 +15,7 @@ import { ChevronDown, Loader2, X } from '@/lib/icons'
 import { loadSavedAccounts, removeSavedAccount, saveAccount, type SavedAccount } from '@/lib/saved-accounts'
 import { $auth, login, register } from '@/store/auth'
 import { notify } from '@/store/notifications'
-import {
-  $brandPreview,
-  $oemBrand,
-  brandDisplayName,
-  type OemBrand
-} from '@/store/oem-brand'
+import { $brandPreview, $oemBrand, brandDisplayName, type OemBrand } from '@/store/oem-brand'
 import { $activeGatewayProfile, enforceAccountProfileLock, normalizeProfileKey, selectProfile } from '@/store/profile'
 
 import { cn } from '../lib/utils'
@@ -39,7 +34,8 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
   const persistedBrand = useStore($oemBrand)
   const previewBrand = useStore($brandPreview)
   // 登录页生效品牌：预查结果 > 上次登录持久化的品牌 > 官方默认
-  const activeBrand: OemBrand = previewBrand ?? (persistedBrand.name || persistedBrand.logo ? persistedBrand : { name: '', logo: '' })
+  const activeBrand: OemBrand =
+    previewBrand ?? (persistedBrand.name || persistedBrand.logo ? persistedBrand : { name: '', logo: '' })
   const activeName = brandDisplayName(activeBrand)
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [username, setUsername] = useState('')
@@ -55,7 +51,9 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
     try {
       const hit = window.sessionStorage.getItem('qiji-auth-expired') === '1'
 
-      if (hit) {window.sessionStorage.removeItem('qiji-auth-expired')}
+      if (hit) {
+        window.sessionStorage.removeItem('qiji-auth-expired')
+      }
 
       return hit
     } catch {
@@ -114,9 +112,13 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
     let cancelled = false
 
     const timer = setTimeout(() => {
-      backendFetch<{ brand: { name: string; logo: string } }>('/api/client/v1/auth/brand?mobile=' + encodeURIComponent(m))
+      backendFetch<{ brand: { name: string; logo: string } }>(
+        '/api/client/v1/auth/brand?mobile=' + encodeURIComponent(m)
+      )
         .then(res => {
-          if (cancelled) {return}
+          if (cancelled) {
+            return
+          }
           const b = res.data?.brand
           $brandPreview.set(b ? { name: b.name || '', logo: b.logo || '' } : { name: '', logo: '' })
         })
@@ -153,7 +155,9 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
 
   // 点击外部关闭下拉
   useEffect(() => {
-    if (!dropdownOpen) {return}
+    if (!dropdownOpen) {
+      return
+    }
 
     function onDocMouseDown(e: MouseEvent) {
       const t = e.target as HTMLElement
@@ -313,12 +317,7 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
 
       onLoggedIn?.()
     } catch (err) {
-      const msg =
-        err instanceof BackendError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : '登录失败，请重试'
+      const msg = err instanceof BackendError ? err.message : err instanceof Error ? err.message : '登录失败，请重试'
 
       setError(msg)
     } finally {
@@ -405,12 +404,7 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
 
       onLoggedIn?.()
     } catch (err) {
-      const msg =
-        err instanceof BackendError
-          ? err.message
-          : err instanceof Error
-            ? err.message
-            : '注册失败，请重试'
+      const msg = err instanceof BackendError ? err.message : err instanceof Error ? err.message : '注册失败，请重试'
 
       setError(msg)
     } finally {
@@ -420,20 +414,16 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
 
   // 登录覆盖层：顶层全屏遮罩，比所有东西都顶层（z-index 极高）
   return (
-    <div
-      className={cn(
-        'fixed inset-0 z-[9999] flex items-center justify-center',
-        'bg-background'
-      )}
-    >
+    <div className={cn('fixed inset-0 z-[9999] flex items-center justify-center', 'bg-background')}>
       <div className="w-full max-w-sm space-y-8 px-6">
         {/* Logo + 标题（OEM：预查/持久化贴牌品牌优先，否则默认螃蟹OPC） */}
         <div className="flex flex-col items-center gap-4">
-          <BrandMark className="size-20 rounded-lg border border-border/40 shadow-sm p-1" overrideLogo={activeBrand.logo} />
+          <BrandMark
+            className="size-20 rounded-lg border border-border/40 shadow-sm p-1"
+            overrideLogo={activeBrand.logo}
+          />
           <h1 className="text-3xl font-bold text-foreground">{activeName}</h1>
-          <p className="text-base text-(--ui-text-tertiary)">
-            {mode === 'login' ? '登录以开始使用' : '注册新账号'}
-          </p>
+          <p className="text-base text-(--ui-text-tertiary)">{mode === 'login' ? '登录以开始使用' : '注册新账号'}</p>
           {expiredNotice && (
             <div className="w-full rounded-md bg-(--ui-warning-soft,rgba(234,179,8,0.12)) p-2.5 text-center text-xs leading-5 text-(--ui-text-secondary)">
               登录已过期（超过 30 天或账号在别处登录），请重新登录
@@ -549,7 +539,12 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
               </div>
             )}
 
-            <Button className="h-12 w-full text-base font-semibold" disabled={busy} onClick={() => void submit()} size="lg">
+            <Button
+              className="h-12 w-full text-base font-semibold"
+              disabled={busy}
+              onClick={() => void submit()}
+              size="lg"
+            >
               {busy ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
@@ -617,7 +612,12 @@ export function LoginOverlay({ onLoggedIn }: LoginOverlayProps) {
               </div>
             )}
 
-            <Button className="h-12 w-full text-base font-semibold" disabled={busy} onClick={() => void submit()} size="lg">
+            <Button
+              className="h-12 w-full text-base font-semibold"
+              disabled={busy}
+              onClick={() => void submit()}
+              size="lg"
+            >
               {busy ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />

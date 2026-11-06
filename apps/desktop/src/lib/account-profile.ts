@@ -50,7 +50,9 @@ function shortHash(input: string): string {
 export function accountToProfileKey(account: string): string {
   const raw = account.trim()
 
-  if (!raw) {return 'default'}
+  if (!raw) {
+    return 'default'
+  }
 
   const seg = sanitizeSegment(raw)
 
@@ -59,7 +61,9 @@ export function accountToProfileKey(account: string): string {
     // 但需防撞（acc1234 可能同时来自不同账号）——直接用 acc_<seg>。
     const candidate = `${PREFIX}_${seg}`
 
-    if (candidate.length <= 64) {return candidate}
+    if (candidate.length <= 64) {
+      return candidate
+    }
   }
 
   // 中文/特殊字符/超长：哈希兜底
@@ -68,18 +72,29 @@ export function accountToProfileKey(account: string): string {
 
 /** 读取账号→profile 映射表（损坏回退空表） */
 function readMap(): AccountProfileEntry[] {
-  if (typeof window === 'undefined') {return []}
+  if (typeof window === 'undefined') {
+    return []
+  }
 
   try {
     const raw = window.localStorage.getItem(MAP_STORAGE_KEY)
 
-    if (!raw) {return []}
+    if (!raw) {
+      return []
+    }
     const arr = JSON.parse(raw) as AccountProfileEntry[]
 
-    if (!Array.isArray(arr)) {return []}
+    if (!Array.isArray(arr)) {
+      return []
+    }
 
     return arr.filter(
-      e => e && typeof e.account === 'string' && e.account.length > 0 && typeof e.profile === 'string' && PROFILE_NAME_RE.test(e.profile)
+      e =>
+        e &&
+        typeof e.account === 'string' &&
+        e.account.length > 0 &&
+        typeof e.profile === 'string' &&
+        PROFILE_NAME_RE.test(e.profile)
     )
   } catch {
     return []
@@ -87,7 +102,9 @@ function readMap(): AccountProfileEntry[] {
 }
 
 function writeMap(entries: AccountProfileEntry[]) {
-  if (typeof window === 'undefined') {return}
+  if (typeof window === 'undefined') {
+    return
+  }
 
   try {
     window.localStorage.setItem(MAP_STORAGE_KEY, JSON.stringify(entries.slice(-64)))
@@ -109,12 +126,16 @@ function writeMap(entries: AccountProfileEntry[]) {
 export function registerAccountProfile(account: string): string {
   const raw = account.trim()
 
-  if (!raw) {return 'default'}
+  if (!raw) {
+    return 'default'
+  }
 
   const map = readMap()
   const existing = map.find(e => e.account === raw)
 
-  if (existing) {return existing.profile}
+  if (existing) {
+    return existing.profile
+  }
 
   if (map.length === 0) {
     // 本机首个登记的账号：认领 default（承接升级前的数据）
@@ -156,7 +177,9 @@ export function accountLockedProfile(): string | null {
   try {
     const username = $auth.get()?.username
 
-    if (!username) {return null}
+    if (!username) {
+      return null
+    }
 
     return lookupAccountProfile(username)
   } catch {
@@ -192,7 +215,9 @@ export function isDefaultProfileKey(profile: string): boolean {
 const LOCK_EXCEPTIONS_STORAGE_KEY = 'qiji.accountLockExceptions'
 
 function readLockExceptions(): Set<string> {
-  if (typeof window === 'undefined') {return new Set()}
+  if (typeof window === 'undefined') {
+    return new Set()
+  }
 
   try {
     const raw = window.localStorage.getItem(LOCK_EXCEPTIONS_STORAGE_KEY) || '[]'
@@ -231,14 +256,18 @@ export function isAccountLockException(target: string): boolean {
  * $profileScope 的显示收敛同源。
  */
 export function accountLockedScopeFor(target: string, locked: string | null): string {
-  if (!locked) {return target}
+  if (!locked) {
+    return target
+  }
 
   return isAccountLockException(target) ? target : locked
 }
 
 /** 供单测直接重置 */
 export function _resetAccountProfileMapForTest() {
-  if (typeof window === 'undefined') {return}
+  if (typeof window === 'undefined') {
+    return
+  }
 
   try {
     window.localStorage.removeItem(MAP_STORAGE_KEY)

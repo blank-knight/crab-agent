@@ -169,20 +169,14 @@ export function startQqOnboarding(profile?: null | string): Promise<QqOnboarding
   })
 }
 
-export function getQqOnboardingStatus(
-  pairingId: string,
-  profile?: null | string
-): Promise<QqOnboardingStatusResponse> {
+export function getQqOnboardingStatus(pairingId: string, profile?: null | string): Promise<QqOnboardingStatusResponse> {
   return hermesApi<QqOnboardingStatusResponse>({
     ...profileScoped(profile),
     path: `/api/messaging/qqbot/onboarding/${encodeURIComponent(pairingId)}`
   })
 }
 
-export function applyQqOnboarding(
-  pairingId: string,
-  profile?: null | string
-): Promise<QqOnboardingApplyResponse> {
+export function applyQqOnboarding(pairingId: string, profile?: null | string): Promise<QqOnboardingApplyResponse> {
   const scope = profileScoped(profile)
 
   return hermesApi<QqOnboardingApplyResponse>({

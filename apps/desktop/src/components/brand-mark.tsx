@@ -23,16 +23,14 @@ export function BrandMark({
 
   return (
     <span
-      className={cn('inline-flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white', className)}
+      className={cn(
+        'inline-flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white',
+        className
+      )}
       {...props}
     >
       {logoUrl && !broken ? (
-        <img
-          alt=""
-          className="size-full object-contain"
-          onError={() => setBroken(true)}
-          src={logoUrl}
-        />
+        <img alt="" className="size-full object-contain" onError={() => setBroken(true)} src={logoUrl} />
       ) : (
         <img alt="" className="size-full object-contain" src={assetPath('qiji-brand.png')} />
       )}

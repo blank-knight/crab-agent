@@ -669,10 +669,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
   }
 
   // qiji 0.20.4: 隐藏 Nous Portal（中转站未定；接自家中转时移除此过滤）。
-  const ordered = useMemo(
-    () => (providers ? sortProviders(providers).filter(p => p.id !== 'nous') : []),
-    [providers]
-  )
+  const ordered = useMemo(() => (providers ? sortProviders(providers).filter(p => p.id !== 'nous') : []), [providers])
 
   const hasOauth = ordered.length > 0
   const apiKeyOptions = useApiKeyCatalog(ctx.scope)

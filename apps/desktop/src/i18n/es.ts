@@ -518,7 +518,8 @@ export const esOverrides = {
       elevenLabsRejectedKey:
         'ElevenLabs no aceptó tu clave API. Actualízala en Configuración → Claves e inténtalo de nuevo.',
       diskFull: 'Disco lleno — libera espacio y vuelve a intentarlo.',
-      storageFailure: '螃蟹OPC no pudo guardar en su carpeta de datos. Abre Mantenimiento para comprobarla y repararla.',
+      storageFailure:
+        '螃蟹OPC no pudo guardar en su carpeta de datos. Abre Mantenimiento para comprobarla y repararla.',
       gatewayAuthFailed:
         'Este 螃蟹OPC ya no acepta tu inicio de sesión guardado. Abre Gateways y vuelve a iniciar sesión (o pega un nuevo token de acceso) e inténtalo otra vez.',
       methodNotAllowed:
@@ -1636,7 +1637,8 @@ export const esOverrides = {
       updateNow: 'Actualizar ahora',
       lastChecked: age => `Última comprobación ${age}`,
       automaticUpdates: 'Actualizaciones automáticas',
-      automaticUpdatesDesc: '螃蟹OPC comprueba actualizaciones automáticamente en segundo plano y te avisa cuando hay una lista.',
+      automaticUpdatesDesc:
+        '螃蟹OPC comprueba actualizaciones automáticamente en segundo plano y te avisa cuando hay una lista.',
       never: 'nunca',
       justNow: 'ahora mismo',
       minAgo: count => `hace ${count} min`,

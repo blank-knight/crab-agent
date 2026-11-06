@@ -34,7 +34,9 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
 
   // Fetch skills when popover opens
   useEffect(() => {
-    if (!open || skills.length > 0) {return}
+    if (!open || skills.length > 0) {
+      return
+    }
     setLoading(true)
     getSkills()
       .then(list => {
@@ -49,10 +51,11 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
   // Group by category
   const grouped = useMemo(() => {
     const filtered = query.trim()
-      ? skills.filter(s =>
-          s.name.toLowerCase().includes(query.toLowerCase()) ||
-          s.description.toLowerCase().includes(query.toLowerCase()) ||
-          (s.category || '').toLowerCase().includes(query.toLowerCase())
+      ? skills.filter(
+          s =>
+            s.name.toLowerCase().includes(query.toLowerCase()) ||
+            s.description.toLowerCase().includes(query.toLowerCase()) ||
+            (s.category || '').toLowerCase().includes(query.toLowerCase())
         )
       : skills
 
@@ -61,14 +64,20 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
     for (const s of filtered) {
       const cat = s.category || 'other'
 
-      if (!map.has(cat)) {map.set(cat, [])}
+      if (!map.has(cat)) {
+        map.set(cat, [])
+      }
       map.get(cat)!.push(s)
     }
 
     return Array.from(map.entries()).sort((a, b) => {
-      if (a[0] === 'other') {return 1}
+      if (a[0] === 'other') {
+        return 1
+      }
 
-      if (b[0] === 'other') {return -1}
+      if (b[0] === 'other') {
+        return -1
+      }
 
       return a[0].localeCompare(b[0])
     })
@@ -89,7 +98,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
   }
 
   const displayDescription = (skill: SkillInfo) => {
-    return isZh ? translateSkillField(skill.name, 'description', skill.description || '') : (skill.description || '')
+    return isZh ? translateSkillField(skill.name, 'description', skill.description || '') : skill.description || ''
   }
 
   return (
@@ -133,7 +142,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
             </div>
           ) : grouped.length === 0 ? (
             <div className="py-8 text-center text-sm text-(--ui-text-tertiary)">
-              {query ? (isZh ? '没有匹配的技能' : 'No matching skills') : (isZh ? '暂无可用技能' : 'No skills available')}
+              {query ? (isZh ? '没有匹配的技能' : 'No matching skills') : isZh ? '暂无可用技能' : 'No skills available'}
             </div>
           ) : (
             grouped.map(([category, items]) => (
@@ -151,9 +160,7 @@ export function SkillPicker({ onSelect, disabled }: SkillPickerProps) {
                     onClick={() => handlePick(skill)}
                     type="button"
                   >
-                    <span className="text-sm font-medium text-foreground">
-                      {displayName(skill)}
-                    </span>
+                    <span className="text-sm font-medium text-foreground">{displayName(skill)}</span>
                     {displayDescription(skill) && (
                       <span className="text-xs text-(--ui-text-tertiary) line-clamp-2">
                         {displayDescription(skill)}

@@ -1491,7 +1491,9 @@ export function ChatBar({
           {/* qiji: 空态顶部区——品牌大字+快捷技能+OPC弹层,挂输入框上方(生产线同款) */}
           {state.introCenter && state.introTop ? (
             <div className="absolute inset-x-0 bottom-full mb-1.5 flex w-full flex-col items-center px-2">
-              <div className="text-6xl font-bold tracking-[0.08em] text-midground dark:text-foreground/85">{state.introTop.headline}</div>
+              <div className="text-6xl font-bold tracking-[0.08em] text-midground dark:text-foreground/85">
+                {state.introTop.headline}
+              </div>
               <div className="pointer-events-auto mt-2 flex w-full max-w-4xl flex-col items-center">
                 <div className="flex flex-nowrap justify-center gap-1.5 overflow-x-auto">
                   {state.introTop.skills.map(sk => (
@@ -1549,7 +1551,9 @@ export function ChatBar({
             {/* qiji: 空态最佳实践条——挂输入框下方(生产线同款) */}
             {state.introCenter && state.introExamples && state.introExamples.length > 0 ? (
               <div className="absolute inset-x-0 top-full mt-1.5 flex w-full flex-col gap-1 px-2">
-                <div className="text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">试试这样用</div>
+                <div className="text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-(--ui-text-tertiary)">
+                  试试这样用
+                </div>
                 {state.introExamples.map(ex => (
                   <button
                     aria-label={ex.prompt}

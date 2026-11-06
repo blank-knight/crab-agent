@@ -294,21 +294,21 @@ export const CatalogBrowser = memo(function CatalogBrowser({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col @[48rem]/catalog:flex-row">
         {/* qiji 0.20.4: hideCatalog 时整个筛选 rail（发现/来源/分类）不渲染。 */}
         {!hideCatalog && (
-        <CatalogFilters
-          categories={catalogCategories(entries, kind)}
-          className="max-h-52 shrink-0 gap-0 pt-3 @[48rem]/catalog:max-h-none @[48rem]/catalog:w-48"
-          facets={facets}
-          onCategory={filters.toggleCategory}
-          onClear={clearFilters}
-          onInstalled={filters.toggleInstalled}
-          onSource={filters.toggleSource}
-          onTag={filters.toggleTag}
-          resultCount={filtered.length}
-          sidebarActions={actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}
-          sortControl={sortControl}
-          sources={catalogSources(entries)}
-          tags={catalogTags(entries, facets.tags, TAG_LIMIT)}
-        />
+          <CatalogFilters
+            categories={catalogCategories(entries, kind)}
+            className="max-h-52 shrink-0 gap-0 pt-3 @[48rem]/catalog:max-h-none @[48rem]/catalog:w-48"
+            facets={facets}
+            onCategory={filters.toggleCategory}
+            onClear={clearFilters}
+            onInstalled={filters.toggleInstalled}
+            onSource={filters.toggleSource}
+            onTag={filters.toggleTag}
+            resultCount={filtered.length}
+            sidebarActions={actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}
+            sortControl={sortControl}
+            sources={catalogSources(entries)}
+            tags={catalogTags(entries, facets.tags, TAG_LIMIT)}
+          />
         )}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-catalog-results>
           {/* Search owns the header; kind-specific setup actions and the view toggle share the end slot. */}

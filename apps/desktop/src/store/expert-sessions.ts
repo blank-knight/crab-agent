@@ -43,7 +43,9 @@ interface RosterAgentLike {
 }
 
 /** 本机专家行(与 OPC 专家卡同一身份判定:local + 非 default + bot_title 链)。 */
-function localExperts(roster: { agents?: RosterAgentLike[] } | null): Array<{ connectionId?: string; label: string; profile: string }> {
+function localExperts(
+  roster: { agents?: RosterAgentLike[] } | null
+): Array<{ connectionId?: string; label: string; profile: string }> {
   const out: Array<{ connectionId?: string; label: string; profile: string }> = []
 
   for (const agent of roster?.agents || []) {

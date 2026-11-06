@@ -25,8 +25,24 @@ const logsFixture = {
   total: 2,
   page: 1,
   rows: [
-    { id: 2, score: 50, before_score: 10, after_score: 60, memo: '充值码兑换', model: '', createtime: '2026-09-03 09:00' },
-    { id: 1, score: -1, before_score: 11, after_score: 10, memo: 'Token消耗：gpt-4o', model: 'gpt-4o', createtime: '2026-09-02 18:00' }
+    {
+      id: 2,
+      score: 50,
+      before_score: 10,
+      after_score: 60,
+      memo: '充值码兑换',
+      model: '',
+      createtime: '2026-09-03 09:00'
+    },
+    {
+      id: 1,
+      score: -1,
+      before_score: 11,
+      after_score: 10,
+      memo: 'Token消耗：gpt-4o',
+      model: 'gpt-4o',
+      createtime: '2026-09-02 18:00'
+    }
   ]
 }
 

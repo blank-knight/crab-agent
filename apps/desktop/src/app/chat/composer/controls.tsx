@@ -123,9 +123,7 @@ export function ComposerControls({
           {hideModelPill ? null : (
             <>
               <ModelPill compact={compactModelPill} disabled={disabled} model={state.model} />
-              {onSelectSkill && !compactModelPill ? (
-                <SkillPicker disabled={disabled} onSelect={onSelectSkill} />
-              ) : null}
+              {onSelectSkill && !compactModelPill ? <SkillPicker disabled={disabled} onSelect={onSelectSkill} /> : null}
               {compactModelPill ? null : <ReasoningPill disabled={disabled} model={state.model} />}
             </>
           )}

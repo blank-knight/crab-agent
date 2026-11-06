@@ -303,8 +303,10 @@ export function dismissNotification(id: string) {
   // though every test passed. Guard the deref and bail out early.
   if (typeof window === 'undefined') {
     timers.delete(id)
+
     return
   }
+
   window.clearTimeout(timers.get(id))
   timers.delete(id)
   const dismissed = $notifications.get().find(item => item.id === id)

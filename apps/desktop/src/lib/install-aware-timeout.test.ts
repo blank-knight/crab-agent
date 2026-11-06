@@ -32,7 +32,12 @@ describe('withInstallAwareTimeout', (): void => {
       return () => undefined
     }
 
-    const p = withInstallAwareTimeout(delay(120).then(() => 'installed'), 30, 'boom', sub)
+    const p = withInstallAwareTimeout(
+      delay(120).then(() => 'installed'),
+      30,
+      'boom',
+      sub
+    )
 
     // 等订阅建立（同步 subscribe，但保险起见）
     await delay(1)
@@ -48,7 +53,12 @@ describe('withInstallAwareTimeout', (): void => {
     const sub = vi.fn((_onActivity: () => void) => () => undefined)
 
     await expect(
-      withInstallAwareTimeout(delay(500).then(() => 'late'), 30, 'stalled', sub as unknown as () => () => void)
+      withInstallAwareTimeout(
+        delay(500).then(() => 'late'),
+        30,
+        'stalled',
+        sub as unknown as () => () => void
+      )
     ).rejects.toThrow('stalled')
   })
 
@@ -56,6 +66,8 @@ describe('withInstallAwareTimeout', (): void => {
     const failing = Promise.reject(new Error('spawn failed'))
     const sub = vi.fn((_onActivity: () => void) => () => undefined)
 
-    await expect(withInstallAwareTimeout(failing, 1000, 'boom', sub as unknown as () => () => void)).rejects.toThrow('spawn failed')
+    await expect(withInstallAwareTimeout(failing, 1000, 'boom', sub as unknown as () => () => void)).rejects.toThrow(
+      'spawn failed'
+    )
   })
 })

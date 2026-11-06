@@ -218,7 +218,12 @@ export function Intro({ personality, seed, quickSkills, onPickSkill, onInstallSk
                   onClick={() => (sk.missing ? onInstallSkill?.() : onPickSkill(sk.name))}
                   type="button"
                 >
-                  <span className={cn('text-[0.75rem] font-medium', sk.missing ? 'text-(--ui-text-tertiary)' : 'text-foreground')}>
+                  <span
+                    className={cn(
+                      'text-[0.75rem] font-medium',
+                      sk.missing ? 'text-(--ui-text-tertiary)' : 'text-foreground'
+                    )}
+                  >
                     {sk.missing ? `${sk.title} · 需安装` : sk.title}
                   </span>
                 </button>
@@ -235,7 +240,9 @@ export function Intro({ personality, seed, quickSkills, onPickSkill, onInstallSk
 export function ExamplesStrip({ examples, onPick }: { examples: IntroExample[]; onPick: (prompt: string) => void }) {
   const { t } = useI18n()
 
-  if (examples.length === 0) {return null}
+  if (examples.length === 0) {
+    return null
+  }
 
   return (
     <div className="pointer-events-auto absolute top-[calc(42%+var(--composer-measured-height,160px)+0.75rem)] left-1/2 z-20 w-[min(var(--composer-width),calc(100%-2rem))] max-w-full -translate-x-1/2 px-1 pb-1">

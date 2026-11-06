@@ -77,14 +77,14 @@ export function createFirstRunSetupGate({
   const shouldGate = (backend?: FirstRunSetupBackend | null) =>
     Boolean(
       backend &&
-        backend.kind === 'bootstrap-needed' &&
-        !backend.runtimeUpgrade &&
-        !localBootstrapConfirmed &&
-        // crab 0.20.5v (B15): branded default — a fresh install continues
-        // straight into local bootstrap; the local/cloud choice card never
-        // shows (unattended machines sat on it until the boot budget died).
-        // autoLocal:false restores the upstream prompting semantics.
-        !autoLocal
+      backend.kind === 'bootstrap-needed' &&
+      !backend.runtimeUpgrade &&
+      !localBootstrapConfirmed &&
+      // crab 0.20.5v (B15): branded default — a fresh install continues
+      // straight into local bootstrap; the local/cloud choice card never
+      // shows (unattended machines sat on it until the boot budget died).
+      // autoLocal:false restores the upstream prompting semantics.
+      !autoLocal
     )
 
   const wait = async (backend?: FirstRunSetupBackend | null) => {

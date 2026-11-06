@@ -456,8 +456,7 @@ export const zh = defineLocale({
       backendStopped: '后端已停止',
       desktopBootFailed: '桌面启动失败',
       gatewayConnectionLost: '与网关的连接已断开',
-      gatewayConnectionLostDetail:
-        '仍在后台重试。你可以继续阅读和编辑——若持续失败请打开网关设置检查。',
+      gatewayConnectionLostDetail: '仍在后台重试。你可以继续阅读和编辑——若持续失败请打开网关设置检查。',
       gatewaySignInRequired: '需要登录网关',
       ipcBridgeUnavailable: '桌面 IPC 桥不可用。',
       restartHermes: '重启 螃蟹OPC',
@@ -465,7 +464,7 @@ export const zh = defineLocale({
       connectionSettings: '连接设置',
       gatewaySignInRequiredDetail: '重新登录即可重连。你的对话和设置都完好。',
       openLogs: '打开日志',
-      signInAgain: '重新登录',
+      signInAgain: '重新登录'
     },
 
     causes: {
@@ -475,7 +474,8 @@ export const zh = defineLocale({
       diskFull: '磁盘已满，螃蟹OPC 无法启动。',
       portInUse: '其他程序占用了 螃蟹OPC 需要的网络端口。',
       installMissing: '螃蟹OPC 的部分安装文件缺失。请选择「修复安装」补回。'
-    },    failure: {
+    },
+    failure: {
       title: '螃蟹OPC 无法启动',
       description: '后台网关没有启动。请尝试下面的恢复步骤；这里不会删除你的对话或设置。',
       remoteTitle: '需要重新登录远程网关',
@@ -561,7 +561,7 @@ export const zh = defineLocale({
       codeSkewRestartRequired: '更新后此后端仍在运行旧代码。请重启以加载新代码。',
       storageFailure: '螃蟹OPC 无法写入数据文件夹。打开「维护」检查并修复。',
       rpcOutOfSync: '应用与后端版本不一致。请两者都更新。',
-      restartHermesFailed: '无法重启 螃蟹OPC',
+      restartHermesFailed: '无法重启 螃蟹OPC'
     },
     voice: {
       configureSpeechToText: '配置语音转文字后即可使用语音模式。',
@@ -2076,7 +2076,8 @@ export const zh = defineLocale({
       authenticate: '认证',
       noOutput: '暂无输出。',
       deepLinkTitle: '添加 MCP 服务器？',
-      deepLinkDescription: '一个链接请求将此 MCP 服务器添加到 螃蟹OPC。请检查下方的完整配置——它来自该链接，而非 螃蟹OPC。',
+      deepLinkDescription:
+        '一个链接请求将此 MCP 服务器添加到 螃蟹OPC。请检查下方的完整配置——它来自该链接，而非 螃蟹OPC。',
       deepLinkStdioWarning: '此服务器会使用下方所示命令在你的电脑上运行本地进程。仅在信任其来源时继续。',
       deepLinkConfirm: '添加服务器',
       deepLinkNameInvalid: '名称须为 1-64 个字母、数字、点、连字符或下划线。',
@@ -2151,7 +2152,7 @@ export const zh = defineLocale({
         curator: { label: '维护器', hint: '技能使用审查' }
       },
       mainAppliedTitle: '主模型已更新',
-      mainAppliedMessage: model => `新会话将使用 ${model}。`,
+      mainAppliedMessage: model => `新会话将使用 ${model}。`
     },
     localModels: {
       connectionChanged: '本地模型连接已更改',
@@ -2271,7 +2272,7 @@ export const zh = defineLocale({
       downloadEtaMinutes: count => `${count} 分`,
       downloadEtaHours: (hours, minutes) => (minutes ? `${hours} 时 ${minutes} 分` : `${hours} 时`),
       downloadPauseFailed: model => `无法暂停 ${model} 的下载`,
-      downloadResumeFailed: model => `无法恢复 ${model} 的下载`,
+      downloadResumeFailed: model => `无法恢复 ${model} 的下载`
     },
     billing: {
       perMonth: amount => `${amount}/月`,
@@ -2627,7 +2628,8 @@ export const zh = defineLocale({
         unavailable: '不可用',
         inUse: '使用中',
         unavailableTitle: '终端命令不可用',
-        unavailableMessage: backend => `螃蟹OPC 暂时无法运行 shell 命令：${backend} 未就绪。可切换到「本地」，或先完成 ${backend} 的配置再试。`,
+        unavailableMessage: backend =>
+          `螃蟹OPC 暂时无法运行 shell 命令：${backend} 未就绪。可切换到「本地」，或先完成 ${backend} 的配置再试。`,
         openBackendSettings: '打开终端设置',
         useLocal: '使用本地',
         switchedToLocal: '终端命令现在在本机运行。对新会话生效。',
@@ -2664,7 +2666,7 @@ export const zh = defineLocale({
       nousAuthFailedMessage: '请重试。',
       nousAuthTryAgain: '重试',
       postSetupOpenLogs: '打开日志',
-      postSetupRunAgain: '重新运行',
+      postSetupRunAgain: '重新运行'
     }
   },
 
@@ -2799,7 +2801,8 @@ export const zh = defineLocale({
         unknown: '状态未知'
       },
       updateConsentTitle: (name: string) => `${name} 请求更多权限`,
-      updateConsentBody: (name: string, sha: string) => `新版 ${name}（${sha}）会带来已安装版本没有的界面。仅在你信任作者时应用：`,
+      updateConsentBody: (name: string, sha: string) =>
+        `新版 ${name}（${sha}）会带来已安装版本没有的界面。仅在你信任作者时应用：`,
       updateConsentConfirm: '应用更新',
       settingsToggle: (name: string) => `设置：${name}`,
       settingsForm: {
@@ -2809,7 +2812,7 @@ export const zh = defineLocale({
         optional: '（可选）',
         secretSet: '••••••••（已设置）',
         secretStoredAs: (env: string) => `存储在配置档案的 .env（${env}）中，绝不会写进 config.yaml；留空保持当前值。`
-      },
+      }
     },
     officialCatalog: '可安装',
     officialPill: '官方',
@@ -2865,9 +2868,10 @@ export const zh = defineLocale({
       scanFailed: '安全扫描失败',
       searchFailed: '技能中心搜索失败',
       installBlockedTitle: name => `无法安装 ${name}`,
-      installBlockedMessage: (findings, unverified) => `安全扫描标记了${findings > 0 ? ` ${findings} 项` : '风险模式'}需要你审阅${unverified ? '，且该技能来自未验证的来源' : ''}。请先阅读扫描结果，再决定是否信任作者。`,
+      installBlockedMessage: (findings, unverified) =>
+        `安全扫描标记了${findings > 0 ? ` ${findings} 项` : '风险模式'}需要你审阅${unverified ? '，且该技能来自未验证的来源' : ''}。请先阅读扫描结果，再决定是否信任作者。`,
       viewScan: '查看扫描',
-      openLog: '打开日志',
+      openLog: '打开日志'
     }
   },
 
@@ -3240,7 +3244,8 @@ export const zh = defineLocale({
     weixinQr: {
       quickSetup: '快速设置',
       recommended: '推荐',
-      quickHelp: '用微信扫一扫下面的二维码并在手机上确认。螃蟹OPC 通过腾讯 iLink 接口连接你的个人微信，凭证自动保存，无需手动填写。',
+      quickHelp:
+        '用微信扫一扫下面的二维码并在手机上确认。螃蟹OPC 通过腾讯 iLink 接口连接你的个人微信，凭证自动保存，无需手动填写。',
       startScan: '扫码连接',
       starting: '正在获取二维码…',
       replaceWarning: '微信已配置。保存后，新的扫码登录将替换当前账号。',
@@ -3261,7 +3266,8 @@ export const zh = defineLocale({
     qqQr: {
       quickSetup: '快速设置',
       recommended: '推荐',
-      quickHelp: '用手机 QQ 扫一扫下方二维码，按提示确认。机器人应用会自动创建，App ID 和密钥自动填好，扫码的人默认获得使用权限。',
+      quickHelp:
+        '用手机 QQ 扫一扫下方二维码，按提示确认。机器人应用会自动创建，App ID 和密钥自动填好，扫码的人默认获得使用权限。',
       startScan: '扫码创建机器人',
       starting: '正在获取二维码…',
       replaceWarning: 'QQ 机器人已配置。保存后，新扫码创建的机器人将替换当前配置。',
@@ -3282,7 +3288,8 @@ export const zh = defineLocale({
     feishuQr: {
       quickSetup: '快速设置',
       recommended: '推荐',
-      quickHelp: '用飞书 / Lark 扫一扫下方二维码并确认。机器人应用自动创建，App ID 和密钥自动填好，扫码的人默认获得使用权限，无需公网地址。',
+      quickHelp:
+        '用飞书 / Lark 扫一扫下方二维码并确认。机器人应用自动创建，App ID 和密钥自动填好，扫码的人默认获得使用权限，无需公网地址。',
       startScan: '扫码创建应用',
       starting: '正在获取二维码…',
       replaceWarning: '飞书已配置。保存后，新扫码创建的应用将替换当前配置。',
@@ -3378,8 +3385,14 @@ export const zh = defineLocale({
       FEISHU_APP_SECRET: { label: '应用密钥', help: '飞书 / Lark 应用的 App Secret。' },
       FEISHU_ENCRYPT_KEY: { label: '加密密钥', help: '飞书 / Lark 事件订阅的加密密钥。' },
       FEISHU_VERIFICATION_TOKEN: { label: '验证令牌', help: '飞书 / Lark 事件订阅的验证令牌。' },
-      DINGTALK_CLIENT_ID: { label: '应用 ID（App Key）', help: '钉钉开放平台应用的 Client ID（即 App Key），在应用凭证页获取。' },
-      DINGTALK_CLIENT_SECRET: { label: '应用密钥（App Secret）', help: '钉钉开放平台应用的 Client Secret（即 App Secret），在应用凭证页获取。' },
+      DINGTALK_CLIENT_ID: {
+        label: '应用 ID（App Key）',
+        help: '钉钉开放平台应用的 Client ID（即 App Key），在应用凭证页获取。'
+      },
+      DINGTALK_CLIENT_SECRET: {
+        label: '应用密钥（App Secret）',
+        help: '钉钉开放平台应用的 Client Secret（即 App Secret），在应用凭证页获取。'
+      },
       QQ_APP_ID: { label: '应用 ID', help: 'QQ 开放平台应用的 App ID。' },
       QQ_CLIENT_SECRET: { label: '应用密钥', help: 'QQ 开放平台应用的 App Secret。' },
       QQ_ALLOWED_USERS: { label: '允许的 QQ 用户', help: '推荐。逗号分隔的 QQ 号。' },
@@ -3389,7 +3402,10 @@ export const zh = defineLocale({
       EMAIL_SMTP_HOST: { label: 'SMTP 服务器', help: 'SMTP 服务器地址（例如 smtp.gmail.com）。' },
       TWILIO_ACCOUNT_SID: { label: 'Twilio Account SID', help: 'Twilio 控制台的 Account SID。' },
       TWILIO_AUTH_TOKEN: { label: 'Twilio Auth Token', help: 'Twilio 控制台的 Auth Token。' },
-      HASS_URL: { label: 'Home Assistant 地址', help: 'Home Assistant 的访问地址（例如 https://homeassistant.local:8123）。' },
+      HASS_URL: {
+        label: 'Home Assistant 地址',
+        help: 'Home Assistant 的访问地址（例如 https://homeassistant.local:8123）。'
+      },
       HASS_TOKEN: { label: 'Home Assistant 访问令牌', help: 'Home Assistant 的长期访问令牌（个人资料 → 安全）。' },
       BLUEBUBBLES_SERVER_URL: { label: 'BlueBubbles 服务器地址' },
       BLUEBUBBLES_PASSWORD: { label: '服务器密码' },
@@ -3438,7 +3454,10 @@ export const zh = defineLocale({
       GOOGLE_CHAT_SERVICE_ACCOUNT_JSON: { label: '服务账号 JSON 路径', help: '留空则使用应用默认凭据（ADC）。' },
       GOOGLE_CHAT_HTTP_EVENTS_URL: { label: '事件回调地址', help: 'HTTP 事件的回调 URL。' },
       GOOGLE_CHAT_HTTP_EVENTS_AUDIENCE: { label: '事件令牌受众', help: 'HTTP 事件令牌的 audience。' },
-      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: { label: '事件服务账号邮箱', help: '签发事件令牌的服务账号邮箱。' },
+      GOOGLE_CHAT_HTTP_EVENTS_SERVICE_ACCOUNT_EMAIL: {
+        label: '事件服务账号邮箱',
+        help: '签发事件令牌的服务账号邮箱。'
+      },
       GOOGLE_CHAT_PROJECT_ID: { label: 'GCP 项目 ID', help: 'Google Cloud 项目编号。' },
       GOOGLE_CHAT_SUBSCRIPTION_NAME: { label: 'Pub/Sub 订阅名', help: '事件订阅的名称。' },
       GOOGLE_CHAT_ALLOWED_USERS: { label: '允许的用户', help: '逗号分隔的用户邮箱。' },
@@ -3532,7 +3551,7 @@ export const zh = defineLocale({
       WECOM_ALLOWED_USERS: { label: '允许的用户', help: '逗号分隔；* 表示任何人。' },
       WHATSAPP_ALLOW_ALL_USERS: { label: '允许所有用户', help: 'true/false。' },
       WHATSAPP_HOME_CHANNEL: { label: '主页会话 ID', help: '定时任务投递的默认会话。' },
-      WHATSAPP_HOME_CHANNEL_NAME: { label: '主页会话名称', help: '显示名称。' },
+      WHATSAPP_HOME_CHANNEL_NAME: { label: '主页会话名称', help: '显示名称。' }
     },
     platformIntro: {
       telegram:
@@ -3544,19 +3563,26 @@ export const zh = defineLocale({
       matrix: '用机器人账户登录你的 homeserver，然后复制访问令牌、用户 ID 和 homeserver URL。',
       signal: '在可访问的位置运行 signal-cli REST 桥接，然后把 螃蟹OPC 指向该 URL 和已注册的电话号码。',
       whatsapp: '启动 螃蟹OPC 自带的 WhatsApp 桥接，首次运行时扫描二维码，然后启用该平台。',
-      bluebubbles: '在装有 iMessage 的 Mac 上运行 BlueBubbles Server，暴露其 API，然后用服务器密码把 螃蟹OPC 指向该 URL。',
+      bluebubbles:
+        '在装有 iMessage 的 Mac 上运行 BlueBubbles Server，暴露其 API，然后用服务器密码把 螃蟹OPC 指向该 URL。',
       homeassistant: '在 Home Assistant 中打开你的个人资料并创建长期访问令牌。把它连同你的 HA URL 一起粘贴到这里。',
       email: '使用专用邮箱。对于 Gmail/Workspace,创建应用专用密码并使用 imap.gmail.com / smtp.gmail.com。',
       sms: '从 Twilio 控制台获取你的 Account SID 和 Auth Token，以及一个可发送短信的电话号码。',
-      dingtalk: '两步接入：① 在 open-dev.dingtalk.com 创建企业内部应用（无需公网回调） ② 复制「凭证与基础信息」页的 Client ID(App key) 和 Client Secret 粘贴到下方。',
-      feishu: '推荐使用上方「快速设置」扫码创建应用。手动方式：在 open.feishu.cn 创建企业自建应用，添加「机器人」能力，事件订阅选择「使用长连接接收事件」，再把 App ID 和 App Secret 粘贴到下方。无需公网地址。',
-      wecom: '两步接入：① 在企业微信群里点「…→群机器人→添加」 ② 复制 Webhook 地址里 key= 后面的字符串粘贴到下方。仅能主动推送消息；要双向对话请用「企业微信 (应用)」。',
+      dingtalk:
+        '两步接入：① 在 open-dev.dingtalk.com 创建企业内部应用（无需公网回调） ② 复制「凭证与基础信息」页的 Client ID(App key) 和 Client Secret 粘贴到下方。',
+      feishu:
+        '推荐使用上方「快速设置」扫码创建应用。手动方式：在 open.feishu.cn 创建企业自建应用，添加「机器人」能力，事件订阅选择「使用长连接接收事件」，再把 App ID 和 App Secret 粘贴到下方。无需公网地址。',
+      wecom:
+        '两步接入：① 在企业微信群里点「…→群机器人→添加」 ② 复制 Webhook 地址里 key= 后面的字符串粘贴到下方。仅能主动推送消息；要双向对话请用「企业微信 (应用)」。',
       wecom_callback: '设置一个企业微信自建应用，暴露其回调 URL，并提供 corp ID、secret、agent ID 和 AES key。',
       weixin:
         '推荐使用上方「快速设置」扫码连接：微信扫一扫并在手机上确认即可，无需手动填写。螃蟹OPC 通过腾讯 iLink Bot API 连接你的个人微信并自动保存凭据。',
-      qqbot: '推荐使用上方「快速设置」扫码创建机器人，无需手动注册。手动方式：在 QQ 开放平台 (q.qq.com) 注册应用，复制 App ID 和 Client Secret。',
-      yuanbao: '两步接入：① 在元宝 App 的 PAI → 我的机器人里创建机器人 ② 复制 App ID 和 App Secret 粘贴到下方。WebSocket 长连接，无需公网。',
-      api_server: '把 螃蟹OPC 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port。',
+      qqbot:
+        '推荐使用上方「快速设置」扫码创建机器人，无需手动注册。手动方式：在 QQ 开放平台 (q.qq.com) 注册应用，复制 App ID 和 Client Secret。',
+      yuanbao:
+        '两步接入：① 在元宝 App 的 PAI → 我的机器人里创建机器人 ② 复制 App ID 和 App Secret 粘贴到下方。WebSocket 长连接，无需公网。',
+      api_server:
+        '把 螃蟹OPC 暴露为兼容 OpenAI 的 API。设置一个鉴权密钥，然后把 Open WebUI / LobeChat 等指向 host:port。',
       webhook: '运行一个 HTTP 服务器，供其他工具 (GitHub、GitLab、自定义应用)POST。用 secret 验证签名。'
     }
   },
@@ -3773,8 +3799,7 @@ export const zh = defineLocale({
       unread: (count: number) => (count === 1 ? '1 个未读会话' : `${count} 个未读会话`),
       needsInput: (count: number) => (count === 1 ? '1 个会话等你回复' : `${count} 个会话等你回复`),
       working: (count: number) => (count === 1 ? '1 个会话运行中' : `${count} 个会话运行中`)
-    },
-
+    }
   },
 
   modelAssignment: {
@@ -4206,11 +4231,11 @@ export const zh = defineLocale({
     markAllRead: '全部标记为已读',
     storageCorrupt: {
       title: '会话数据库已损坏',
-      body: profiles => `螃蟹OPC 无法读取 ${profiles} 的全部会话历史。列表中缺失的对话并没有被删除；是存储它们的文件损坏了。`,
+      body: profiles =>
+        `螃蟹OPC 无法读取 ${profiles} 的全部会话历史。列表中缺失的对话并没有被删除；是存储它们的文件损坏了。`,
       action: '请退出此配置档案上的 螃蟹OPC，然后在不改动文件的前提下检查它，或恢复快照：',
       guide: '恢复指南'
-    },
-
+    }
   },
 
   composer: {
@@ -4684,7 +4709,8 @@ export const zh = defineLocale({
     copy: '复制',
     copied: '已复制',
     done: '完成',
-    applyingBody: '螃蟹OPC更新器会在自己的窗口中接管，并在完成后自动重新打开 螃蟹OPC。更新期间请不要自行重新打开 螃蟹OPC。',
+    applyingBody:
+      '螃蟹OPC更新器会在自己的窗口中接管，并在完成后自动重新打开 螃蟹OPC。更新期间请不要自行重新打开 螃蟹OPC。',
     applyingBodyBackend: '远程后端正在应用更新并将重启。恢复后 螃蟹OPC会自动重新连接。',
     applyingClose: '此窗口会在更新期间关闭，随后 螃蟹OPC会自动重新打开。',
     applyingBodyAppInstaller: '螃蟹OPC会关闭，Windows 会完成更新，然后 螃蟹OPC 自动重新打开——无需任何操作。',
@@ -4943,22 +4969,22 @@ export const zh = defineLocale({
   // Not yet translated — English fallbacks so the free-tier surfaces stay
   // readable until a zh pass lands.
   freeTier: {
-  busyHeading: '快好了',
-  busyBody: wait => `Nous 服务正忙，螃蟹OPC 暂时无法完成登录。请在 ${wait} 后重试。你的会话还在。`,
-  unreachableBody: '螃蟹OPC 无法连接 Nous 服务完成登录。请检查网络后重试。你的会话还在。',
-  setupFailed: {
-    gateClosed: '此版本的 螃蟹OPC 需要登录 Nous 账号才能使用。登录或注册一个都免费，只需一分钟。',
-    paused: '未登录使用 螃蟹OPC 暂时被暂停。螃蟹OPC 会持续重试。登录免费且立刻可用。',
-    rateLimited: wait => `现在开始使用的人很多，螃蟹OPC 将在 ${wait} 后重试。登录免费且可跳过等待。`,
-    unreachable: '螃蟹OPC 无法连接 Nous 服务。请检查网络后点「重试」，或先连接其他提供方。',
-    serverError: 'Nous 服务出了点小问题。稍后点「重试」，或先连接其他提供方。',
-    powRequired: 'Nous 服务器要求工作量证明，但此版本还不支持。请登录或注册免费的 Nous 账号继续。',
-    locked: '此会话需要登录才能继续。登录或注册免费的 Nous 账号。',
-    generic: '螃蟹OPC 无法在不登录的情况下设置免费访问。登录免费，或连接其他提供方。',
-    signInBelow: '登录免费。在下方选择 Nous。',
-    tryAgain: '重试',
-    retrying: '正在重试…'
-  },
+    busyHeading: '快好了',
+    busyBody: wait => `Nous 服务正忙，螃蟹OPC 暂时无法完成登录。请在 ${wait} 后重试。你的会话还在。`,
+    unreachableBody: '螃蟹OPC 无法连接 Nous 服务完成登录。请检查网络后重试。你的会话还在。',
+    setupFailed: {
+      gateClosed: '此版本的 螃蟹OPC 需要登录 Nous 账号才能使用。登录或注册一个都免费，只需一分钟。',
+      paused: '未登录使用 螃蟹OPC 暂时被暂停。螃蟹OPC 会持续重试。登录免费且立刻可用。',
+      rateLimited: wait => `现在开始使用的人很多，螃蟹OPC 将在 ${wait} 后重试。登录免费且可跳过等待。`,
+      unreachable: '螃蟹OPC 无法连接 Nous 服务。请检查网络后点「重试」，或先连接其他提供方。',
+      serverError: 'Nous 服务出了点小问题。稍后点「重试」，或先连接其他提供方。',
+      powRequired: 'Nous 服务器要求工作量证明，但此版本还不支持。请登录或注册免费的 Nous 账号继续。',
+      locked: '此会话需要登录才能继续。登录或注册免费的 Nous 账号。',
+      generic: '螃蟹OPC 无法在不登录的情况下设置免费访问。登录免费，或连接其他提供方。',
+      signInBelow: '登录免费。在下方选择 Nous。',
+      tryAgain: '重试',
+      retrying: '正在重试…'
+    },
     providerRowTitle: 'Nous · 免费层',
     providerRowPitch: '登录 Nous 账户以解锁更多模型和工具。',
     readyTitle: '螃蟹OPC已就绪。',
@@ -5527,7 +5553,8 @@ export const zh = defineLocale({
         },
         upstream_blocked: {
           title: '请求被防火墙拦截',
-          body: provider => `${provider} 前方的防火墙或 CDN 在请求到达模型前拦截了它——你的密钥多半没问题。请在设置的提供方 extra_headers 里配置 User-Agent，或更换提供方后重试。`
+          body: provider =>
+            `${provider} 前方的防火墙或 CDN 在请求到达模型前拦截了它——你的密钥多半没问题。请在设置的提供方 extra_headers 里配置 User-Agent，或更换提供方后重试。`
         },
         context_overflow: {
           title: '此对话太长',
@@ -5605,7 +5632,6 @@ export const zh = defineLocale({
         provider: '模型服务商错误',
         runtime: '本地运行时错误',
         streaming: '流式连接错误'
-
       },
       errorRetry: '重试',
       errorLimitResets: time => `限额将于 ${time} 重置`,
@@ -5652,7 +5678,7 @@ export const zh = defineLocale({
       errorOpenHermesFolder: '打开 螃蟹OPC 文件夹',
       errorOpenHermesFolderFailed: '无法打开 螃蟹OPC 文件夹',
       errorUpdateApiKey: '更新 API 密钥',
-      errorSignInFreeTier: '登录 Nous 账号',
+      errorSignInFreeTier: '登录 Nous 账号'
     },
     approval: {
       gatewayDisconnected: '螃蟹OPC 网关未连接',
@@ -5671,7 +5697,7 @@ export const zh = defineLocale({
       reconnect: '重新连接',
       timedOutSystemLine: '审批已超时——命令未运行。可让 螃蟹OPC 重试，或在 设置→安全→审批超时 中调大时限。',
       openSafetySettings: '打开安全设置',
-      commandDetails: '命令详情',
+      commandDetails: '命令详情'
     },
     clarify: {
       notReady: '澄清请求尚未就绪',
@@ -5951,7 +5977,7 @@ export const zh = defineLocale({
       systemNote: platform => `↻ 已移交到 ${platform} — 随时可在此处恢复。`,
       failed: error => `移交失败：${error}`,
       timedOut: '等待网关超时。`螃蟹OPC gateway` 是否正在运行？',
-      startMessaging: '开始聊天',
+      startMessaging: '开始聊天'
     }
   },
 

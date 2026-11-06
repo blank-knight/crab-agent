@@ -48,9 +48,14 @@ export function isDesktopToolsetVisible(name: string, advancedFeatures = false):
  */
 const DEVELOPER_CONNECTORS = new Set(['gitlab', 'jira', 'linear'])
 
-export type ConnectorVisibilityState = 'available' | 'broken' | 'connected' | 'connecting' | 'expired' | 'off' | 'unknown'
+export type ConnectorVisibilityState =
+  'available' | 'broken' | 'connected' | 'connecting' | 'expired' | 'off' | 'unknown'
 
-export function isConnectorSlugVisible(slug: string, state: ConnectorVisibilityState, advancedFeatures = false): boolean {
+export function isConnectorSlugVisible(
+  slug: string,
+  state: ConnectorVisibilityState,
+  advancedFeatures = false
+): boolean {
   if (advancedFeatures || !DEVELOPER_CONNECTORS.has(slug)) {
     return true
   }

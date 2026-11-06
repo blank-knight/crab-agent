@@ -8,13 +8,7 @@ describe('groupPlatformsByRegion', () => {
   const p = (id: string) => ({ id })
 
   it('国内平台在首位，海外其后，其余归「其他」', () => {
-    const groups = groupPlatformsByRegion([
-      p('telegram'),
-      p('feishu'),
-      p('api_server'),
-      p('weixin'),
-      p('discord')
-    ])
+    const groups = groupPlatformsByRegion([p('telegram'), p('feishu'), p('api_server'), p('weixin'), p('discord')])
 
     expect(groups.map(g => g.id)).toEqual(['cn', 'overseas', 'other'])
     expect(groups[0].platforms.map(x => x.id)).toEqual(['feishu', 'weixin'])

@@ -4,7 +4,6 @@ import { TabDropdown } from '@/components/ui/tab-dropdown'
 import { Brain, Cpu, type IconComponent, Network, Settings2, ShieldLock, Users } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
-
 /**
  * qiji 螃蟹OPC 设置页专用：顶部大类标签栏 + 左侧分组 rail 的两级导航。
  *
@@ -67,7 +66,9 @@ export function categoryOfGroup(groupId: string): string {
   const leaf = groupId.replace(/^config:/, '')
 
   for (const cat of SETTINGS_CATEGORIES) {
-    if (cat.members.includes(leaf)) {return cat.id}
+    if (cat.members.includes(leaf)) {
+      return cat.id
+    }
   }
 
   return 'system'
@@ -117,7 +118,13 @@ export const SettingsCategoryBar = memo(function SettingsCategoryBar({
       data-tour="settings-categories"
     >
       {SETTINGS_CATEGORIES.map(cat => (
-        <CategoryTab active={cat.id === activeCategory} icon={cat.icon} key={cat.id} label={cat.label} onClick={() => onSelect(cat.id)} />
+        <CategoryTab
+          active={cat.id === activeCategory}
+          icon={cat.icon}
+          key={cat.id}
+          label={cat.label}
+          onClick={() => onSelect(cat.id)}
+        />
       ))}
     </div>
   )

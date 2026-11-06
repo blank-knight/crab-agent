@@ -76,7 +76,9 @@ function toError(error: unknown): Error {
 const brandedCatalogCache = new Map<string, Translations>()
 
 function mapTranslationValue(value: unknown, replace: (s: string) => string): unknown {
-  if (typeof value === 'string') {return replace(value)}
+  if (typeof value === 'string') {
+    return replace(value)
+  }
 
   if (typeof value === 'function') {
     // qiji: 返回值可能为数组/对象（如 intro.custom(label) 返回 string[]）——逐元素替换，
@@ -84,12 +86,16 @@ function mapTranslationValue(value: unknown, replace: (s: string) => string): un
     return (...args: unknown[]) => mapTranslationValue((value as (...a: unknown[]) => unknown)(...args), replace)
   }
 
-  if (Array.isArray(value)) {return value.map(v => mapTranslationValue(v, replace))}
+  if (Array.isArray(value)) {
+    return value.map(v => mapTranslationValue(v, replace))
+  }
 
   if (typeof value === 'object' && value !== null) {
     const out: Record<string, unknown> = {}
 
-    for (const [k, v] of Object.entries(value)) {out[k] = mapTranslationValue(v, replace)}
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = mapTranslationValue(v, replace)
+    }
 
     return out
   }
@@ -101,10 +107,16 @@ function getBrandedTranslations(locale: Locale, brandName: string): Translations
   const cacheKey = `${locale}|${brandName}`
   const cached = brandedCatalogCache.get(cacheKey)
 
-  if (cached) {return cached}
+  if (cached) {
+    return cached
+  }
 
   const base = TRANSLATIONS[locale]
-  const replace = (s: string) => s.split('奇计').join(brandName).replace(/\bQiji\b/g, brandName)
+  const replace = (s: string) =>
+    s
+      .split('奇计')
+      .join(brandName)
+      .replace(/\bQiji\b/g, brandName)
   const branded = mapTranslationValue(base, replace) as Translations
   brandedCatalogCache.set(cacheKey, branded)
 

@@ -28,8 +28,7 @@ export function skillActivityTitle(part: SkillCall, live = true): string | undef
 
   // qiji: 技能名中文化——活动卡片不再显示英文 slug（「已加载技能: pptx-maker」→
   // 「已加载技能: PPT 制作」）。文件路径不翻译。
-  const zhName = (n: string | undefined): string | undefined =>
-    n && SKILL_ZH[n]?.name ? SKILL_ZH[n].name : n
+  const zhName = (n: string | undefined): string | undefined => (n && SKILL_ZH[n]?.name ? SKILL_ZH[n].name : n)
 
   const target = [zhName(name), file].filter(Boolean).join(' → ')
 

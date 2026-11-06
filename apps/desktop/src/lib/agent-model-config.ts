@@ -38,10 +38,7 @@ export function extractAgentModelConfig(data: LoginResponse): AgentModelConfig |
  * - models 为空但有 base_url：只写 OPENAI_BASE_URL 环境变量（沿用旧行为）
  * 返回是否写入了模型锁定。
  */
-export async function applyAgentModelConfig(
-  cfg: AgentModelConfig,
-  apiKey?: string
-): Promise<boolean> {
+export async function applyAgentModelConfig(cfg: AgentModelConfig, apiKey?: string): Promise<boolean> {
   const { base_url, models } = cfg
 
   if (models.length > 0) {

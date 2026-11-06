@@ -38,7 +38,9 @@ export function SkillDetail({
   })
 
   const parsed = useMemo(() => {
-    if (!contentQuery.data) {return null}
+    if (!contentQuery.data) {
+      return null
+    }
     const { body, meta } = parseFrontmatter(contentQuery.data.content)
     const fm = Object.fromEntries(meta) as Record<string, string>
 

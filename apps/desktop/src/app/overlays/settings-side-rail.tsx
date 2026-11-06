@@ -41,9 +41,7 @@ function RailItem({
       aria-current={active ? 'page' : undefined}
       className={cn(
         'row-hover flex w-full shrink-0 items-center justify-start gap-2 border border-transparent px-2.5 text-left transition-colors',
-        nested
-          ? 'ml-2 h-7 pl-2 text-[0.83rem] font-medium'
-          : 'h-8 text-[0.9rem] font-semibold',
+        nested ? 'ml-2 h-7 pl-2 text-[0.83rem] font-medium' : 'h-8 text-[0.9rem] font-semibold',
         nested
           ? active
             ? 'border-l-2 border-l-foreground bg-(--ui-row-active-background) text-foreground'
@@ -58,7 +56,11 @@ function RailItem({
     >
       {Icon && (
         <Icon
-          className={cn('shrink-0', nested ? 'size-3.5' : 'size-4', active ? 'text-foreground/80' : 'text-muted-foreground/80')}
+          className={cn(
+            'shrink-0',
+            nested ? 'size-3.5' : 'size-4',
+            active ? 'text-foreground/80' : 'text-muted-foreground/80'
+          )}
         />
       )}
       <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -77,7 +79,10 @@ export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups 
 
   return (
     <aside
-      className={cn('flex w-[11.5rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-[calc(var(--titlebar-height)/2+0.5rem)]', 'max-[47.5rem]:hidden')}
+      className={cn(
+        'flex w-[11.5rem] min-h-0 shrink-0 flex-col gap-0.5 overflow-y-auto bg-(--ui-sidebar-surface-background) px-1.5 pb-3 pt-[calc(var(--titlebar-height)/2+0.5rem)]',
+        'max-[47.5rem]:hidden'
+      )}
       data-tour="overlay-nav"
     >
       {groups.map(group => {
@@ -112,15 +117,25 @@ export const SettingsSideRail = memo(function SettingsSideRail({ footer, groups 
                     expanded && 'rotate-90'
                   )}
                 >
-                  <svg className="size-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+                  <svg className="size-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
                 </span>
               )}
             </div>
-            {hasChildren && expanded ? (
-              group.children?.map(child => (
-                <RailItem active={child.active} icon={child.icon} id={child.id} key={child.id} label={child.label} nested onClick={child.onSelect} />
-              ))
-            ) : null}
+            {hasChildren && expanded
+              ? group.children?.map(child => (
+                  <RailItem
+                    active={child.active}
+                    icon={child.icon}
+                    id={child.id}
+                    key={child.id}
+                    label={child.label}
+                    nested
+                    onClick={child.onSelect}
+                  />
+                ))
+              : null}
           </div>
         )
       })}

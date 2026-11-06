@@ -66,7 +66,10 @@ function asSnapshotLike(data: unknown): RosterSnapshotLike {
   return null
 }
 
-function toRow(row: Record<string, unknown>, localMeta?: Record<string, { title?: unknown; description?: unknown }>): OpcExpertRow | null {
+function toRow(
+  row: Record<string, unknown>,
+  localMeta?: Record<string, { title?: unknown; description?: unknown }>
+): OpcExpertRow | null {
   if (typeof row.name !== 'string' || row.name.length === 0) {
     return null
   }
@@ -106,8 +109,7 @@ function toRow(row: Record<string, unknown>, localMeta?: Record<string, { title?
     label: metaTitle || rowTitle || displayNameField || name,
     desc: metaDesc || localDesc || rowDesc || '',
     hue: expertHue(metaTitle || name),
-    lastActive:
-      worker && typeof worker.last_active === 'number' ? (worker.last_active as number) : undefined
+    lastActive: worker && typeof worker.last_active === 'number' ? (worker.last_active as number) : undefined
   }
 }
 
@@ -141,11 +143,17 @@ function formatLastActive(ts?: number): string {
 
   const diff = Date.now() - ts
 
-  if (diff < 60_000) {return '刚刚活跃'}
+  if (diff < 60_000) {
+    return '刚刚活跃'
+  }
 
-  if (diff < 3_600_000) {return `${Math.floor(diff / 60_000)} 分钟前活跃`}
+  if (diff < 3_600_000) {
+    return `${Math.floor(diff / 60_000)} 分钟前活跃`
+  }
 
-  if (diff < 86_400_000) {return `${Math.floor(diff / 3_600_000)} 小时前活跃`}
+  if (diff < 86_400_000) {
+    return `${Math.floor(diff / 3_600_000)} 小时前活跃`
+  }
 
   return `${Math.floor(diff / 86_400_000)} 天前活跃`
 }
@@ -157,7 +165,9 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
   const [confirmError, setConfirmError] = useState<string | null>(null)
 
   const doDelete = async () => {
-    if (deleting) {return}
+    if (deleting) {
+      return
+    }
     setDeleting(true)
     setConfirmError(null)
 
@@ -224,9 +234,7 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
           onClick={e => e.stopPropagation()}
           role="presentation"
         >
-          <p className="text-[0.85rem] font-semibold text-(--ui-text-primary)">
-            删除专家「{expert.label}」？
-          </p>
+          <p className="text-[0.85rem] font-semibold text-(--ui-text-primary)">删除专家「{expert.label}」？</p>
           <p className="text-center text-[0.72rem] leading-relaxed text-(--ui-text-tertiary)">
             将永久删除该专家的档案、记忆与全部对话历史，不可恢复。
           </p>
@@ -239,7 +247,9 @@ function ExpertCard({ expert }: { expert: OpcExpertRow }) {
               onClick={e => {
                 e.stopPropagation()
 
-                if (!deleting) {setConfirming(false)}
+                if (!deleting) {
+                  setConfirming(false)
+                }
               }}
               type="button"
             >
@@ -315,7 +325,9 @@ function RosterGrid() {
   useEffect(() => {
     const rows = Array.isArray(data?.profiles) ? (data!.profiles as RosterRow[]) : []
     rows.forEach(bot => {
-      if (!bot?.name || bot.ghost) {return}
+      if (!bot?.name || bot.ghost) {
+        return
+      }
 
       try {
         // crab 0.20.5k: meta 必传——displayName 不带 meta 时读不到

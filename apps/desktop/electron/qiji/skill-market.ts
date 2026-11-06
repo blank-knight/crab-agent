@@ -18,16 +18,13 @@ export interface SkillMarketDeps {
   rememberLog: (text: string) => void
 }
 
-function doGetZip(
-  url: string,
-  zipPath: string,
-  headers: Record<string, string>,
-  redirects: number
-): Promise<void> {
+function doGetZip(url: string, zipPath: string, headers: Record<string, string>, redirects: number): Promise<void> {
   return new Promise((resolve, reject) => {
     const req: ClientRequest = net.request(url)
 
-    for (const k of Object.keys(headers)) {req.setHeader(k, headers[k])}
+    for (const k of Object.keys(headers)) {
+      req.setHeader(k, headers[k])
+    }
     req.on('response', (res: NetResponse) => {
       const st = res.statusCode
       const loc = res.headers.location
@@ -60,9 +57,10 @@ function doGetZip(
 }
 
 function extractZip(zipPath: string, extractDir: string): void {
-  const untar = process.platform === 'win32'
-    ? ['tar', '-xf', zipPath, '-C', extractDir]
-    : ['unzip', '-q', zipPath, '-d', extractDir]
+  const untar =
+    process.platform === 'win32'
+      ? ['tar', '-xf', zipPath, '-C', extractDir]
+      : ['unzip', '-q', zipPath, '-d', extractDir]
 
   try {
     execFileSync(untar[0], untar.slice(1), { stdio: 'ignore' })
@@ -74,9 +72,13 @@ function extractZip(zipPath: string, extractDir: string): void {
 function findSkillDirs(dir: string, depth: number): string[] {
   const out: string[] = []
 
-  if (depth > 4) {return out}
+  if (depth > 4) {
+    return out
+  }
 
-  if (fs.existsSync(path.join(dir, 'SKILL.md'))) {out.push(dir)}
+  if (fs.existsSync(path.join(dir, 'SKILL.md'))) {
+    out.push(dir)
+  }
 
   for (const f of fs.readdirSync(dir, { withFileTypes: true })) {
     if (f.isDirectory() && !f.name.startsWith('.') && f.name !== 'node_modules') {
@@ -89,13 +91,18 @@ function findSkillDirs(dir: string, depth: number): string[] {
 
 export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMarketDeps): void {
   ipcMain.handle('hermes:skillMarket:installGithub', async (_event, rawRepo: unknown, rawSubdir: unknown) => {
-    const repo = String(rawRepo || '').trim().replace(/^(https?:\/\/github\.com\/)?/, '').replace(/\.git$/, '')
+    const repo = String(rawRepo || '')
+      .trim()
+      .replace(/^(https?:\/\/github\.com\/)?/, '')
+      .replace(/\.git$/, '')
 
     if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)) {
       throw new Error(`无效的仓库标识: ${repo}(格式: owner/repo)`)
     }
 
-    const subdir = String(rawSubdir || '').trim().replace(/^\/+/, '')
+    const subdir = String(rawSubdir || '')
+      .trim()
+      .replace(/^\/+/, '')
 
     const url = `https://codeload.github.com/${repo}/zip/refs/heads/main`
     rememberLog(`[skill-market] GitHub install: ${repo}${subdir ? ' /' + subdir : ''}`)
@@ -116,7 +123,9 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
     //    单技能仓库: 根/SKILL.md。subdir 优先,否则全仓库扫描)
     const zipRoot = fs.readdirSync(extractDir).filter(f => !f.startsWith('.'))[0]
 
-    if (!zipRoot) {throw new Error('压缩包为空')}
+    if (!zipRoot) {
+      throw new Error('压缩包为空')
+    }
     const rootDir = path.join(extractDir, zipRoot)
 
     let skillDirs: string[]
@@ -144,10 +153,16 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
         const md = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8')
         const m = md.match(/^name:\s*([A-Za-z0-9][A-Za-z0-9-_]*)/m)
 
-        if (m) {skillName = m[1]}
-      } catch { /* 用目录名 */ }
+        if (m) {
+          skillName = m[1]
+        }
+      } catch {
+        /* 用目录名 */
+      }
 
-      if (!/^[a-z0-9][a-z0-9-_]*$/i.test(skillName)) {continue}
+      if (!/^[a-z0-9][a-z0-9-_]*$/i.test(skillName)) {
+        continue
+      }
 
       const destDir = path.join(skillsRoot, 'market', skillName.toLowerCase())
       fs.rmSync(destDir, { recursive: true, force: true })
@@ -157,9 +172,15 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
 
     fs.rmSync(extractDir, { recursive: true, force: true })
 
-    try { fs.unlinkSync(zipPath) } catch { /* best effort */ }
+    try {
+      fs.unlinkSync(zipPath)
+    } catch {
+      /* best effort */
+    }
 
-    if (installedNames.length === 0) {throw new Error('未找到合法技能(SKILL.md 的 name 均无效)')}
+    if (installedNames.length === 0) {
+      throw new Error('未找到合法技能(SKILL.md 的 name 均无效)')
+    }
     rememberLog(`[skill-market] GitHub skills installed: ${installedNames.join(', ')} from ${repo}`)
 
     return { ok: true, name: installedNames[0], allNames: installedNames, source: `github:${repo}` }
@@ -183,7 +204,9 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
     const srcPath = path.join(tmpDir, name + '-' + Date.now() + '.zip')
     const headers: Record<string, string> = {}
 
-    if (rawToken) {headers['Authorization'] = 'Bearer ' + String(rawToken)}
+    if (rawToken) {
+      headers['Authorization'] = 'Bearer ' + String(rawToken)
+    }
     await doGetZip(url, srcPath, headers, 5)
 
     // 解压用系统自带工具：Windows 10+ 自带 tar(bsdtar 支持 zip)，macOS/Linux 自带 unzip
@@ -220,7 +243,12 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
     fs.cpSync(srcDir, destDir, { recursive: true })
 
     // 清理
-    try { fs.rmSync(extractDir, { recursive: true, force: true }); fs.unlinkSync(srcPath) } catch { /* best effort */ }
+    try {
+      fs.rmSync(extractDir, { recursive: true, force: true })
+      fs.unlinkSync(srcPath)
+    } catch {
+      /* best effort */
+    }
 
     rememberLog(`[skill-market] installed skill: ${name} -> ${destDir}`)
 
@@ -248,4 +276,3 @@ export function registerQijiSkillMarketIpc({ hermesHome, rememberLog }: SkillMar
     return { ok: true }
   })
 }
-

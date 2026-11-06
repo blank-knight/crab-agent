@@ -67,7 +67,13 @@ import {
 import { watchLocalRuntimeJobs } from '@/store/local-runtime-jobs'
 import { notify, notifyError, RECOVERY_ACTIONS } from '@/store/notifications'
 import { loadPoolLimits } from '@/store/pool-limits'
-import { $activeGatewayProfile, enforceAccountProfileLock, normalizeProfileKey, refreshActiveProfile, touchActiveGatewayBackend } from '@/store/profile'
+import {
+  $activeGatewayProfile,
+  enforceAccountProfileLock,
+  normalizeProfileKey,
+  refreshActiveProfile,
+  touchActiveGatewayBackend
+} from '@/store/profile'
 import { requestBackendRestart } from '@/store/recovery-requests'
 import {
   $activeSessionId,

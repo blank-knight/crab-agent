@@ -679,37 +679,37 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               失败时的排障通道保留在错误块(revealLogs/复制),正常运行期不再
               暴露"查看输出"入口。 */}
           {SHOW_STAGE_LIST && (
-          <div className="pt-3">
-            <Button
-              className="-ml-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setLogOpen(v => !v)}
-              size="xs"
-              type="button"
-              variant="ghost"
-            >
-              {logOpen ? <ChevronDown className={iconSize.sm} /> : <ChevronRight className={iconSize.sm} />}
-              <span>{logOpen ? copy.hideOutput : copy.showOutput}</span>
-              <span className="ml-1 tabular-nums">({copy.lines(state.log.length)})</span>
-            </Button>
+            <div className="pt-3">
+              <Button
+                className="-ml-2 text-muted-foreground hover:text-foreground"
+                onClick={() => setLogOpen(v => !v)}
+                size="xs"
+                type="button"
+                variant="ghost"
+              >
+                {logOpen ? <ChevronDown className={iconSize.sm} /> : <ChevronRight className={iconSize.sm} />}
+                <span>{logOpen ? copy.hideOutput : copy.showOutput}</span>
+                <span className="ml-1 tabular-nums">({copy.lines(state.log.length)})</span>
+              </Button>
 
-            {logOpen && (
-              <LogView className={cn('mt-2', failed ? 'max-h-96' : 'max-h-64')}>
-                {state.log.length === 0 ? (
-                  <div>{copy.noOutput}</div>
-                ) : (
-                  <>
-                    {state.log.map((entry, i) => (
-                      <div className={cn(entry.stream === 'stderr' && 'text-muted-foreground/70')} key={i}>
-                        {entry.stage ? <span className="text-muted-foreground/60">[{entry.stage}] </span> : null}
-                        <span>{entry.line}</span>
-                      </div>
-                    ))}
-                    <div ref={logEndRef} />
-                  </>
-                )}
-              </LogView>
-            )}
-          </div>
+              {logOpen && (
+                <LogView className={cn('mt-2', failed ? 'max-h-96' : 'max-h-64')}>
+                  {state.log.length === 0 ? (
+                    <div>{copy.noOutput}</div>
+                  ) : (
+                    <>
+                      {state.log.map((entry, i) => (
+                        <div className={cn(entry.stream === 'stderr' && 'text-muted-foreground/70')} key={i}>
+                          {entry.stage ? <span className="text-muted-foreground/60">[{entry.stage}] </span> : null}
+                          <span>{entry.line}</span>
+                        </div>
+                      ))}
+                      <div ref={logEndRef} />
+                    </>
+                  )}
+                </LogView>
+              )}
+            </div>
           )}
         </div>
 

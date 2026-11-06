@@ -10,7 +10,9 @@
 const INJECTED_FONT_LINK_ID = 'qiji-user-font-link'
 
 export function applyUserFont(fontSans: string | null, fontUrl: string | null): void {
-  if (typeof document === 'undefined') {return}
+  if (typeof document === 'undefined') {
+    return
+  }
 
   const root = document.documentElement
 
@@ -33,7 +35,9 @@ export function applyUserFont(fontSans: string | null, fontUrl: string | null): 
       document.head.appendChild(link)
     }
 
-    if (link.href !== fontUrl) {link.href = fontUrl}
+    if (link.href !== fontUrl) {
+      link.href = fontUrl
+    }
   } else if (link) {
     link.remove()
   }

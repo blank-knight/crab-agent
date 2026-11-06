@@ -225,12 +225,12 @@ export function ContribWiring({ children }: { children: ReactNode }) {
   // （qiji-fork 生产线同款：无 dev 豁免——401 清态后必须回登录页,否则主界面
   // 空转没登录机制;本地无后端调试用 devSkipLogin 手动触发。）
   const authState = useStore($auth)
+
   // E2E harness launches with HERMES_DESKTOP_E2E_SKIP_LOGIN=1: the packaged app
   // under test has no auth server, so the login overlay would hide the chat UI
   // from Playwright. The flag only mutes the overlay — no credentials granted.
-  const needLogin = window.hermesDesktop?.e2eSkipLogin === true
-    ? false
-    : !authState.token || isTokenExpired()
+  const needLogin = window.hermesDesktop?.e2eSkipLogin === true ? false : !authState.token || isTokenExpired()
+
   const activeSessionId = useStore($activeSessionId)
   const billingSettingsRequest = useStore($billingSettingsRequest)
   const poolLimitsSettingsRequest = useStore($poolLimitsSettingsRequest)

@@ -204,6 +204,8 @@ function SecondLine({ card, reason }: { card: ConnectorCardModel; reason?: strin
   }
 
   return card.description ? (
-    <p className="line-clamp-2 text-[0.76rem] leading-relaxed text-(--ui-text-secondary)">{connectorDescZh(card.slug, card.description)}</p>
+    <p className="line-clamp-2 text-[0.76rem] leading-relaxed text-(--ui-text-secondary)">
+      {connectorDescZh(card.slug, card.description)}
+    </p>
   ) : null
 }

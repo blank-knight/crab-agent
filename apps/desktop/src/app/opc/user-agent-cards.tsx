@@ -22,13 +22,7 @@ import { useNavigate } from 'react-router'
 import { getSkills } from '@/api/skills'
 import { translateSkillField } from '@/app/skills/translations'
 import { Codicon } from '@/components/ui/codicon'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { isZhLocale } from '@/i18n'
 import { requestOneShot } from '@/lib/oneshot'
 import { cn } from '@/lib/utils'
@@ -71,7 +65,9 @@ async function fetchSkillOptions(): Promise<SkillOption[]> {
 function filterSkills(list: SkillOption[], q: string): SkillOption[] {
   const query = q.trim().toLowerCase()
 
-  if (!query) {return list}
+  if (!query) {
+    return list
+  }
 
   return list.filter(
     sk =>
@@ -107,7 +103,9 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
 
   // 点外面收起下拉
   useEffect(() => {
-    if (!open) {return undefined}
+    if (!open) {
+      return undefined
+    }
 
     const onDown = (e: MouseEvent) => {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) {
@@ -143,7 +141,9 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={e => {
-          if (!open || candidates.length === 0) {return}
+          if (!open || candidates.length === 0) {
+            return
+          }
 
           if (e.key === 'ArrowDown') {
             e.preventDefault()
@@ -197,7 +197,9 @@ function SkillPicker({ value, onChange }: { value: string; onChange: (v: string)
                 >
                   <span className="flex items-baseline gap-1.5">
                     <span className="truncate text-[0.82rem] font-semibold text-(--ui-text-primary)">{nameZh}</span>
-                    <span className="shrink-0 rounded-sm bg-(--ui-muted) px-1 text-[0.66rem] text-(--ui-text-tertiary)">{sk.name}</span>
+                    <span className="shrink-0 rounded-sm bg-(--ui-muted) px-1 text-[0.66rem] text-(--ui-text-tertiary)">
+                      {sk.name}
+                    </span>
                   </span>
                   {descZh ? (
                     <span className="line-clamp-1 text-[0.72rem] text-(--ui-text-tertiary)">{descZh}</span>
@@ -243,7 +245,9 @@ export function GeneratePromptButton({ hint, onGenerated, label = 'AI 生成' }:
   const [busy, setBusy] = useState(false)
 
   const run = async () => {
-    if (busy) {return}
+    if (busy) {
+      return
+    }
     setBusy(true)
 
     try {
@@ -301,16 +305,16 @@ export function UserAgentDialog({
 
   useEffect(() => {
     setForm(
-      editing
-        ? { title: editing.title, desc: editing.desc, kind: editing.kind, target: editing.target }
-        : EMPTY_FORM
+      editing ? { title: editing.title, desc: editing.desc, kind: editing.kind, target: editing.target } : EMPTY_FORM
     )
   }, [editing])
 
   const valid = form.title.trim().length > 0 && form.target.trim().length > 0
 
   const submit = () => {
-    if (!valid) {return}
+    if (!valid) {
+      return
+    }
 
     if (editing) {
       updateUserAgent(editing.id, {
@@ -403,7 +407,10 @@ export function UserAgentDialog({
                   <span className="text-[0.7rem] text-(--ui-text-quaternary)">
                     不会写？填好上面的一句话描述，点右侧按钮让 AI 代写
                   </span>
-                  <GeneratePromptButton hint={form.desc || form.title} onGenerated={text => setForm({ ...form, target: text })} />
+                  <GeneratePromptButton
+                    hint={form.desc || form.title}
+                    onGenerated={text => setForm({ ...form, target: text })}
+                  />
                 </div>
               </div>
             )}

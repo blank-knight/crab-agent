@@ -8,8 +8,7 @@ const featureFlags = {
    * Set via HERMES_DESKTOP_E2E_SKIP_LOGIN=1 in the harness env (never set for
    * real users; the flag only mutes the overlay, it grants no credentials).
    */
-  e2eSkipLogin: ({ argv }) =>
-    process.env.HERMES_DESKTOP_E2E_SKIP_LOGIN === '1' || argv.includes('--e2e-skip-login')
+  e2eSkipLogin: ({ argv }) => process.env.HERMES_DESKTOP_E2E_SKIP_LOGIN === '1' || argv.includes('--e2e-skip-login')
 } satisfies Record<string, (args: FeatureFlagInput) => boolean>
 
 export type FeatureFlags = { [K in keyof typeof featureFlags]: boolean }

@@ -434,7 +434,10 @@ export function useSessionListActions({ profileScope }: UseSessionListActionsArg
             // Filter AFTER the merge: the guard must also catch survivors
             // (a stale previous slice can still hold the doomed row through
             // the keep set once the tombstone prune has cleared membership).
-            const next = dropRemovalRaced(mergeSessionPage(base, incoming, wipingGatewayLeftover ? [] : sessionsToKeep()), removalSnapshot)
+            const next = dropRemovalRaced(
+              mergeSessionPage(base, incoming, wipingGatewayLeftover ? [] : sessionsToKeep()),
+              removalSnapshot
+            )
 
             return sameCronSignature(prev, next) ? prev : next
           })

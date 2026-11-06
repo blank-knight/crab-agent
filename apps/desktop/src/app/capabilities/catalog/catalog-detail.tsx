@@ -81,7 +81,9 @@ export function CatalogDetail({
             <div className={cn('flex min-w-0 items-center gap-2', dialog && !entry.imageUrl && 'pr-7')}>
               {/* qiji 0.20.5d: 标题/描述统一走双源中文投影（技能查 SKILL_ZH、插件查
                   PLUGIN_ZH），与卡片/list 行同源——此前只查技能表，插件详情露英文。 */}
-              <Title className="min-w-0 flex-1 break-words text-lg font-semibold tracking-tight">{isZhLocale() ? displayName(entry) : entry.name}</Title>
+              <Title className="min-w-0 flex-1 break-words text-lg font-semibold tracking-tight">
+                {isZhLocale() ? displayName(entry) : entry.name}
+              </Title>
               {action && <span className="shrink-0">{action}</span>}
             </div>
             <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-(--ui-text-tertiary)">
@@ -193,7 +195,9 @@ export function CatalogDetail({
                     <Codicon name={catalogIcon(item.category)} size="1.25rem" />
                   </span>
                 )}
-                <span className="w-full truncate px-2 pb-2 text-xs font-medium">{isZhLocale() ? displayName(item) : item.name}</span>
+                <span className="w-full truncate px-2 pb-2 text-xs font-medium">
+                  {isZhLocale() ? displayName(item) : item.name}
+                </span>
               </RowButton>
             ))}
           </div>

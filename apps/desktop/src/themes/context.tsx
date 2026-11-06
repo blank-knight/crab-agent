@@ -335,8 +335,14 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
 
     const vibe = L.vibe ?? 'work'
 
-    root.style.setProperty('--dt-radius-scalar', String(clamp(L.radiusScalar, 0, 2, vibe === 'chat' ? 1.1 : vibe === 'zen' ? 0.9 : 0.6)))
-    root.style.setProperty('--dt-spacing-mul', String(clamp(L.spacingMul, 0.85, 1.3, vibe === 'chat' ? 1.12 : vibe === 'zen' ? 1.2 : 1)))
+    root.style.setProperty(
+      '--dt-radius-scalar',
+      String(clamp(L.radiusScalar, 0, 2, vibe === 'chat' ? 1.1 : vibe === 'zen' ? 0.9 : 0.6))
+    )
+    root.style.setProperty(
+      '--dt-spacing-mul',
+      String(clamp(L.spacingMul, 0.85, 1.3, vibe === 'chat' ? 1.12 : vibe === 'zen' ? 1.2 : 1))
+    )
     root.style.setProperty('--dt-base-size', `${clamp(L.baseSize, 0.75, 1.1, 0.875)}rem`)
     root.style.setProperty('--conversation-turn-gap', `${clamp(L.turnGap, 0.2, 0.9, vibe === 'zen' ? 0.7 : 0.375)}rem`)
 
@@ -362,7 +368,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark', chatFontFamily 
   // Wallpaper layer (anime/skin themes): paint the image under the shell and
   // raise a readability scrim so glass surfaces keep contrast over busy art.
   const bg = theme.backgroundImage
-  const wallpaper = isDark ? bg?.dark ?? bg?.light : bg?.light
+  const wallpaper = isDark ? (bg?.dark ?? bg?.light) : bg?.light
 
   if (wallpaper) {
     const scrim = bg?.scrimOpacity ?? (isDark ? 0.55 : 0.75)
@@ -619,7 +625,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     try {
       const stored = Number(window.localStorage.getItem('qiji-font-scale'))
 
-      if (Number.isFinite(stored) && stored > 0) {scale = Math.min(1.5, Math.max(0.85, stored))}
+      if (Number.isFinite(stored) && stored > 0) {
+        scale = Math.min(1.5, Math.max(0.85, stored))
+      }
     } catch {
       // qiji: localStorage 在个别环境不可用,字号回退默认值。
     }

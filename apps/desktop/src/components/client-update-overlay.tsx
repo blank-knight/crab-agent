@@ -45,9 +45,7 @@ export function ClientUpdateOverlay() {
           {downloading ? (
             <>
               <h2 className="text-lg font-semibold tracking-tight">正在下载新版本</h2>
-              <p className="text-xs text-muted-foreground">
-                v{info?.newversion} · 下载完成后将自动启动安装
-              </p>
+              <p className="text-xs text-muted-foreground">v{info?.newversion} · 下载完成后将自动启动安装</p>
             </>
           ) : state.status === 'error' ? (
             <>

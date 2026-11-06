@@ -26,7 +26,9 @@ function loadPersistedBrand(): OemBrand {
   try {
     const raw = window.localStorage.getItem(OEM_BRAND_KEY)
 
-    if (!raw) {return { name: '', logo: '' }}
+    if (!raw) {
+      return { name: '', logo: '' }
+    }
     const parsed = JSON.parse(raw) as Partial<OemBrand> | null
 
     return {
@@ -98,7 +100,9 @@ export function useOemBrand(): { brand: OemBrand; displayName: string } {
  * 注意：小写 `qiji`（CLI 命令/路径/协议名）不替换。
  */
 export function brandText(text: string): string {
-  if (!text) {return text}
+  if (!text) {
+    return text
+  }
   const name = brandDisplayName($oemBrand.get())
   let out = text.split('奇计').join(name)
 
@@ -132,5 +136,3 @@ $oemBrand.subscribe(brand => {
 })
 // 模块加载即推送一次（启动时把持久化品牌同步给主进程）
 pushBrandToMain(loadPersistedBrand())
-
-

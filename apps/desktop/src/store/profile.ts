@@ -3,11 +3,7 @@ import { atom, batch, computed } from 'nanostores'
 
 import type { HermesConnection } from '@/global'
 import { getProfiles, hermesApi, setApiRequestProfile, STARTUP_REQUEST_TIMEOUT_MS } from '@/hermes'
-import {
-  accountLockedProfile,
-  clearAccountLockExceptions,
-  setAccountLockExceptions
-} from '@/lib/account-profile'
+import { accountLockedProfile, clearAccountLockExceptions, setAccountLockExceptions } from '@/lib/account-profile'
 import { sortByProfileOrder as sortProfilesByOrder } from '@/lib/profile-order'
 import { invalidateProfileScopedQueries } from '@/lib/query-client'
 import {
@@ -55,14 +51,8 @@ export function normalizeProfileKey(name: string | null | undefined): string {
 // （profile.yaml ui_meta['hermes-bots'].title），display_name 恒为空——不加
 // 这级兜底，切换器/侧栏对专家档案显示裸技术 ID（pmvagpyyc），用户认不出
 // 自己建的专家（10-20 装机实锤）。display_name（用户手改的名）仍优先。
-export function profileLabel(
-  profile: Pick<ProfileInfo, 'display_name' | 'bot_title' | 'name'>
-): string {
-  return (
-    (profile.display_name ?? '').trim() ||
-    (profile.bot_title ?? '').trim() ||
-    profile.name
-  )
+export function profileLabel(profile: Pick<ProfileInfo, 'display_name' | 'bot_title' | 'name'>): string {
+  return (profile.display_name ?? '').trim() || (profile.bot_title ?? '').trim() || profile.name
 }
 
 // The profile the running local backend is actually scoped to (mirrors
@@ -988,7 +978,9 @@ export async function refreshAccountLockExceptions(): Promise<void> {
     const next = new Set<string>()
 
     for (const p of res?.profiles || []) {
-      const key = String(p?.name || '').trim().toLowerCase()
+      const key = String(p?.name || '')
+        .trim()
+        .toLowerCase()
 
       if (key && key !== 'default' && key !== lockedKey) {
         next.add(key)

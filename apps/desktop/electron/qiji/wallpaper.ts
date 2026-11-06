@@ -35,12 +35,19 @@ export function registerQijiWallpaperScheme(): void {
 export function registerQijiWallpaperProtocol(): void {
   protocol.handle(WALLPAPER_PROTOCOL, request => {
     try {
-      const name = decodeURIComponent(new URL(request.url).hostname + new URL(request.url).pathname).replace(/[\\/]+/g, '')
+      const name = decodeURIComponent(new URL(request.url).hostname + new URL(request.url).pathname).replace(
+        /[\\/]+/g,
+        ''
+      )
 
-      if (!name || /\.\./.test(name)) {return new Response('bad name', { status: 400 })}
+      if (!name || /\.\./.test(name)) {
+        return new Response('bad name', { status: 400 })
+      }
       const p = path.join(wallpapersDir(), name)
 
-      if (!fs.existsSync(p)) {return new Response('not found', { status: 404 })}
+      if (!fs.existsSync(p)) {
+        return new Response('not found', { status: 404 })
+      }
 
       return net.fetch(pathToFileURL(p).toString())
     } catch {
@@ -57,7 +64,9 @@ export function registerQijiWallpaperIpc(): void {
       filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'] }]
     })
 
-    if (picked.canceled || !picked.filePaths[0]) {return null}
+    if (picked.canceled || !picked.filePaths[0]) {
+      return null
+    }
     const srcPath = picked.filePaths[0]
     const dir = wallpapersDir()
     fs.mkdirSync(dir, { recursive: true })
@@ -72,10 +81,14 @@ export function registerQijiWallpaperIpc(): void {
   ipcMain.handle('hermes:wallpaper:resolve', async (_event, file: unknown) => {
     const name = String(file || '').trim()
 
-    if (!name || /[\\/]/.test(name)) {return null} // 只允许裸文件名,防路径穿越
+    if (!name || /[\\/]/.test(name)) {
+      return null
+    } // 只允许裸文件名,防路径穿越
     const p = path.join(wallpapersDir(), name)
 
-    if (!fs.existsSync(p)) {return null}
+    if (!fs.existsSync(p)) {
+      return null
+    }
 
     return fileToDataUrl(p)
   })
@@ -83,7 +96,11 @@ export function registerQijiWallpaperIpc(): void {
   ipcMain.handle('hermes:wallpaper:clear', async () => {
     const dir = wallpapersDir()
 
-    try { fs.rmSync(dir, { recursive: true, force: true }) } catch { /* best effort */ }
+    try {
+      fs.rmSync(dir, { recursive: true, force: true })
+    } catch {
+      /* best effort */
+    }
 
     return true
   })

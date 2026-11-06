@@ -25,7 +25,9 @@ export function readWallpaperPref(): UserWallpaperPref | null {
   try {
     const raw = window.localStorage.getItem(LS_KEY)
 
-    if (!raw) {return null}
+    if (!raw) {
+      return null
+    }
     const parsed = JSON.parse(raw) as UserWallpaperPref
 
     return parsed?.file ? parsed : null
@@ -36,8 +38,11 @@ export function readWallpaperPref(): UserWallpaperPref | null {
 
 export function writeWallpaperPref(pref: UserWallpaperPref | null): void {
   try {
-    if (pref) {window.localStorage.setItem(LS_KEY, JSON.stringify(pref))}
-    else {window.localStorage.removeItem(LS_KEY)}
+    if (pref) {
+      window.localStorage.setItem(LS_KEY, JSON.stringify(pref))
+    } else {
+      window.localStorage.removeItem(LS_KEY)
+    }
   } catch {
     // 隐私模式下本次会话生效即可
   }
@@ -56,7 +61,9 @@ function wallpaperDir(): string {
  * 直接操作 CSS 变量（与 applyTheme 的壁纸段同一套变量）。
  */
 export function applyUserWallpaper(url: string | null, pref: { scrim: number; size: string } | null): void {
-  if (typeof document === 'undefined') {return}
+  if (typeof document === 'undefined') {
+    return
+  }
   const root = document.documentElement
 
   if (url && pref) {

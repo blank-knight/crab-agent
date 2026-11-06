@@ -129,7 +129,9 @@ export function SettingsProfileScope({ className }: { className?: string }) {
           type="button"
         >
           {selectedChip ? settingsScopeLabel(selectedChip) : selected}
-          <span aria-hidden className={cn('text-(--ui-text-tertiary) transition-transform', open && 'rotate-90')}>›</span>
+          <span aria-hidden className={cn('text-(--ui-text-tertiary) transition-transform', open && 'rotate-90')}>
+            ›
+          </span>
         </button>
       </div>
       {open ? (

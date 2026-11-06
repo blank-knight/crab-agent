@@ -57,9 +57,7 @@ export function ConnectorsDirectory({
 
   const advancedFeatures = useStore($advancedFeatures)
 
-  const visibleCards = advancedFeatures
-    ? cards
-    : cards.filter(card => isConnectorSlugVisible(card.slug, card.state))
+  const visibleCards = advancedFeatures ? cards : cards.filter(card => isConnectorSlugVisible(card.slug, card.state))
 
   const { groups, hiddenMatches, segment, segments } = derivePage(visibleCards, filter)
 

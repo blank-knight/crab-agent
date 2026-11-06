@@ -20,7 +20,11 @@ async function settledState(promise: Promise<unknown>) {
 
 test('first-run setup gate skips non-bootstrap backends', async () => {
   const prompts = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   await gate.wait({ kind: 'remote' })
   await gate.wait({ kind: 'python', local: 'bundled' })
@@ -32,7 +36,11 @@ test('first-run setup gate skips non-bootstrap backends', async () => {
 
 test('first-run setup gate prompts once for concurrent waits', async () => {
   const prompts = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   const first = gate.wait(bootstrapBackend)
   const second = gate.wait(bootstrapBackend)
@@ -62,7 +70,11 @@ test('continueLocal keeps the setup choice visible until bootstrap owns the over
 
 test('retry reset preserves the local install confirmation', async () => {
   const prompts = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   const pending = gate.wait(bootstrapBackend)
   gate.continueLocal()
@@ -89,7 +101,11 @@ test('retry reset explicitly settles an active waiter without allowing local boo
 
 test('repair reset clears the local install confirmation and shows the gate again', async () => {
   const prompts = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   const pending = gate.wait(bootstrapBackend)
   gate.continueLocal()
@@ -138,7 +154,11 @@ test('remote apply without a waiter has no first-run side effects', async () => 
 // couldn't start。
 test('first-run setup gate does not stop an engine-upgrade re-stage', async () => {
   const prompts: unknown[] = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   const decision = await gate.wait({ ...bootstrapBackend, runtimeUpgrade: true })
 
@@ -149,7 +169,11 @@ test('first-run setup gate does not stop an engine-upgrade re-stage', async () =
 
 test('a plain first-run still prompts (regression guard)', async () => {
   const prompts: unknown[] = []
-  const gate = createFirstRunSetupGate({ autoLocal: false, promptChoice: backend => prompts.push(backend), stuckAfterMs: 0 })
+  const gate = createFirstRunSetupGate({
+    autoLocal: false,
+    promptChoice: backend => prompts.push(backend),
+    stuckAfterMs: 0
+  })
 
   const pending = gate.wait(bootstrapBackend)
   const state = await settledState(pending)

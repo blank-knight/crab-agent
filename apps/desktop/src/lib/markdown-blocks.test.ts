@@ -160,7 +160,7 @@ describe('parseMarkdownIntoBlocksCached', () => {
         expect(parseMarkdownIntoBlocksCached(text)).toEqual(parseMarkdownIntoBlocks(text))
       }
     }
-  // CI runners run ~3x slower than a dev box; 30s tripped at 31.4s there.
-  // Same guard, wider budget.
+    // CI runners run ~3x slower than a dev box; 30s tripped at 31.4s there.
+    // Same guard, wider budget.
   }, 120_000)
 })

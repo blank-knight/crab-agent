@@ -8,7 +8,7 @@ import { runPrimaryBackendStartup } from './primary-backend-startup'
 import { rehomePrimaryConnection } from './primary-connection-rehome'
 
 test('a first-run bootstrap-needed remote apply connects without ensuring or bootstrapping locally', async () => {
-  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 })  // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
+  const gate = createFirstRunSetupGate({ autoLocal: false, stuckAfterMs: 0 }) // crab: 测上游询问语义,屏蔽品牌 autoLocalBootstrap 默认
 
   const bootstrapBackend = {
     activeRoot: '/tmp/hermes-home/hermes-agent',
