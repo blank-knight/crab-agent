@@ -38,6 +38,8 @@ param(
     [switch]$Manifest,
     [string]$Stage,
     [switch]$ProtocolVersion,
+    # Upstream seam: print resolved paths as JSON and exit (8.3 diagnostics).
+    [switch]$ShowResolvedPaths,
     [switch]$NonInteractive,
     [switch]$Json,
 
@@ -84,6 +86,10 @@ param(
 # under THAT home, not the ambient HERMES_HOME they inherited.
 $env:HERMES_HOME = $HermesHome
 $env:QIJI_HOME = $HermesHome
+# Capture the script binding once at script scope: a function body sees its
+# own $PSBoundParameters, not the script's (upstream prologue contract).
+$script:BoundParams = $PSBoundParameters
+
 
 $ErrorActionPreference = "Stop"
 
@@ -150,12 +156,11 @@ $InstallStages = @(
     @{ Name = "dependencies";     Title = "Installing Python dependencies";       Category = "install";      NeedsUserInput = $false; Worker = "Stage-Dependencies" }
     @{ Name = "node-deps";        Title = "Installing Node.js dependencies";      Category = "install";      NeedsUserInput = $false; Worker = "Stage-NodeDeps" }
 )
-if ($IncludeDesktop) {
-    # Insert AFTER node-deps so workspace npm is already installed when
-    # the desktop build runs. Inserted only when explicitly requested
-    # (Hermes-Setup.exe), never via the irm|iex CLI one-liner.
-    $InstallStages += @{ Name = "desktop"; Title = "Building desktop app"; Category = "install"; NeedsUserInput = $false; Worker = "Stage-Desktop" }
-}
+# crab: the stage table is protocol surface for BOTH drive modes -- drivers
+# dot-source and dispatch Stage-Desktop by name (upstream tests, desktop
+# bootstrap). IncludeDesktop only governs whether the interactive ladder
+# RUNS the stage; registration is unconditional.
+$InstallStages += @{ Name = "desktop"; Title = "Building desktop app"; Category = "install"; NeedsUserInput = $false; Worker = "Stage-Desktop"; RunByDefault = [bool]$IncludeDesktop }
 $InstallStages += @(
     @{ Name = "path";             Title = "Adding to PATH";                Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-Path" }
     @{ Name = "config-templates"; Title = "Writing configuration templates";      Category = "finalize";     NeedsUserInput = $false; Worker = "Stage-ConfigTemplates" }
@@ -175,6 +180,7 @@ $InstallStages += @(
 # onboarding wizard parse this stdout; it must stay clean.  Mirrors the
 # upstream contract: dispatch right after the data tables are defined.
 # ==========================================================================
+
 if ($ProtocolVersion) {
     Write-Output $InstallStageProtocolVersion
     exit 0
@@ -851,63 +857,8 @@ $script:DotSourced = ($MyInvocation.InvocationName -eq '.')
 $script:RunAsFile = [bool]{}.File
 $script:RobocopyMT = 8  # sensible default
 
-if ($env:OS -eq "Windows_NT") {
-    try {
-        $status = Get-MpComputerStatus -ErrorAction SilentlyContinue
-        $prefs  = Get-MpPreference -ErrorAction SilentlyContinue
-    } catch { $status = $null; $prefs = $null }
-
-    # Is Defender actually scanning $HermesHome right now?
-    $defenderScanning = (
-        $status -and
-        $status.RealTimeProtectionEnabled -and
-        -not ($prefs -and ($prefs.ExclusionPath -contains $HermesHome))
-    )
-
-    if ($defenderScanning) {
-        # Defender is active and $HermesHome is NOT excluded.
-        # Try to auto-add the exclusion when elevated; otherwise the heavy
-        # copy below will be slow, so we use fewer threads to avoid
-        # saturating the CPU with parallel AV scans.
-        $isAdmin = $false
-        try {
-            $isAdmin = ([Security.Principal.WindowsPrincipal]::new(
-                [Security.Principal.WindowsIdentity]::GetCurrent()
-            )).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-        } catch {}
-
-        if ($isAdmin) {
-            try {
-                Add-MpPreference -ExclusionPath $HermesHome -ErrorAction Stop
-                Write-Host "[Defender] Added exclusion for $HermesHome (elevated)" -ForegroundColor Green
-                $script:RobocopyMT = 16
-            } catch {
-                Write-Host "Tip: Windows Defender real-time scanning can slow this install significantly." -ForegroundColor Yellow
-                Write-Host "     To speed up (5-10x faster), add an exclusion in an admin PowerShell:" -ForegroundColor Yellow
-                Write-Host "     Add-MpPreference -ExclusionPath `"$HermesHome`"" -ForegroundColor Cyan
-                $script:RobocopyMT = [Math]::Max(2, [int]($env:NUMBER_OF_PROCESSORS / 2))
-            }
-        } else {
-            Write-Host ""
-            Write-Host "Tip: Windows Defender real-time scanning can slow this install significantly." -ForegroundColor Yellow
-            Write-Host "     To speed up (5-10x faster), add an exclusion in an admin PowerShell:" -ForegroundColor Yellow
-            Write-Host "     Add-MpPreference -ExclusionPath `"$HermesHome`"" -ForegroundColor Cyan
-            Write-Host ""
-            $script:RobocopyMT = [Math]::Max(2, [int]($env:NUMBER_OF_PROCESSORS / 2))
-        }
-    } else {
-        # Defender off or $HermesHome already excluded — go wide.
-        $script:RobocopyMT = 16
-    }
-}
-
-Write-Host "[robocopy] Using $script:RobocopyMT threads" -ForegroundColor DarkGray
-
-# Run vendor pre-staging (safe to call in every stage process; idempotent)
-Stage-VendorFiles
-
-# Fix uv trampolines AFTER Stage-VendorFiles (needs InstallDir\python from step 6)
-Fix-UvTrampolines
+# -ShowResolvedPaths is a machine-readable query (upstream contract): exit
+# before the Defender probe and every other side-effectful prologue block.
 
 # Clean up the vendor directory after staging.  With Move-OrCopy-Dir, most
 # vendor subdirectories have been MOVED (not copied) to their final locations,
@@ -3313,6 +3264,23 @@ function Try-RestoreElectronDist {
     return Restore-ElectronDist -InstallDir $InstallDir -Mirror $script:DesktopElectronFallbackMirror
 }
 
+function Invoke-SourceCompletion([bool]$Desktop) {
+    # Upstream driven-mode seam: drivers dispatch Stage-Desktop by name and
+    # expect the completion call (source_completion.py --desktop), never the
+    # interactive full npm build. Get-BootstrapPython is driver-stubbable.
+    $bootPy = Get-BootstrapPython
+    $completionArgs = @("-I", "-B", "-X", "utf8", "hermes_cli/source_completion.py", "--source", $InstallDir)
+    if ($Desktop) { $completionArgs += "--desktop" }
+    Push-Location $InstallDir
+    try {
+        & $bootPy @completionArgs
+        if ($LASTEXITCODE) { throw "app products or command publication failed (exit $LASTEXITCODE)" }
+    } finally {
+        Pop-Location
+    }
+    Write-Ok "app products and hermes command ready"
+}
+
 function Install-Desktop {
     # Build apps/desktop into a launchable Hermes.exe. Only called from
     # Stage-Desktop, which is itself only included in the manifest when
@@ -4008,7 +3976,17 @@ function Stage-Repository       { Install-Repository }
 function Stage-Venv             { Resolve-UvCmd; Install-Venv }
 function Stage-Dependencies     { Resolve-UvCmd; Install-Dependencies }
 function Stage-NodeDeps         { Install-NodeDeps }
-function Stage-Desktop          { Install-Desktop }
+function Stage-Desktop {
+    # Driven mode (dot-sourced driver dispatching -Stage desktop) keeps the
+    # upstream contract: completion call only. The interactive ladder (irm|iex
+    # / Setup.exe with -IncludeDesktop) runs the full npm build below.
+    if ($script:DotSourced) {
+        Invoke-SourceCompletion $true
+        Publish-UserCommand
+        return
+    }
+    Install-Desktop
+}
 function Stage-Path             { Set-PathVariable }
 function Stage-ConfigTemplates  { Copy-ConfigTemplates }
 function Stage-PlatformSdks     { Resolve-UvCmd; Install-PlatformSdks }
@@ -4139,64 +4117,211 @@ function Get-Uv {
 # directory shape pm and the staged tests expect. PATH-first Install-Git
 # stays the interactive ladder; Ensure-Git is the pinned, fail-closed path
 # upstream stage drivers (prerequisites) call.
-function Get-PmStoreRoot {
-    if ($env:HERMES_RUNTIME_DIR) { return $env:HERMES_RUNTIME_DIR }
-    return (Join-Path $HermesHome "tools")
-}
 
-function Get-PinnedGit {
-    $target = "win32-$(Get-WindowsArch)"
-    $pin = $script:GitPinFiles[$target]
-    if (-not $pin) { return $null }
-    $entry = Join-Path (Get-PmStoreRoot) "git-$($script:GitPinVersion)-$target"
-    $gitExe = Join-Path $entry "cmd\git.exe"
-    if (Test-Path $gitExe) { return $gitExe }
-    Write-Info "Installing pinned git $($script:GitPinVersion) ($target) into the pm store..."
-    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-git-bootstrap-$PID"
-    try {
-        New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
-        $sfxPath = Join-Path $tmpDir "portable-git.7z.exe"
-        # Unified verified download: mirror fallback + the shared "digest
-        # mismatch" failure contract (corruption is fatal, never re-routed).
-        Invoke-VerifiedDownload -Url $pin.Url -MirrorUrl $pin.MirrorUrl -Sha256 $pin.Sha256 -OutFile $sfxPath
-        $extractDir = Join-Path $tmpDir "unpacked"
-        New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
-        Unblock-File -Path $sfxPath -ErrorAction SilentlyContinue
-        $sfx = [System.Diagnostics.Process]::Start($sfxPath, "-o`"$extractDir`" -y")
-        if (-not $sfx.WaitForExit(600000)) {
-            & taskkill.exe /T /F /PID $sfx.Id 2>&1 | Out-Null
-            $sfx.WaitForExit()
-            throw "pinned git self-extractor timed out after 600s"
-        }
-        if ($sfx.ExitCode) { throw "pinned git self-extractor exited $($sfx.ExitCode)" }
-        New-Item -ItemType Directory -Force -Path $entry | Out-Null
-        $null = & robocopy $extractDir $entry /E /NJH /NJS /NFL /NDL /NP /R:1 /W:1 /MT:8
-        if ($LASTEXITCODE -ge 8) { throw "robocopy into pm store failed (exit $LASTEXITCODE)" }
-        if (-not (Test-Path $gitExe)) { throw "pinned git staged but $gitExe missing" }
-        return $gitExe
-    } finally {
-        Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+function Write-PathDiag {
+    # Diagnostics for this block go to stderr, never stdout: the stage
+    # protocol hands drivers a single line of JSON on stdout and a stray note
+    # would break anything parsing it. Suppressed entirely under
+    # -ShowResolvedPaths, which is a machine-readable query: Windows
+    # PowerShell 5.1 wraps any native-command stderr in a NativeCommandError
+    # and folds it back into the caller's own stream, so a child writing here
+    # at all is enough to corrupt a 5.1 caller's capture. The JSON already
+    # carries everything these lines say.
+    param([string]$Message)
+    if ($ShowResolvedPaths) { return }
+    [Console]::Error.WriteLine("[hermes] $Message")
+}
+function Initialize-ResolvedPaths {
+    $script:NormalizedProfilePaths = Set-LongProfileEnvVars
+
+    # Re-derive the install paths now that the env vars behind their defaults
+    # are long. An explicitly passed -HermesHome / -InstallDir is normalized
+    # in place rather than replaced, so a caller's choice is never
+    # overwritten by a default. The script's own $PSBoundParameters was
+    # captured at script scope ($script:BoundParams) because a function body
+    # sees its own binding, not the script's.
+    $resolvedHome = if ($script:BoundParams.ContainsKey('HermesHome')) {
+        ConvertTo-LongPath $HermesHome
+    } else {
+        ConvertTo-LongPath $(
+            if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }
+        )
+    }
+    $resolvedDir = if ($script:BoundParams.ContainsKey('InstallDir')) {
+        ConvertTo-LongPath $InstallDir
+    } else {
+        Join-Path $resolvedHome 'hermes-agent'
+    }
+    # The param() variables live in the CALLER's scope, which is the script
+    # scope only under -File. Under the documented
+    # `& ([scriptblock]::Create((irm ...)))` install they live in the
+    # scriptblock's scope and `$script:` names the caller's session instead,
+    # so `$script:HermesHome` read '' and every stage's bare $HermesHome kept
+    # the un-normalized value. Scope 1 is where param() bound in every mode
+    # (-File, scriptblock, dot-source).
+    Set-Variable -Scope 1 -Name HermesHome -Value $resolvedHome
+    Set-Variable -Scope 1 -Name InstallDir -Value $resolvedDir
+    $env:HERMES_HOME = $resolvedHome
+
+    # Captured here, where the values are final. The report goes to STDOUT as
+    # JSON under -ShowResolvedPaths: on Windows a child's stderr does not
+    # reliably reach a parent process, and the first question on any
+    # "installer says a path doesn't exist" report is which paths it
+    # actually resolved.
+    $script:ResolvedPathReport = @{
+        long_profile_root = (Get-LongProfileRoot)
+        normalized        = $script:NormalizedPathRewrites
+        resolver          = $script:LastResolver
+        temp              = $env:TEMP
+        hermes_home       = $resolvedHome
+        install_dir       = $resolvedDir
     }
 }
 
-function Ensure-Git {
-    $g = Get-PinnedGit
-    if (-not $g) { return $false }
-    $gitEntry = Split-Path (Split-Path $g -Parent) -Parent
-    $env:Path = "$gitEntry\cmd;$gitEntry\usr\bin;$env:Path"
-    return $true
+function Get-LongProfileRoot {
+    # The user's profile directory in long form, or '' when every source we
+    # can reach is itself aliased. Cached: this runs per env var.
+    if ($null -ne $script:LongProfileRoot) { return $script:LongProfileRoot }
+    $script:LongProfileRoot = ''
+    # %USERPROFILE% first: it is what the rest of the install derives from.
+    # Then the HOMEDRIVE/HOMEPATH pair, then the profile's parent (C:\Users
+    # never carries an alias) plus %USERNAME%, which stays the long account
+    # name even when every path is short.
+    $envProfile = [Environment]::GetEnvironmentVariable('USERPROFILE')
+    $shellProfile = [Environment]::GetFolderPath('UserProfile')
+    $candidates = @($envProfile, $shellProfile, "$env:HOMEDRIVE$env:HOMEPATH")
+    foreach ($anchor in @($envProfile, $shellProfile)) {
+        if ($anchor -and $env:USERNAME) {
+            $parent = Split-Path -Parent $anchor.TrimEnd('\', '/')
+            if ($parent) { $candidates += (Join-Path $parent $env:USERNAME) }
+        }
+    }
+    foreach ($candidate in $candidates) {
+        if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+        # Trailing separators make Split-Path -Parent return the directory
+        # itself, which would silently break the ancestry check downstream.
+        $candidate = $candidate.TrimEnd('\', '/')
+        if (-not $candidate) { continue }
+        if ($candidate -match '~\d') { continue }
+        try {
+            if (Test-Path -LiteralPath $candidate -PathType Container) {
+                $script:LongProfileRoot = $candidate
+                break
+            }
+        } catch {
+            # Unreadable candidate (denied, malformed): try the next one.
+        }
+    }
+    return $script:LongProfileRoot
 }
+function Expand-ShortProfileRoot {
+    # Rebuild $Path onto a known-long profile root when its aliased component
+    # is the profile folder. Returns $Path unchanged when it isn't, so a
+    # custom TEMP on another volume (D:\SHORT~1\Temp) is never rewritten.
+    param([string]$Path)
+    $longRoot = Get-LongProfileRoot
+    if (-not $longRoot) { return $Path }
+    $longRootParent = Split-Path -Parent $longRoot
+    if (-not $longRootParent) { return $Path }
+    $node = $Path
+    $tail = ''
+    while ($node -and ($node -match '~\d')) {
+        $leaf = Split-Path -Leaf $node
+        $parent = Split-Path -Parent $node
+        if (-not $parent) { return $Path }
+        if ($leaf -match '~\d') {
+            # Candidate profile folder. Only substitute when it sits in the
+            # same directory as the real profile (both C:\Users).
+            if ($parent -ne $longRootParent) { return $Path }
+            if ($tail) { return (Join-Path $longRoot $tail) }
+            return $longRoot
+        }
+        $tail = if ($tail) { Join-Path $leaf $tail } else { $leaf }
+        $node = $parent
+    }
+    return $Path
+}
+function ConvertTo-LongPath {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $Path }
+    # Only 8.3 short names carry a tilde+digit ("~1"); skip every resolver
+    # for ordinary long paths, which is the overwhelmingly common case.
+    if ($Path -notmatch '~\d') {
+        $script:LastResolver = 'skipped-long-path'
+        return $Path
+    }
+    # 1. kernel32. Compiled on first use only, so a normal profile never pays
+    #    the Add-Type cost (this file is re-entered once per install stage).
+    try {
+        if (-not ([System.Management.Automation.PSTypeName]'HermesInstall.LongPath').Type) {
+            Add-Type -Namespace 'HermesInstall' -Name 'LongPath' -MemberDefinition @'
+[DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+public static extern int GetLongPathNameW(string lpszShortPath, System.Text.StringBuilder lpszLongPath, int cchBuffer);
+'@
+        }
+        $buffer = New-Object System.Text.StringBuilder 4096
+        $length = [HermesInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
+        if ($length -gt $buffer.Capacity) {
+            $buffer = New-Object System.Text.StringBuilder $length
+            $length = [HermesInstall.LongPath]::GetLongPathNameW($Path, $buffer, $buffer.Capacity)
+        }
+        if ($length -gt 0) {
+            $expanded = $buffer.ToString()
+            if ($expanded -and $expanded -notmatch '~\d') {
+                $script:LastResolver = 'kernel32'
+                return $expanded
+            }
+        }
+    } catch {
+        # Not Windows, or P/Invoke denied by policy: try the next resolver.
+    }
+    # 2. COM. Validate the result the same way the kernel32 branch does: this
+    #    resolver can report success and still hand back a path that carries
+    #    the alias (observed on a windows-latest runner). An unexpanded
+    #    result counts as failure and falls through.
+    try {
+        $fso = New-Object -ComObject Scripting.FileSystemObject
+        $resolved = $null
+        if ($fso.FolderExists($Path))   { $resolved = $fso.GetFolder($Path).Path }
+        elseif ($fso.FileExists($Path)) { $resolved = $fso.GetFile($Path).Path }
+        if ($resolved -and $resolved -notmatch '~\d') {
+            $script:LastResolver = 'com'
+            return $resolved
+        }
+    } catch {
+        # COM unavailable / locked-down host: try the next resolver.
+    }
+    # 3. The alias resolves to nothing. Rebuild from a long profile root.
+    $rebuilt = Expand-ShortProfileRoot $Path
+    $script:LastResolver = if ($rebuilt -ne $Path) { 'profile-root' } else { 'none' }
+    return $rebuilt
+}
+function Set-LongProfileEnvVars {
+    # Normalize every profile-rooted variable the install reads, not just
+    # %TEMP%: the desktop stage derives InstallDir from %LOCALAPPDATA%, and a
+    # short root there fails the post-build probe after a successful build.
+    # Returns $true when anything was rewritten.
+    $rewrote = $false
+    $script:NormalizedPathRewrites = @{}
+    foreach ($name in @('TEMP', 'TMP', 'LOCALAPPDATA', 'APPDATA', 'USERPROFILE')) {
+        $current = [Environment]::GetEnvironmentVariable($name)
+        if (-not $current) { continue }
+        $expanded = ConvertTo-LongPath $current
+        if ($expanded -and $expanded -ne $current) {
+            Set-Item -Path "Env:$name" -Value $expanded
+            $rewrote = $true
+            $script:NormalizedPathRewrites[$name] = $expanded
+        }
+    }
+    return $rewrote
+}
+# ConvertTo-LongPath only assigns $script:LastResolver when a ~\d short path
+# actually needs expansion, so an ordinary long profile leaves it unset --
+# and the report below reads it unconditionally. 'none' is the resolver's own
+# value for "nothing ran".
+$script:LastResolver = 'none'
+$script:NormalizedPathRewrites = @{}
 
-# ----------------------------------------------------------------------------
-# Upstream seam functions (compat layer). Upstream-shaped wrappers dot-
-# source this script and call these directly. crab resolved paths at
-# param() binding time, so Initialize-ResolvedPaths is a verification
-# no-op; Publish-UserCommand stages launchers then hands PATH publication
-# to Set-LauncherUserPath (overridable seam, exactly the upstream shape).
-# ----------------------------------------------------------------------------
-function Initialize-ResolvedPaths {
-    if (-not $HermesHome -or -not $InstallDir) { throw "paths unresolved" }
-}
 
 function Set-LauncherUserPath([string]$binDir) {
     $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -4213,7 +4338,7 @@ function Invoke-BootstrapPm {
     Push-Location $InstallDir
     try {
         $env:HERMES_BOOTSTRAP_PYTHON = $bootPy
-        & $bootPy -I -X utf8 -m pm.cli @PmArgs
+        & $bootPy -m pm.cli @PmArgs
         if ($LASTEXITCODE) { throw "pm $($PmArgs -join ' ') failed (exit $LASTEXITCODE)" }
     } finally {
         Remove-Item Env:\HERMES_BOOTSTRAP_PYTHON -ErrorAction SilentlyContinue
@@ -4225,13 +4350,16 @@ function Get-BootstrapPython {
     # install, then find). Drivers stub Get-Uv to take over acquisition.
     if ($script:BootstrapPython) { return $script:BootstrapPython }
     $uv = Get-Uv
+    # The lockfile is the single version authority; a driven install without
+    # one refuses delegation rather than guessing a Python.
     $lockPath = Join-Path $InstallDir "pm\lock.json"
+    if (-not (Test-Path $lockPath)) { throw "pm\lock.json missing under $InstallDir; refusing bootstrap delegation" }
+    $lock = Get-Content $lockPath -Raw | ConvertFrom-Json
     $pyVersion = "3.14"
-    if (Test-Path $lockPath) {
-        try {
-            $lock = Get-Content $lockPath -Raw | ConvertFrom-Json
-            if ($lock.packages.python) { $pyVersion = ($lock.packages.python.version -split '+')[0] -replace '^(\d+\.\d+).*', '$1' }
-        } catch {}
+    if ($lock.packages.python) {
+        $raw = ($lock.packages.python.version -split '\+')[0]
+        $parts = $raw.Split('.')
+        $pyVersion = "$($parts[0]).$($parts[1])"
     }
     $pyArch = if ((Get-WindowsArch) -eq 'arm64') { 'aarch64' } else { 'x86_64' }
     $pyRequest = "cpython-$pyVersion-windows-$pyArch-none"
@@ -4359,6 +4487,9 @@ function Invoke-AllStages {
     }
     Step-OutOfInstallDir
     foreach ($s in $InstallStages) {
+        # desktop runs in the interactive ladder only when IncludeDesktop was
+        # requested (Hermes-Setup.exe); drivers dispatch it explicitly.
+        if ($s.RunByDefault -eq $false) { continue }
         Invoke-Stage -StageDef $s
     }
 }
@@ -4443,6 +4574,83 @@ function Main {
 # crab: main guard -- everything below runs only when EXECUTED (-File/iex),
 # never when dot-sourced as a function library (upstream tests do exactly
 # that; the old tail ran the whole interactive ladder on dot-source).
+# Entry normalization (upstream prologue): rewrite aliased profile env vars
+# to long form on real entry only -- a dot-source never rewrites the caller.
+# Placed after every function definition (crab keeps early exits before the
+# definition block, unlike upstream).
+if ($ShowResolvedPaths -and -not $script:DotSourced) {
+    Initialize-ResolvedPaths
+    $script:ResolvedPathReport | ConvertTo-Json -Depth 5 -Compress | Write-Output
+    exit 0
+}
+
+if ($env:OS -eq "Windows_NT") {
+    try {
+        $status = Get-MpComputerStatus -ErrorAction SilentlyContinue
+        $prefs  = Get-MpPreference -ErrorAction SilentlyContinue
+    } catch { $status = $null; $prefs = $null }
+
+    # Is Defender actually scanning $HermesHome right now?
+    $defenderScanning = (
+        $status -and
+        $status.RealTimeProtectionEnabled -and
+        -not ($prefs -and ($prefs.ExclusionPath -contains $HermesHome))
+    )
+
+    if ($defenderScanning) {
+        # Defender is active and $HermesHome is NOT excluded.
+        # Try to auto-add the exclusion when elevated; otherwise the heavy
+        # copy below will be slow, so we use fewer threads to avoid
+        # saturating the CPU with parallel AV scans.
+        $isAdmin = $false
+        try {
+            $isAdmin = ([Security.Principal.WindowsPrincipal]::new(
+                [Security.Principal.WindowsIdentity]::GetCurrent()
+            )).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        } catch {}
+
+        if ($isAdmin) {
+            try {
+                Add-MpPreference -ExclusionPath $HermesHome -ErrorAction Stop
+                Write-Host "[Defender] Added exclusion for $HermesHome (elevated)" -ForegroundColor Green
+                $script:RobocopyMT = 16
+            } catch {
+
+# crab: banner + vendor staging are install-run output; drivers dot-sourcing
+# this file parse stdout as JSON protocol frames and must see none of it.
+if (-not $script:DotSourced) {
+    Initialize-ResolvedPaths
+    if ($ShowResolvedPaths) {
+        $script:ResolvedPathReport | ConvertTo-Json -Depth 5 -Compress | Write-Output
+        exit 0
+    }
+                Write-Host "Tip: Windows Defender real-time scanning can slow this install significantly." -ForegroundColor Yellow
+                Write-Host "     To speed up (5-10x faster), add an exclusion in an admin PowerShell:" -ForegroundColor Yellow
+                Write-Host "     Add-MpPreference -ExclusionPath `"$HermesHome`"" -ForegroundColor Cyan
+                $script:RobocopyMT = [Math]::Max(2, [int]($env:NUMBER_OF_PROCESSORS / 2))
+            }
+        } else {
+            Write-Host ""
+            Write-Host "Tip: Windows Defender real-time scanning can slow this install significantly." -ForegroundColor Yellow
+            Write-Host "     To speed up (5-10x faster), add an exclusion in an admin PowerShell:" -ForegroundColor Yellow
+            Write-Host "     Add-MpPreference -ExclusionPath `"$HermesHome`"" -ForegroundColor Cyan
+            Write-Host ""
+            $script:RobocopyMT = [Math]::Max(2, [int]($env:NUMBER_OF_PROCESSORS / 2))
+        }
+    } else {
+        # Defender off or $HermesHome already excluded — go wide.
+        $script:RobocopyMT = 16
+    }
+}
+
+    Write-Host "[robocopy] Using $script:RobocopyMT threads" -ForegroundColor DarkGray
+    # Run vendor pre-staging (safe to call in every stage process; idempotent)
+    Stage-VendorFiles
+
+    # Fix uv trampolines AFTER Stage-VendorFiles (needs InstallDir\python from step 6)
+    Fix-UvTrampolines
+}
+
 if (-not $script:DotSourced) {
 try {
     if ($Ensure -ne "") {
