@@ -4059,6 +4059,23 @@ function Invoke-InstalledHermes([string[]]$CommandArgs) {
 # Upstream-shaped drivers dot-source this script and call these directly.
 # Same contract as upstream: verified (sha256) download with mirror fallback;
 # digest mismatch is FATAL (tamper/corruption is never a routing problem).
+function Write-Ok([string]$msg) { Write-Host "[OK] $msg" -ForegroundColor Green }
+function Write-Warn([string]$msg) { Write-Host "[!] $msg" -ForegroundColor Yellow }
+function Write-Err([string]$msg) { Write-Host "[X] $msg" -ForegroundColor Red }
+
+function Ensure-Git {
+    $g = Get-PinnedGit
+    if (-not $g) { return $false }
+    $gitEntry = Split-Path (Split-Path $g -Parent) -Parent
+    $env:Path = "$gitEntry\cmd;$gitEntry\usr\bin;$env:Path"
+    return $true
+}
+
+function Get-PmStoreRoot {
+    if ($env:HERMES_RUNTIME_DIR) { return $env:HERMES_RUNTIME_DIR }
+    return (Join-Path $HermesHome "tools")
+}
+
 function Invoke-VerifiedDownload {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
@@ -4085,6 +4102,41 @@ function Invoke-VerifiedDownload {
     throw "failed to download from $tried : $httpFailure"
 }
 
+
+function Get-PinnedGit {
+    $target = "win32-$(Get-WindowsArch)"
+    $pin = $script:GitPinFiles[$target]
+    if (-not $pin) { return $null }
+    $entry = Join-Path (Get-PmStoreRoot) "git-$($script:GitPinVersion)-$target"
+    $gitExe = Join-Path $entry "cmd\git.exe"
+    if (Test-Path $gitExe) { return $gitExe }
+    Write-Info "Installing pinned git $($script:GitPinVersion) ($target) into the pm store..."
+    $tmpDir = Join-Path ([IO.Path]::GetTempPath()) "hermes-git-bootstrap-$PID"
+    try {
+        New-Item -ItemType Directory -Force -Path $tmpDir | Out-Null
+        $sfxPath = Join-Path $tmpDir "portable-git.7z.exe"
+        # Unified verified download: mirror fallback + the shared "digest
+        # mismatch" failure contract (corruption is fatal, never re-routed).
+        Invoke-VerifiedDownload -Url $pin.Url -MirrorUrl $pin.MirrorUrl -Sha256 $pin.Sha256 -OutFile $sfxPath
+        $extractDir = Join-Path $tmpDir "unpacked"
+        New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+        Unblock-File -Path $sfxPath -ErrorAction SilentlyContinue
+        $sfx = [System.Diagnostics.Process]::Start($sfxPath, "-o`"$extractDir`" -y")
+        if (-not $sfx.WaitForExit(600000)) {
+            & taskkill.exe /T /F /PID $sfx.Id 2>&1 | Out-Null
+            $sfx.WaitForExit()
+            throw "pinned git self-extractor timed out after 600s"
+        }
+        if ($sfx.ExitCode) { throw "pinned git self-extractor exited $($sfx.ExitCode)" }
+        New-Item -ItemType Directory -Force -Path $entry | Out-Null
+        $null = & robocopy $extractDir $entry /E /NJH /NJS /NFL /NDL /NP /R:1 /W:1 /MT:8
+        if ($LASTEXITCODE -ge 8) { throw "robocopy into pm store failed (exit $LASTEXITCODE)" }
+        if (-not (Test-Path $gitExe)) { throw "pinned git staged but $gitExe missing" }
+        return $gitExe
+    } finally {
+        Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+    }
+}
 function Get-Uv {
     # Upstream seam: always the pinned artifact into the pm store, never PATH uv.
     $target = "win32-$(Get-WindowsArch)"

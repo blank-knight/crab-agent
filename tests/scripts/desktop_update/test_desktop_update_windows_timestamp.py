@@ -25,6 +25,14 @@ def test_windows_update_writes_locale_independent_marker_and_result(tmp_path, mo
     )
     started = int(time.time())
     env = {**os.environ, "HERMES_TIMESTAMP_TEST_SCRIPT": str(script)}
+    # crab/ci: the parallel Windows worker's env can be poisoned by earlier
+    # suites (COR_ profiler vars, a PSModulePath pointing at stub modules) —
+    # even `powershell -Command echo` hangs then. Strip the known offenders so
+    # this subprocess gets a clean, system-default PowerShell.
+    for poison in [k for k in env if k.startswith("COR_") or k.startswith("CORECLR_")]:
+        env.pop(poison, None)
+    if env.get("PSModulePath", "").count(";") > 6:
+        env.pop("PSModulePath", None)
     # crab/ci-diagnosis: split the wait so a CI hang tells us WHICH half froze —
     # a hung `powershell -Command echo` means the shell/env is the problem;
     # only the script half pointing at windows.ps1 is a script problem. The

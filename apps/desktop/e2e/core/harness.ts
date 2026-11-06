@@ -100,6 +100,8 @@ providers:
 auxiliary:
   title_generation:
     enabled: false
+display:
+  language: en
 security:
   tirith_enabled: false
 approvals:
@@ -143,6 +145,9 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
     HERMES_HOME: sandbox.hermesHome,
     HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
     HERMES_DESKTOP_IGNORE_EXISTING: '1',
+    // qiji auth gate: PROD builds without a token never boot the backend.
+    // Core E2E drives a packaged PROD app with no auth server -- skip the gate.
+    HERMES_DESKTOP_E2E_SKIP_LOGIN: '1',
     HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
     // setup-pm exports an install-scoped interpreter, not a checkout .venv.
     // The Desktop override must be explicit because the sandbox strips HERMES_*.
