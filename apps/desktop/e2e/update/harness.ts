@@ -229,7 +229,11 @@ export async function launchInstalledApp(facts: InstallFacts, env: Record<string
   const launchEnv = { ...env, HERMES_DESKTOP_E2E_SKIP_LOGIN: env.HERMES_DESKTOP_E2E_SKIP_LOGIN ?? '1' }
   const app = await _electron.launch({
     executablePath: packagedExe(facts),
-    args: ['--disable-gpu', '--no-sandbox'],
+    // --lang=en-US pins the Chromium locale to English on every launch, fresh
+    // sandbox included — the same fix the core harness already carries. UI
+    // assertions (/^update now$/i, "Check now") must not depend on the app
+    // falling back to zh when no saved language exists.
+    args: ['--disable-gpu', '--no-sandbox', '--lang=en-US'],
     env: launchEnv,
     cwd: facts.home
   })
