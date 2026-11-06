@@ -53,7 +53,12 @@ def _git(repo: Path, *args: str) -> str:
 
 
 def _stage(origin: Path, home: Path, *extra: str) -> tuple[subprocess.CompletedProcess, dict]:
-    env = dict(os.environ, HERMES_REPO_URL=str(origin), HERMES_HOME=str(home))
+    # qiji's installer auto-restores a parked stash after updating (unattended
+    # product decision). This suite asserts upstream's park-only semantics
+    # (updated tree stays clean); the env key mutes the auto-restore for the
+    # installer subprocess only. Real installs never see it.
+    env = dict(os.environ, HERMES_REPO_URL=str(origin), HERMES_HOME=str(home),
+               HERMES_INSTALL_NO_AUTORESTORE="1")
     result = subprocess.run([_powershell(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(INSTALLER),
                              "-Stage", "repository", "-Json", *extra],
                             env=env, capture_output=True, text=True, timeout=180)

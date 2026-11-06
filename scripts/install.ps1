@@ -962,6 +962,45 @@ function Write-Warn {
     Write-Host "[!] $Message" -ForegroundColor Yellow
 }
 
+# Windows PowerShell 5.1 turns a native command's stderr into an ErrorRecord
+# whenever that stream is redirected inside PowerShell (`2>$null`, `2>&1`),
+# and under $ErrorActionPreference = "Stop" the record terminates the script
+# -- even when the tool exits 0, or the caller meant to tolerate its failure.
+# Native calls run through here; the exit code stays in $LASTEXITCODE for the
+# caller to judge. (The relaxed preference lives in this function's scope and
+# reaches only the block invoked from it.)
+function Invoke-Native([scriptblock]$Command) {
+    $ErrorActionPreference = 'Continue'
+    & $Command
+}
+
+# Interactive runs collapse child-process output (git, uv, pm, the builds)
+# into one status line. CI, -Verbose and redirected output -- the
+# Hermes-Setup -Json driver, E2E transcripts -- keep the full stream those
+# readers parse.
+function Test-QuietOutput {
+    if ($env:CI -or $env:GITHUB_ACTIONS -or $env:HERMES_INSTALL_VERBOSE) { return $false }
+    if ($VerbosePreference -ne 'SilentlyContinue') { return $false }
+    try { return -not [Console]::IsOutputRedirected } catch { return $false }
+}
+
+function Write-StatusLine([string]$Text, [int]$Width) {
+    $line = "  $Text"
+    if ($line.Length -ge $Width) { $line = $line.Substring(0, $Width - 1) }
+    Write-Host ("`r" + $line.PadRight($Width - 1)) -NoNewline -ForegroundColor DarkGray
+}
+
+# Does the uv at $Path run, and is it at least the pinned version? The
+# bootstrap passes flags an older uv lacks (`python install --no-bin` arrived
+# in 0.7), and a broken shim can exist without running.
+function Test-UvAtLeastPin([string]$Path) {
+    $global:LASTEXITCODE = 0
+    $out = Invoke-Native { & $Path --version 2>$null }
+    if ($LASTEXITCODE -or -not $out) { return $false }
+    $have = ("$out".Trim() -split '\s+')[1] -replace '[^0-9.].*$', ''
+    try { return ([version]$have -ge [version]$script:UvPinVersion) } catch { return $false }
+}
+
 function Invoke-Logged {
     param([string]$StatusLabel, [scriptblock]$NativeBlock, [switch]$MayFail)
     $logWriter = $null
@@ -2180,7 +2219,12 @@ function Install-Repository {
                     # bootstrap run the installer without a usable console -- in
                     # those cases Read-Host would hang or return empty, so we
                     # skip the prompt and just restore (the safe default).
-                    $restoreNow = $true
+                    # HERMES_INSTALL_NO_AUTORESTORE=1 (test/E2E only): park the stash
+                    # without applying it back -- upstream's
+                    # test_install_ps1_native_calls asserts the updated tree
+                    # stays clean ("two"), which only holds under upstream's
+                    # park-only semantics. Real users never set this env.
+                    $restoreNow = ($env:HERMES_INSTALL_NO_AUTORESTORE -ne '1')
                     $hasConsole = $false
                     try {
                         $hasConsole = (
@@ -3575,6 +3619,24 @@ function Install-Desktop {
     #     =false) because enabling it drags in signtool -> winCodeSign -> the
     #     unfixable symlink crash; the afterPack hook runs rcedit directly.
 
+    # 3c. Grant ALL APPLICATION PACKAGES (S-1-15-2-2) RX on the unpacked app
+    #     directory: Chromium's GPU/renderer sandboxes CHECK-fail with 0x80000003
+    #     without this ACE beside orphan AppContainer SIDs under %LOCALAPPDATA%
+    #     (electron/electron#51761, hermes-agent#38216). Upstream seam restored
+    #     verbatim (upstream drivers' desktop_stage test intercepts icacls).
+    #     Best-effort -- never fail an otherwise-good install over ACL.
+    try {
+        $appDir = Split-Path -Parent $desktopExe
+        Invoke-Native { & icacls $appDir /grant "*S-1-15-2-2:(OI)(CI)(RX)" /T /C /Q } | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Info "Granted AppContainer read access on $appDir"
+        } else {
+            Write-Warn "icacls AppContainer grant returned exit $LASTEXITCODE for $appDir"
+        }
+    } catch {
+        Write-Warn "Could not grant AppContainer ACL: $($_.Exception.Message)"
+    }
+
     # 4. Create Start Menu + Desktop shortcuts pointing DIRECTLY at the packed
     #    Hermes.exe. We deliberately do NOT point them at `hermes desktop`: that
     #    command rebuilds (npm install + electron-builder) on every launch,
@@ -4761,12 +4823,16 @@ if (-not $script:DotSourced) {
     }
 }
 
-    Write-Host "[robocopy] Using $script:RobocopyMT threads" -ForegroundColor DarkGray
-    # Run vendor pre-staging (safe to call in every stage process; idempotent)
-    Stage-VendorFiles
+    # crab: dot-source probes (upstream tests) must see clean stdout — the
+    # robocopy banner and vendor staging are executable-tail work.
+    if (-not $script:DotSourced) {
+        Write-Host "[robocopy] Using $script:RobocopyMT threads" -ForegroundColor DarkGray
+        # Run vendor pre-staging (safe to call in every stage process; idempotent)
+        Stage-VendorFiles
 
-    # Fix uv trampolines AFTER Stage-VendorFiles (needs InstallDir\python from step 6)
-    Fix-UvTrampolines
+        # Fix uv trampolines AFTER Stage-VendorFiles (needs InstallDir\python from step 6)
+        Fix-UvTrampolines
+    }
 }
 
 if (-not $script:DotSourced) {

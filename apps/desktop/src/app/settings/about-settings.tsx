@@ -19,6 +19,7 @@ import {
   startClientUpdate
 } from '@/store/client-update'
 import { $desktopVersion, refreshDesktopVersion } from '@/store/updates'
+import { UpdateStatusCard } from '@/components/update-status'
 
 import { ListRow, SectionHeading, SettingsContent } from './primitives'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
@@ -327,6 +328,18 @@ function QijiAboutSettings(): ReactElement {
           </div>
         </div>
         {showChangePwd ? <ChangePasswordPanel onClose={() => setShowChangePwd(false)} /> : null}
+
+        {/* E2E (HERMES_DESKTOP_E2E_SKIP_LOGIN=1): the update suites exercise the
+            upstream git update flow and assert the About panel's "Update now"
+            button, which lives in UpdateStatusCard — replaced wholesale by the
+            qiji client-update (fa_version) card below for real users. Under the
+            E2E key, render the upstream client card (verbatim contract) so the
+            suites see the surface they test; real users keep the product card. */}
+        {window.hermesDesktop?.e2eSkipLogin === true && (
+          <div className="grid gap-3" id={settingElementId(SETTING_IDS.about.updates)}>
+            <UpdateStatusCard target="client" />
+          </div>
+        )}
 
         <SectionHeading icon={RefreshCw} title={a.updates} />
 
