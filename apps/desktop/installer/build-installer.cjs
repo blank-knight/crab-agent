@@ -72,6 +72,41 @@ if (!fs.existsSync(sevenZip)) {
 console.log('  win-unpacked: OK')
 console.log('  7zr.exe: OK')
 
+// B15 (2026-11-06): vendor 完整性硬断言——缺件离线包不许出厂。
+// 事故复盘: 0.20.5-y 出包时构建机 ms-playwright 缓存为空,prepare-offline.ps1
+// 第 8 步(Test-Path 静默跳过)没把 chromium 收进 vendor,包照常出厂,客户机
+// 全部掉进 197MB CDN 直连下载(30+ 分钟,前端超时先崩)。这里是最后一道闸:
+// win-unpacked\\resources\\vendor 里必须有 chrome.exe,缺了宁可废掉一次打包。
+// 注: 只在 vendor 目录存在时断言(在线分发形态没有 vendor,不受影响)。
+const vendorDir = path.join(winUnpacked, 'resources', 'vendor')
+if (fs.existsSync(vendorDir)) {
+  const findChromeExe = dir => {
+    try {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          if (/^chrome-win/i.test(entry.name) && fs.existsSync(path.join(full, 'chrome.exe'))) return full
+          const nested = findChromeExe(full)
+          if (nested) return nested
+        }
+      }
+    } catch { /* unreadable dir -> treat as missing */ }
+    return null
+  }
+  const chromiumDir = path.join(vendorDir, 'chromium')
+  const chromeExeDir = findChromeExe(chromiumDir)
+  if (!chromeExeDir) {
+    console.error('ERROR: vendor\\chromium has no chrome.exe - this vendor is INCOMPLETE.')
+    console.error('       The installer would fall back to a 197MB CDN download on every client machine.')
+    console.error('       Fix: on the build machine run  cd apps/desktop && npx playwright install chromium,')
+    console.error('            then re-run scripts/prepare-offline.ps1 and rebuild win-unpacked.')
+    process.exit(1)
+  }
+  console.log(`  vendor chromium: OK (${path.relative(winUnpacked, chromeExeDir)})`)
+} else {
+  console.log('  vendor: (absent - online distribution form, skipping vendor assertions)')
+}
+
 // ---- Compress payload ----
 step(2, 'Compressing win-unpacked to qiji-portable.7z ...')
 // 断点续跑: payload 比 win-unpacked 新 = 上轮压缩已完成(WSL 互操作下 node 可能卡在

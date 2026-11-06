@@ -3014,6 +3014,19 @@ function Install-NodeDeps {
                     # the user sees clean playwright output instead of the
                     # alarming-looking error formatting.
                     $ErrorActionPreference = "Continue"
+                    # B15 (2026-11-06): vendor 缺件兜底——离线包路径本不该走到这里;走到说明
+                    # vendor\chromium 缺席(prepare-offline 硬失败前的历史包)。默认
+                    # cdn.playwright.dev 国内直连 ~1MB/s,197MB 要 30+ 分钟,前端 3 分钟
+                    # 超时先崩(客户机 11-05 实锤)。未显式配置时注入华为云镜像。
+
+                    if (-not $env:PLAYWRIGHT_DOWNLOAD_HOST) {
+
+                        $env:PLAYWRIGHT_DOWNLOAD_HOST = "https://mirrors.huaweicloud.com/playwright"
+
+                        Write-Info "Using Playwright CN mirror (vendor bundle missing this browser)"
+
+                    }
+
                     & $npxExe --yes playwright install chromium 2>&1 | ForEach-Object { "$_" } | Tee-Object -FilePath $pwLog
                     $pwCode = $LASTEXITCODE
                     $ErrorActionPreference = $prevEAP
