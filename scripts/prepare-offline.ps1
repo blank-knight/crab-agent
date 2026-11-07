@@ -79,7 +79,9 @@ if (Test-Path $repoSource) {
     New-Item -ItemType Directory -Force -Path $vendorRepo | Out-Null
     # Exclude build/dist/release to avoid recursive vendor nesting and bloat.
     # node_modules at any level is excluded by name match.
-    robocopy $repoSource $vendorRepo /E /XJ /XD ".git" "venv" "node_modules" "__pycache__" "build" "dist" "release" ".venv" /NJH /NJS /NFL /NDL /NP | Out-Null
+    # B16 (2026-11-07): +".cache" ".hermes" "logs" — 出包机 fork 树里 .cache\desktop-inputs
+    # 积了267MB桌面输入缓存,上次没排除,813MB包里290MB是垃圾(0.20.5o只有525MB)。
+    robocopy $repoSource $vendorRepo /E /XJ /XD ".git" "venv" "node_modules" "__pycache__" "build" "dist" "release" ".venv" ".cache" ".hermes" "logs" /NJH /NJS /NFL /NDL /NP | Out-Null
 
     # Pre-install npm dependencies for skills that have their own package.json.
     # Without this, skills like qiji-geo will try to `npm install` at runtime
