@@ -145,7 +145,14 @@ export function I18nProvider({
   initialLocale,
   scopeKey
 }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => normalizeLocale(initialLocale))
+  // qiji B17 (2026-11-07): 初始 locale 直接中文,不再从 'en' 起步等后端 config。
+  // 旧行为: 初始 = normalizeLocale(undefined) = DEFAULT_LOCALE('en'),要等
+  // config.display.language 读取成功(3s×10 重试)才切 zh。首启安装期后端不存在,
+  // → 安装浮层("Setting up …")/欢迎页头几十秒全英文(VM 实测 B3 同根因)。
+  // 显式 initialLocale(测试注入)或后端保存过的语言仍然优先;英文只在用户显式选过时生效。
+  const [locale, setLocaleState] = useState<Locale>(() =>
+    initialLocale === undefined ? QIJI_DEFAULT_LOCALE : normalizeLocale(initialLocale)
+  )
   const [isLoadingConfig, setIsLoadingConfig] = useState(false)
   const [isSavingLocale, setIsSavingLocale] = useState(false)
   const [configLoadError, setConfigLoadError] = useState<Error | null>(null)

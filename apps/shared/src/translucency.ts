@@ -286,9 +286,15 @@ export function defaultTranslucencyState(
   glassSupported: boolean,
   isWindows: boolean
 ): TranslucencyState {
+  // qiji B17 (2026-11-07): 出厂默认关闭玻璃/透明。上游默认 glass+29(Windows 11
+  // DWM acrylic)——客户群是政企/工控场景,远程桌面与老显卡上 acrylic 渲染异常/
+  // 掉帧,且"半透明窗口"在办公环境观感突兀。默认 clear+0=完全不透明;设置→外观
+  // →窗口透明仍可开启(开启后写入 translucency.json,normalizeState 尊重已存值,
+  // 不会把用户调过的状态翻回去)。
   return {
     ...defaultTranslucencyValues(appearance, isWindows),
-    mode: normalizeMode(undefined, glassSupported)
+    intensity: 0,
+    mode: 'clear'
   }
 }
 
