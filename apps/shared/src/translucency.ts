@@ -338,8 +338,23 @@ export function normalizeBook(payload: unknown, glassSupported: boolean): Transl
   const base = normalizeValues(migrating ? record : record.base)
   const legacyIntensity = migrating ? clampIntensity(record.intensity) : 0
 
+  // qiji B18 (2026-11-08): 空书(payload=null,首启无存档)出厂默认关透明。
+  // B17 只断了主进程链(defaultTranslucencyState),渲染层这条链仍默认
+  // glass+29 → IPC 把主进程又带回去,窗口依旧半透明。已存档的书(用户调过)
+  // 一律尊重原值,只有"从没设置过"才落 clear+0。
+  const firstLaunch = Object.keys(record).length === 0
+
+  // qiji B18: 空书时 base 也钉 0——clear 模式下 intensity 就是窗口透明度,
+  // 若留空会经 fallback 回填 29,首窗 opacity≈0.93 仍微微透。已存档的 key
+  // 一个不动(部分存档的书照常继承 fallback)。
+  if (firstLaunch) {
+    base.intensity = 0
+  }
+
   return {
-    mode: normalizeMode(record.mode, glassSupported, legacyIntensity),
+    mode: firstLaunch
+      ? 'clear'
+      : normalizeMode(record.mode, glassSupported, legacyIntensity),
     base,
     light: normalizeValues(migrating ? null : record.light),
     dark: normalizeValues(migrating ? null : record.dark)
