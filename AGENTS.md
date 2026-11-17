@@ -26,6 +26,14 @@ reviewing any change:
   high. Most new capability should arrive as a CLI command + skill, a
   service-gated tool, or a plugin — not as core surface.
 
+## Code Review
+
+Any review (self-review before commit, or a dedicated reviewer pass) follows
+`REVIEW.md` at the repo root: three passes (Bugs / Security / Compliance),
+every finding carries file:line + why + trigger path, severity-ranked with
+nit cap, and repo-specific red lines (electron tsc, encryption chain, dual
+tree, installer chain) that are always checked. Read it before reviewing.
+
 ## Contribution Rubric — What We Want / What We Don't
 
 This is the project's intent layer. Use it two ways:

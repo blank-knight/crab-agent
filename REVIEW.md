@@ -1,0 +1,64 @@
+# Review instructions — qiji-fork (螃蟹OPC 桌面客户端)
+
+> 参照 Anthropic Code Review 方法论定制。审 PR/分支/提交前先读这份，配合 `AGENTS.md`（贡献准则与已知坑）使用。
+> 版本: 2026-11-17 v1
+
+## Passes（三通道并行，每条 finding 打通道标签）
+
+**Bugs**：逻辑错误、边界破坏、回归、竞态、资源泄漏。
+**Security**：注入面、凭证处理（.env/profile 密钥）、加密链（blob: 协议/asar 加密）、权限边界、跨账号隔离。
+**Compliance**：改动是否符合任务意图（对照提交说明）；是否符合本仓铁律（见下"本仓红线"）。
+
+## 证据纪律（每条 finding 必须附证明）
+
+- 每条发现必须带：**文件:行号 + 为什么错 + 触发路径**（什么输入/操作会踩到）。三者缺一 = 丢弃，不发。
+- 禁止"感觉/可能/建议看看"类意见。要么给出可复现路径，要么闭嘴。
+- **自我验证**：发 Finding 前先自己反驳一次——"这个是不是有意设计？改动者为什么会这么写？"查 `git log -p -S` 看原意，防把 intentional design 当 bug。
+
+## 严重度分级
+
+- **Critical**：会炸生产/装机（安装失败、白屏、数据丢失、跨账号泄漏、升级断链）
+- **Important**：特定条件下行为错误、性能劣化、依赖墙
+- **Nit**：风格/命名/微小优化。**每次 review 最多报 5 条 nit，其余汇总成一句计数**。
+
+## 本仓红线（Bugs/Compliance 通道必查项）
+
+1. **Electron 主进程改动必须过 `tsc --build tsconfig.electron.json`**（或 apps/desktop `npm run typecheck`）——不编译就声称完成 = 未完成
+2. **渲染层加密链**：资产引用不得破坏 blob: 协议；改动产物要对照加密前 dist 验证（白屏 Invalid URL 分诊见 qiji-renderer-encryption-chain skill）
+3. **双树纪律**：renderer-rebase 有 WSL + /mnt/d 双工作树，scripts 动手前两树互核，别只改一边
+4. **打包链**：三段式 rebuild 模板 + 四 env 齐配（SEED 全 32/CJS_MAIN/双镜像/PAYLOAD_VERSION），npm scripts 半条链曾产崩包
+5. **玻璃双链都要断**、出厂中文/玻璃关闭只走 b1 线不回流 main
+6. **删除类提交必须对被删文案做零计数 grep 审计**（add.html+edit.html+JS+controller 全 sibling——772ea96 漏删一行三天后才暴露的教训）
+7. **改动状态类页面**：grep 页面里定义的状态类有没有被 JS 真正引用（白定义=雷）
+8. **测试文件**：fix 任务中不得顺手改测试来"让测试通过"（发现测试被改弱 = Critical）
+9. **声称的行为必须有调用级断言，stub 不等于覆盖**：提交说明声称的副作用（重启网关/写盘/发通知），测试必须断言它被真正调用（次数+关键参数）；只把它 stub 掉跑绿不算覆盖。状态机类新增端点的测试不得 100% 用 Fake 替身——HTTP 契约测试与状态机单元测试是两个交付物，Fake 全替=状态机未测（2331a9eb05 试点审查确立：restart 被删测试仍绿的漏网模式）
+10. **升级链**：同签名才能保数据；安装器改动要考虑老版本升级路径（NSIS 旧卸载器不吃 /S 的坑）
+
+## 明确不报（Do not report）
+
+- 生成文件（dist/、release/win-unpacked、vendor 树）
+- CI 已覆盖的格式/类型问题（typecheck 绿了就不报类型 nit）
+- 上游 hermes-agent 的历史遗留（除非本次改动触碰且加剧）
+- jsdom 环境敏感的存量红测试（先 stash 基线对照，数字一致=存量不是新引入）
+
+## 验证证据要求（PR 前自查，review 时核对）
+
+改动者必须在提交说明/汇报里带**真实执行输出**（不是描述）：
+- TS 改动：typecheck 通过输出
+- 渲染层改动：vitest 定向跑的通过数（记住三件套：`--environment jsdom` + `--dir src` + 后台跑）
+- Python 改动：对应 pytest/实际调用输出
+- UI 改动：截图或 CDP 量测数据（electron-renderer-cdp-verification skill）
+- 安装器/打包：7zr t 结果 + WIN 侧 EXIT=0
+
+缺证据 = review 直接打回，不进内容审查。
+
+## 收敛规则（防审改死循环）
+
+- 同类问题一次全部指出（去重后按严重度排序输出）
+- 修复轮次 >3：停下来重新想思路（系统性debugging skill），不再逐条打补丁
+- 第二轮起只审新增改动，不重复已接受的旧 finding
+- 已接受过的意见不翻烧饼
+
+## 反馈闭环（reviewer 侧义务）
+
+同一错误**第二次**在任何 PR 里被审出 → 必须提议把它写进 AGENTS.md 对应小节（或本文件红线区），让下一个 PR 起自动拦截。Review 结束时汇报："本轮有无值得固化的新规则"。
