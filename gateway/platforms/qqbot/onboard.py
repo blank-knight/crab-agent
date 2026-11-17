@@ -15,6 +15,7 @@ Reference: https://bot.q.qq.com/wiki/develop/api-v2/
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from enum import IntEnum
@@ -243,6 +244,12 @@ class QQBotQrSession:
         self.credentials: Optional[dict] = None
         self._task_id: str = ""
         self._aes_key: str = ""
+        # Serializes poll() bodies — same race WeixinQrSession hit
+        # (2026-11-17 review): two tabs polling one pairing_id both digested
+        # the same EXPIRED event, doubling refresh burn; worse, a concurrent
+        # refresh swapped _task_id/_aes_key mid-decrypt. Clean-PR baseline
+        # review found this sibling copy missed the lock the weixin fix added.
+        self._poll_lock: "asyncio.Lock" = asyncio.Lock()
 
     def start(self) -> bool:
         """Create the first bind task. False (with last_error) on failure."""
@@ -257,9 +264,12 @@ class QQBotQrSession:
         return build_connect_url(self._task_id) if self._task_id else ""
 
     async def poll(self) -> dict:
-        """One bind-status tick. Runs the sync HTTP call in a thread."""
-        import asyncio
+        """One bind-status tick. Serialized; safe under concurrent polls."""
+        async with self._poll_lock:
+            return await self._poll_locked()
 
+    async def _poll_locked(self) -> dict:
+        """Runs the sync HTTP call in a thread."""
         if self.status in ("confirmed", "timeout") or not self._task_id:
             return self.snapshot()
 
