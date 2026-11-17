@@ -65,15 +65,21 @@ def client(monkeypatch, tmp_path, _isolate_hermes_home):
     from hermes_cli import web_server
     from hermes_cli.web_server import app, _SESSION_HEADER_NAME, _SESSION_TOKEN
 
+    restart_calls: list = []
+
+    def _fake_restart(profile=None):
+        restart_calls.append(profile)
+        return {"restart_started": True}
+
     monkeypatch.setattr(web_server, "_restart_gateway_after_telegram_onboarding",
-                        lambda profile=None: {"restart_started": False})
+                        _fake_restart)
     c = TestClient(app)
     c.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
-    yield c, web_server, monkeypatch
+    yield c, web_server, monkeypatch, restart_calls
 
 
 def test_weixin_onboarding_routes_registered(client):
-    _, web_server, _ = client
+    _, web_server, _, _ = client
     paths = {getattr(r, "path", "") for r in web_server.app.routes}
     assert "/api/messaging/weixin/onboarding/start" in paths
     assert "/api/messaging/weixin/onboarding/{pairing_id}" in paths
@@ -81,7 +87,7 @@ def test_weixin_onboarding_routes_registered(client):
 
 
 def test_weixin_onboarding_full_flow_persists_credentials(client):
-    c, web_server, monkeypatch = client
+    c, web_server, monkeypatch, restart_calls = client
     fake = FakeQrSession(script=["wait", "confirmed"])
     monkeypatch.setattr(
         "gateway.platforms.weixin.WeixinQrSession", lambda: fake, raising=True
@@ -110,7 +116,9 @@ def test_weixin_onboarding_full_flow_persists_credentials(client):
     assert body["ok"] is True
     assert body["platform"] == "weixin"
     assert body["account_id"] == "acc_123"
-    assert body["needs_restart"] is True  # restart stubbed off
+    # Red line #9 (REVIEW.md): a claimed side effect needs a call-level
+    # assertion — the restart must actually be invoked by apply.
+    assert restart_calls == [None], "apply must call the gateway restart exactly once"
 
     from hermes_cli.config import get_env_value
     assert get_env_value("WEIXIN_ACCOUNT_ID") == "acc_123"
@@ -124,7 +132,7 @@ def test_weixin_onboarding_full_flow_persists_credentials(client):
 
 
 def test_weixin_onboarding_apply_before_confirm_is_409(client):
-    c, web_server, monkeypatch = client
+    c, web_server, monkeypatch, _ = client
     fake = FakeQrSession(script=["wait", "wait", "wait"])
     monkeypatch.setattr("gateway.platforms.weixin.WeixinQrSession", lambda: fake)
     monkeypatch.setattr(
@@ -137,7 +145,7 @@ def test_weixin_onboarding_apply_before_confirm_is_409(client):
 
 
 def test_weixin_onboarding_cancel_drops_session(client):
-    c, web_server, monkeypatch = client
+    c, web_server, monkeypatch, _ = client
     fake = FakeQrSession()
     monkeypatch.setattr("gateway.platforms.weixin.WeixinQrSession", lambda: fake)
     monkeypatch.setattr(
@@ -153,8 +161,27 @@ def test_weixin_onboarding_cancel_drops_session(client):
     assert r.status_code == 404
 
 
+def test_weixin_onboarding_expired_session_is_closed_not_leaked(client):
+    """Regression (2026-11-17 review): the expired branch used to pop the
+    session without close() — leaking the aiohttp connector. Now the popped
+    session must be closed (same guarantee the timeout branch gives)."""
+    c, web_server, monkeypatch, _ = client
+    fake = FakeQrSession()
+    fake.expired = lambda: True  # hard-expire immediately after start
+    monkeypatch.setattr("gateway.platforms.weixin.WeixinQrSession", lambda: fake)
+    monkeypatch.setattr(
+        "gateway.platforms.weixin.check_weixin_requirements", lambda: True
+    )
+    r = c.post("/api/messaging/weixin/onboarding/start")
+    pairing_id = r.json()["pairing_id"]
+    assert fake.closed is False          # start does not close
+    r = c.get(f"/api/messaging/weixin/onboarding/{pairing_id}")
+    assert r.status_code == 404
+    assert fake.closed is True           # expired branch closed before 404
+
+
 def test_weixin_onboarding_missing_deps_is_503(client):
-    c, web_server, monkeypatch = client
+    c, web_server, monkeypatch, _ = client
     monkeypatch.setattr(
         "gateway.platforms.weixin.check_weixin_requirements", lambda: False
     )

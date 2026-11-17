@@ -1153,6 +1153,12 @@ class WeixinQrSession:
         self.created_at = time.monotonic()
         self.refresh_count = 0
         self.last_poll = 0.0
+        # Serializes poll() bodies: concurrent status polls (two tabs, SPA
+        # retries) must not both digest the same "expired" event — that
+        # burned the 3-refresh budget at double speed and raced qr_token
+        # writes (2026-11-17 review finding; see
+        # tests/gateway/test_weixin_qr_session.py).
+        self._poll_lock = asyncio.Lock()
         # Public snapshot fields the API layer reads.
         self.qr_url: str = ""            # scannable liteapp URL (what the QR encodes)
         self.qr_token: str = ""          # raw hex token for status polling
@@ -1198,7 +1204,15 @@ class WeixinQrSession:
         return await self._fetch_qr()
 
     async def poll(self) -> Dict[str, Any]:
-        """One status tick. Safe to call repeatedly; ~1s spacing is ideal."""
+        """One status tick. Safe to call repeatedly (even concurrently).
+
+        The whole tick holds ``_poll_lock`` so overlapping callers observe
+        post-refresh state instead of double-digesting one expiry.
+        """
+        async with self._poll_lock:
+            return await self._poll_locked()
+
+    async def _poll_locked(self) -> Dict[str, Any]:
         self.last_poll = time.monotonic()
         if self.status == "confirmed" or self.status == "timeout":
             return self.snapshot()
