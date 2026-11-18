@@ -1024,7 +1024,15 @@ async def get_weixin_onboarding_status(pairing_id: str):
     with _weixin_onboarding_lock:
         session = _weixin_onboarding_sessions.get(pairing_id)
         if session is None or session.expired():
-            _weixin_onboarding_sessions.pop(pairing_id, None)
+            session = _weixin_onboarding_sessions.pop(pairing_id, None)
+            if session is not None:
+                # Close the aiohttp session we own before dropping it — the
+                # timeout branch below closes; the expired branch used to
+                # leak the connector (2026-11-17 review finding).
+                try:
+                    asyncio.ensure_future(session.close())
+                except Exception:
+                    pass
             raise HTTPException(status_code=404, detail="微信扫码会话不存在或已过期，请重新开始。")
     snapshot = await session.poll()
     if session.status == "timeout":
