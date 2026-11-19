@@ -163,8 +163,8 @@ export function backendPost<T = unknown>(path: string, body?: unknown): Promise<
   return backendFetch<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined })
 }
 
-export function backendGet<T = unknown>(path: string): Promise<BackendResponse<T>> {
-  return backendFetch<T>(path, { method: 'GET' })
+export function backendGet<T = unknown>(path: string, options?: Pick<RequestInit, 'signal'>): Promise<BackendResponse<T>> {
+  return backendFetch<T>(path, { method: 'GET', ...options })
 }
 
 // token 读取拆成函数，避免顶层 import store/auth 造成循环依赖

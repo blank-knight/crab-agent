@@ -9,6 +9,7 @@ import {
   AUTH_TOKEN_KEY,
   AUTH_USERNAME_KEY,
   backendGet,
+  BackendError,
   backendPost,
   type LoginResponse,
   TOKEN_TTL_MS
@@ -148,22 +149,61 @@ async function refreshScoreFromBackend(): Promise<void> {
  * 仍为 false，配了 key 发消息照样被「额度不足」拦截（zwttest：22:14 登录、
  * 22:5x 后台开权限，被拦）。/profile 不下发 is_custom_key，只有 /apikey 有。
  *
- * 静默 best-effort：失败保持现状。给门禁拦截路径（submit.ts）做拦截前
- * 二次判定用，也在模块加载刷新时顺带调一次。
+ * review 2382985ec8 后加固（独立审查 4 条 Important 全修）：
+ * ① in-flight 单例：门禁热路径被狂按时只发一条请求（B1 请求扇出）
+ * ② 3s 超时：黑洞网络下用户秒级拿到反馈，不再挂浏览器默认 300s（B2）
+ * ③ 会话代数守卫：换号/退出重登后，旧 token 的晚到响应直接丢弃——
+ *    不把账号 A 的 is_custom_key 写进账号 B 的会话（B3/S1 跨账号污染），
+ *    也不让晚到的 401 清掉刚登录的有效会话
+ * ④ 401 不再吞：backendFetch 401 时已 clearAuth+弹登录页，本函数此时
+ *    返回 false 且调用方（门禁）跳过"额度不足"toast——登录页已接管 UX，
+ *    双弹+因果错乱（B4）不复存在
  */
-export async function refreshCustomKeyStateFromBackend(): Promise<boolean> {
-  try {
-    const res = await backendGet<{ is_custom_key?: number }>('/api/client/v1/apikey')
+let inflightApiKeyRefresh: Promise<boolean> | null = null
+let authGeneration = 0
 
-    if (typeof res.data?.is_custom_key === 'number') {
-      setIsCustomKey(res.data.is_custom_key === 1)
-      return res.data.is_custom_key === 1
-    }
-  } catch {
-    // 静默：离线/后端抖动时保持现状
+/** 会话代数递增：login/clearAuth 时调用，让在飞请求的落地写入作废。 */
+export function bumpAuthGeneration(): void {
+  authGeneration += 1
+  inflightApiKeyRefresh = null
+}
+
+export function refreshCustomKeyStateFromBackend(): Promise<boolean> {
+  if (inflightApiKeyRefresh) {
+    return inflightApiKeyRefresh
   }
 
-  return $auth.get().isCustomKey
+  const generation = authGeneration
+  inflightApiKeyRefresh = (async (): Promise<boolean> => {
+    try {
+      const res = await backendGet<{ is_custom_key?: number }>('/api/client/v1/apikey', {
+        signal: AbortSignal.timeout(3_000)
+      })
+
+      // 代数已变（换号/退出重登）：丢弃陈旧响应，不写 store
+      if (generation !== authGeneration) {
+        return $auth.get().isCustomKey
+      }
+
+      if (typeof res.data?.is_custom_key === 'number') {
+        setIsCustomKey(res.data.is_custom_key === 1)
+        return res.data.is_custom_key === 1
+      }
+    } catch (err) {
+      if (err instanceof BackendError && err.statusCode === 401) {
+        // backendFetch 已 clearAuth+弹登录页；登录页接管 UX，不弹"额度不足"
+        inflightApiKeyRefresh = null
+        return false
+      }
+      // 其他失败（超时/离线/5xx）：静默保持现状
+    }
+
+    return $auth.get().isCustomKey
+  })().finally(() => {
+    inflightApiKeyRefresh = null
+  })
+
+  return inflightApiKeyRefresh
 }
 
 const patch = (update: Partial<AuthState>) => {
@@ -226,6 +266,9 @@ export async function login(username: string, password: string): Promise<LoginRe
   persist(next)
   patch(next)
 
+  // qiji 0.20.5z+1: 换号场景代数递增（review B3——登录落地即作废旧会话在飞刷新）
+  bumpAuthGeneration()
+
   // OEM 品牌：登录响应下发（无贴牌=空=默认螃蟹OPC）
   setOemBrand(data.brand)
 
@@ -271,6 +314,9 @@ export async function register(mobile: string, password: string, inviteCode?: st
 
 /** 登出 / 清空 auth 状态（401 时也调这个） */
 export function clearAuth() {
+  // qiji 0.20.5z+1: 会话代数递增——作废在飞的 /apikey 刷新，防晚到响应
+  // 污染下一个会话（review B3/S1）
+  bumpAuthGeneration()
   patch({ token: null, username: null, isCustomKey: false, allowModelSelect: true, platformModels: [], mode: 'trial', score: 0, loginAt: null, apiKey: null, avatar: null })
   // OEM 品牌一并清回官方默认
   clearOemBrand()

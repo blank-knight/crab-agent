@@ -3,18 +3,28 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 // qiji 0.20.5z+1 回归: 自定义Key权限后开不刷新 (zwttest 2026-11-18 实案)
 // 红线9: 门禁"拦截前向/apikey要服务端真值二次判定"必须有调用级断言。
 
-vi.mock('@/lib/backend', () => ({
-  backendGet: vi.fn(),
-  backendPost: vi.fn(),
-  AUTH_API_KEY_STORE_KEY: 'qiji-auth-api-key',
-  AUTH_AVATAR_KEY: 'qiji-auth-avatar',
-  AUTH_IS_CUSTOM_KEY: 'qiji-auth-is-custom-key',
-  AUTH_LOGIN_AT_KEY: 'qiji-auth-login-at',
-  AUTH_MODE_KEY: 'qiji-auth-mode',
-  AUTH_TOKEN_KEY: 'qiji-auth-token',
-  AUTH_USERNAME_KEY: 'qiji-auth-username',
-  TOKEN_TTL_MS: 7 * 24 * 3600 * 1000
-}))
+vi.mock('@/lib/backend', () => {
+  class BackendError extends Error {
+    statusCode: number
+    constructor(message: string, statusCode: number) {
+      super(message)
+      this.statusCode = statusCode
+    }
+  }
+  return {
+    backendGet: vi.fn(),
+    backendPost: vi.fn(),
+    BackendError,
+    AUTH_API_KEY_STORE_KEY: 'qiji-auth-api-key',
+    AUTH_AVATAR_KEY: 'qiji-auth-avatar',
+    AUTH_IS_CUSTOM_KEY: 'qiji-auth-is-custom-key',
+    AUTH_LOGIN_AT_KEY: 'qiji-auth-login-at',
+    AUTH_MODE_KEY: 'qiji-auth-mode',
+    AUTH_TOKEN_KEY: 'qiji-auth-token',
+    AUTH_USERNAME_KEY: 'qiji-auth-username',
+    TOKEN_TTL_MS: 7 * 24 * 3600 * 1000
+  }
+})
 
 import { backendGet } from '@/lib/backend'
 import { $auth, refreshCustomKeyStateFromBackend } from '@/store/auth'
@@ -56,7 +66,7 @@ describe('refreshCustomKeyStateFromBackend', () => {
     expect($auth.get().isCustomKey).toBe(true)
     expect(localStorage.getItem('qiji-auth-is-custom-key')).toBe('1')
     // 调用级断言: 必须打的是 /apikey
-    expect(mockedGet).toHaveBeenCalledWith('/api/client/v1/apikey')
+    expect(mockedGet.mock.calls[0]?.[0]).toBe('/api/client/v1/apikey')
   })
 
   test('服务端 is_custom_key=0: 本地已过期的 true 快照被纠正回 false', async () => {
