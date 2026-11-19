@@ -99,6 +99,9 @@ export const $auth = atom<AuthState>(INITIAL)
 // token,启动即后台拉一次 profile 刷 score。best-effort,失败静默。
 if (INITIAL.token) {
   void refreshScoreFromBackend()
+  // qiji 0.20.5z+1: 启动也刷一次 isCustomKey（管理员后台开权限后，重启
+  // 客户端应立即生效，不等门禁拦截路径兜底）。
+  void refreshCustomKeyStateFromBackend()
 }
 
 // 启动自愈（2026-08-28 实案）：模块求值期 readPersisted 偶发读空（渲染进程
@@ -135,6 +138,32 @@ async function refreshScoreFromBackend(): Promise<void> {
   } catch {
     // 静默：离线/后端抖动时保持现状（0 或旧值），不阻塞任何流程
   }
+}
+
+/**
+ * qiji 0.20.5z+1: 后台拉一次 /apikey，把服务端 is_custom_key 同步进内存。
+ *
+ * 背景（2026-11-18 实案）：isCustomKey 是登录瞬间的快照。管理员在后台
+ * 给用户开自定义 Key 权限后，已登录的客户端毫无感知——本地 isCustomKey
+ * 仍为 false，配了 key 发消息照样被「额度不足」拦截（zwttest：22:14 登录、
+ * 22:5x 后台开权限，被拦）。/profile 不下发 is_custom_key，只有 /apikey 有。
+ *
+ * 静默 best-effort：失败保持现状。给门禁拦截路径（submit.ts）做拦截前
+ * 二次判定用，也在模块加载刷新时顺带调一次。
+ */
+export async function refreshCustomKeyStateFromBackend(): Promise<boolean> {
+  try {
+    const res = await backendGet<{ is_custom_key?: number }>('/api/client/v1/apikey')
+
+    if (typeof res.data?.is_custom_key === 'number') {
+      setIsCustomKey(res.data.is_custom_key === 1)
+      return res.data.is_custom_key === 1
+    }
+  } catch {
+    // 静默：离线/后端抖动时保持现状
+  }
+
+  return $auth.get().isCustomKey
 }
 
 const patch = (update: Partial<AuthState>) => {

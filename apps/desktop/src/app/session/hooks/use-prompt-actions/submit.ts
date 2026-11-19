@@ -14,7 +14,7 @@ import {
   stopVoicePlayback,
   takeVoicePlaybackInterrupted
 } from '@/lib/voice-playback'
-import { $auth } from '@/store/auth'
+import { $auth, refreshCustomKeyStateFromBackend } from '@/store/auth'
 import {
   $composerAttachments,
   type ComposerAttachment,
@@ -170,17 +170,24 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
       // qiji 额度门控：平台积分耗尽时拦截发送，不发起 LLM 调用
       // （自定义 Key 用户走自己的资源，不受平台积分限制；未登录态不拦——
       // dev/测试无 token，且登录层已在 UI 前置，这里只需管住已登录的耗尽）
+      // qiji 0.20.5z+1: isCustomKey 是登录快照——管理员后台开权限后已登录
+      // 客户端无感知（2026-11-18 zwttest 实案）。命中拦截条件时先向 /apikey
+      // 要一次服务端真值再判：真开权限就放行（顺便把快照修新鲜）。
       const { score, isCustomKey, token } = $auth.get()
 
       if (token && score <= 0 && !isCustomKey) {
-        notify({
-          kind: 'warning',
-          title: '额度不足',
-          message: '剩余额度已耗尽，请联系代理充值',
-          durationMs: 0
-        })
+        const serverSaysCustom = await refreshCustomKeyStateFromBackend()
 
-        return false
+        if (!serverSaysCustom) {
+          notify({
+            kind: 'warning',
+            title: '额度不足',
+            message: '剩余额度已耗尽，请联系代理充值',
+            durationMs: 0
+          })
+
+          return false
+        }
       }
 
       const visibleText = sanitizeComposerInput(rawText).trim()
