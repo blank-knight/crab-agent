@@ -35,6 +35,7 @@
 10. **升级链**：同签名才能保数据；安装器改动要考虑老版本升级路径（NSIS 旧卸载器不吃 /S 的坑）
 11. **镜像类 diff 必须对照被镜像类的后续修复**：提交自称"Mirrors X"时，`git log -p` 追源类在本提交之后的 bug fix，镜像副本未同步的修复点=高置信发现（46e8590206 QQ 副本漏掉 `_poll_lock` 实案——同日微信侧修的竞态，抄自己的代码最可靠的 bug 预言就是源类的补丁历史）
 12. **onboarding/配对类端点的并发模型显式审查**：凡"锁内取 session、锁外 await poll"的形状，追问 poll 自身是否可并发；会话级锁≠会话方法线程安全（静态信号：`pop(` 后跟 `await session.`）
+13. **同步回调引入首个 await = 在事件循环上开并发**：原本全同步的用户交互回调（onPress/onClick/submit 拦截器）里加入第一个 await 后，快速重复操作即并发执行。发 PR 前三闸自检，缺一发不出：①去重闸（in-flight 单例，重复触发共享同一次请求）②超时闸（AbortSignal.timeout，黑洞网络不得挂默认 300s）③代数守卫（auth generation，换账号后旧会话在飞响应不得写回新账号 store）——a9b55bb226 四条 Important 全部由此模式产生
 
 ## 明确不报（Do not report）
 
