@@ -51,7 +51,7 @@ beforeEach(() => {
 
 describe('review 加固: B1 in-flight 去重', () => {
   test('并发两次调用只发一条 /apikey(共享同一Promise)', async () => {
-    let resolveFirst: (v: never) => void = () => {}
+    let resolveFirst: (v: unknown) => void = () => {}
     mockedGet.mockImplementationOnce(() => new Promise(r => { resolveFirst = r as never }) as never)
 
     const p1 = refreshCustomKeyStateFromBackend()
@@ -70,7 +70,7 @@ describe('review 加固: B1 in-flight 去重', () => {
 
 describe('review 加固: B3 会话代数守卫', () => {
   test('请求在飞期间换号(bumpGeneration): 晚到响应不写入新会话 store', async () => {
-    let resolveFirst: (v: never) => void = () => {}
+    let resolveFirst: (v: unknown) => void = () => {}
     mockedGet.mockImplementationOnce(() => new Promise(r => { resolveFirst = r as never }) as never)
 
     const p = refreshCustomKeyStateFromBackend()
