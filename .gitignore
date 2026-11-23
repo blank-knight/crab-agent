@@ -141,3 +141,4 @@ apps/desktop/demo/
 .history/
 -Commit/
 .build/
+graphify-out/

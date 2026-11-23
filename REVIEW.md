@@ -23,6 +23,32 @@
 
 ## 本仓红线（Bugs/Compliance 通道必查项）
 
+### 红线 14 · 结构雷区——高被引文件与循环依赖（11-23 代码体检出土）
+
+**机械触发**：本红线随 AGENTS.md 自动注入，凡在 qiji-fork 内改代码即生效。
+
+改到下列文件/区域 → 验证义务自动升级，**无需任何人提醒**：
+
+**A. 循环依赖环（动前必看加载顺序/初始化竞态）**
+- 环1: `store/session.ts ↔ thread-loading.ts ↔ app/types.ts ↔ chat-messages.ts ↔ media.ts`（session.ts 88 引 god node，主干道环）
+- 环2: composer 五件套 `focus.ts ↔ inline-refs.ts ↔ types.ts ↔ use-composer-actions.ts ↔ chat-runtime.ts`
+- 环3: `lib/backend.ts ↔ store/auth.ts`（白屏事故案发地：blob: 加密链冲突曾在此爆发）
+
+**B. God files（被引数=回归面）**
+
+| 文件 | 被引 | 改它= |
+|---|---|---|
+| src/lib/utils.ts | 142 | 全仓最泛用工具，任何签名变化波及 142 处 |
+| src/i18n/index.ts + context.tsx | 123+115 | i18n 全链路，且 context 在环1 邻域 |
+| src/store/session.ts | 88 | 环1 成员，双雷叠加 |
+| src/types/hermes.ts | 77 | 类型层，下游全量重编译 |
+| src/hermes.ts | 66 | 白屏事故链起点 |
+| src/components/ui/button.tsx | 71 | UI 基件，所有页面回归 |
+
+**动作**：改动命中 A/B → (1) typecheck 四段全跑（单段绿=假绿）(2) 改环内文件时自检"我的 import 是否加深环" (3) 大重构合并后重照体检（触发条件：b1 回流级/结构 bug 现身/季度兜底）
+
+**证据**：graphify AST 全量体检 2026-11-23 @ 1103b1c363（47k 符号/111k 边，零 token）；图本体 qiji-fork/graphify-out/graph.json（已 gitignore）；完整报告 knowledge-vault articles/AI/code-graph-vs-knowledge-graph-20261123.md
+
 1. **Electron 主进程改动必须过 `tsc --build tsconfig.electron.json`**（或 apps/desktop `npm run typecheck`）——不编译就声称完成 = 未完成
 2. **渲染层加密链**：资产引用不得破坏 blob: 协议；改动产物要对照加密前 dist 验证（白屏 Invalid URL 分诊见 qiji-renderer-encryption-chain skill）
 3. **双树纪律**：renderer-rebase 有 WSL + /mnt/d 双工作树，scripts 动手前两树互核，别只改一边
