@@ -202,6 +202,25 @@ export default defineConfig(({ command }) => ({
     host: '127.0.0.1',
     port: 5174,
     strictPort: true,
+    // qiji 联调代理（11-24）：dev 下客户端 API 走 vite 同源代理绕 CORS。
+    // target 默认=生产；联调测试站时在 .env.development 设
+    // VITE_QIJI_API_TARGET=http://test.aijiqiren.vip
+    proxy:
+      process.env.VITE_QIJI_API_TARGET ||
+      process.env.QIJI_API_TARGET ||
+      'https://agent.aijiqiren.vip'
+        ? {
+            '/qiji-api': {
+              target:
+                process.env.VITE_QIJI_API_TARGET ||
+                process.env.QIJI_API_TARGET ||
+                'https://agent.aijiqiren.vip',
+              changeOrigin: true,
+              secure: false,
+              rewrite: (p: string) => p.replace(/^\/qiji-api/, '')
+            }
+          }
+        : undefined,
     watch: {
       // crab 0.20.5s-r3: release/win-unpacked 里 vendored 的 tsconfig 会触发
       // vite 全量重载死循环(10-26 装机验证实锤: 5174 连不出/import 全超时),
