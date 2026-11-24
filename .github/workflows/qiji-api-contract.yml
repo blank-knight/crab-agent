@@ -1,0 +1,41 @@
+name: qiji API contract
+
+# 客户端↔服务端联测 CI（自研线,与上游血统的46+8个workflow完全无关）
+# 原理: 起临时ubuntu runner → 跑 tests/api-contract/test_qiji_api.py
+#       → 打测试站 test.aijiqiren.vip 的15个端点并断言契约(注册现场发号,零密钥零残留)
+# 触发: ① 手动按钮 ② 打 v* 版本tag(发版时刻自动验一发)
+# ⛔ 刻意不挂 push/PR —— 日常push不配打测试站(冻结教训:workflow只在有意义的时刻烧)
+# 纪律: 发版前"代码部署测试站→点这个workflow→绿了→合生产"
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: qiji-api-contract
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run API contract tests (test site)
+        run: |
+          python3 tests/api-contract/test_qiji_api.py --base http://test.aijiqiren.vip
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## qiji API 契约联测" >> $GITHUB_STEP_SUMMARY
+          echo "- 目标: 测试站 test.aijiqiren.vip(隔离架构,客户无感)" >> $GITHUB_STEP_SUMMARY
+          echo "- 端点: 15个(账号/额度/Key/套餐/技能/更新/上报)" >> $GITHUB_STEP_SUMMARY
+          echo "- 纪律: 绿了才准合生产;红了先看失败明细逐条修" >> $GITHUB_STEP_SUMMARY
