@@ -257,3 +257,10 @@ scripts/run_tests.sh
 MIT — see [LICENSE](LICENSE).
 
 Built by [Nous Research](https://nousresearch.com).
+
+---
+
+> **⛔ 本仓已于 2026-11-24 退役** — 双仓收敛至 renderer-rebase（唯一活跃开发+出包仓）。
+> B线（feat/rebrand-crab-ai）近60天全部有效产出已核实在 renderer-rebase 在位；本仓自此**只读考古**：
+> 回退锚 `rollback-20261124-premerge-Bline`；终态 `archive/qiji-fork-final-20261124`。
+> 任何新开发请去 renderer-rebase。新开 session 说"继续crab"即接到新仓。
