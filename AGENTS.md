@@ -174,6 +174,17 @@ is "inside the Hermes desktop app". The pattern:
 Test: if the capability still makes sense with the client on another machine, it is
 session-scoped. Assert the GUI session gets the tool **with the env var absent**.
 
+## Code Review
+
+Any review (self-review before commit, or a dedicated reviewer pass) follows
+`REVIEW.md` at the repo root: three passes (Bugs / Security / Compliance),
+every finding carries file:line + why + trigger path, severity-ranked with
+nit cap, and repo-specific red lines (electron tsc, encryption chain, dual
+tree, installer chain) that are always checked. Read it before reviewing.
+
+> 红线清单随本文件自动注入——2026-11-24 双仓收敛：本仓为唯一活跃开发/出包仓（qiji-fork 已退役为只读考古），
+> REVIEW.md 红线 1-14 在此继续生效。B 线历史档案见 rollback-20261124-premerge-Bline tag。
+
 ## Development Environment
 
 ```bash
