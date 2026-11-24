@@ -24,9 +24,7 @@ jobs:
   qiji-suite:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: apps/desktop
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,13 +36,15 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: Install deps
+      - name: Install deps (workspace根,hoist到desktop可用)
         run: npm ci --no-audit --no-fund
 
       - name: Typecheck (4段全跑,electron/renderer/shared)
+        working-directory: apps/desktop
         run: npm run typecheck
 
       - name: qiji商业核心测试(登录墙/计费/自定义Key/权限刷新)
+        working-directory: apps/desktop
         run: npx vitest run --project ui
           src/store/auth-custom-key-refresh.test.ts
           src/store/billing-block.test.ts
