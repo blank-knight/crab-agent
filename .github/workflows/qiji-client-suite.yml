@@ -1,0 +1,60 @@
+name: qiji client suite
+
+# 客户端独立CI——qiji商业层(登录墙/计费/自定义Key/权限门)的回归闸
+# 与联动CI(qiji-api-contract,打真实测试站)互补:本CI零网络,只验客户端代码自身
+# 原料: 既有vitest测试文件(0.20.5aa带的四防测试全在此),冷跑~2分钟
+# 触发: 手动 + push到fix/b1(仅当客户端目录有改动时跑,过滤路径)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/b1-hermes-home-chain]
+    paths:
+      - 'apps/desktop/src/**'
+      - 'apps/desktop/electron/**'
+
+concurrency:
+  group: qiji-client-suite
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qiji-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck (4段全跑,electron/renderer/shared)
+        run: npm run typecheck
+
+      - name: qiji商业核心测试(登录墙/计费/自定义Key/权限刷新)
+        run: npx vitest run --project ui
+          src/store/auth-custom-key-refresh.test.ts
+          src/store/billing-block.test.ts
+          src/store/auth-custom-key-review-hardening.test.ts
+          src/app/session/hooks/use-prompt-actions/submit-view-binding.test.ts
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## qiji 客户端独立套件" >> $GITHUB_STEP_SUMMARY
+          echo "- typecheck 四段 + 商业核心4测试文件(9断言族)" >> $GITHUB_STEP_SUMMARY
+          echo "- 零网络:不打任何服务端,纯代码回归" >> $GITHUB_STEP_SUMMARY
+          echo "- 联动闸见 qiji API contract(打测试站)" >> $GITHUB_STEP_SUMMARY
