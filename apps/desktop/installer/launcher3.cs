@@ -138,10 +138,12 @@ class Launcher
         catch { }
         Thread.Sleep(1500); // 等文件句柄彻底释放
 
-        // 1. Defender 排除
+        // 1. Defender 排除（crab 0.20.5-ac+1: 失败显式回报,不再静默吞——见
+        // AddDefenderExclusion 注释里的 2026-11-25 用户VM判例）
         reporter(0, "正在配置 Windows Defender...");
-        AddDefenderExclusion(installDir);
-        AddDefenderExclusion(s_tempDir);
+        s_defenderFailures = new List<string>();
+        TryDefenderExclusion(installDir);
+        TryDefenderExclusion(s_tempDir);
         // 数据目录（%LOCALAPPDATA%\<dataDirName>，vendor/git 复制目标）也要排除：
         // 首启 bootstrap 把 40 万 MB/9504 文件的 vendor 复制进去，若被实时扫描，
         // 每个小文件都触发一次拦截，装完首启要 28-60 分钟。排除可先于目录存在注册。
@@ -149,7 +151,24 @@ class Launcher
         // 与 main.cjs 运行时解析链同源，贴牌改名不会漏。
         foreach (string dataDir in ResolveDataDirs())
         {
-            AddDefenderExclusion(dataDir);
+            TryDefenderExclusion(dataDir);
+        }
+        if (s_defenderFailures.Count > 0)
+        {
+            // 落盘安装日志（排除项失败本身不该阻塞安装;日志给售后排查用）
+            try
+            {
+                string logDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    BrandInfo.DataDir, "logs");
+                Directory.CreateDirectory(logDir);
+                File.AppendAllText(Path.Combine(logDir, "defender-exclusion.log"),
+                    string.Format("[{0}] 加白失败 {1} 项:{2}{3}",
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                        s_defenderFailures.Count, Environment.NewLine,
+                        string.Join(Environment.NewLine, s_defenderFailures.ToArray())) + Environment.NewLine);
+            }
+            catch { }
         }
 
         // 2. 7z 解压（解析进度）
@@ -409,23 +428,60 @@ class Launcher
         return proc.ExitCode;
     }
 
-    static void AddDefenderExclusion(string path)
+    // crab 0.20.5-ac+1 (2026-11-25): Defender 加白不再静默失败。三个失败口
+    // (SilentlyContinue 吞错/WaitForExit 超时/catch{})全部改为显式判定：
+    // PowerShell 退出码 0 且不超时才算加白成功；失败时把失败路径记进安装日志,
+    // 并向导完成页给出一次性黄色提示（软件照常可用,但运行性能可能受损）。
+    // 实测判例(2026-11-25 用户VM): bootstrap 全绿但后端在 Defender 实时扫描下
+    // 运行约 14 分钟后被 IO 拖死,所有 API 30-60s 超时;手动加白即愈。
+    // 加白失败收集（完成页提示 + 落盘日志共用）
+    static List<string> s_defenderFailures = new List<string>();
+
+    static void TryDefenderExclusion(string path)
     {
+        string reason;
+        if (!AddDefenderExclusion(path, out reason))
+        {
+            s_defenderFailures.Add(string.Format("{0} ({1})", path, reason));
+        }
+    }
+
+    static bool AddDefenderExclusion(string path, out string failReason)
+    {
+        failReason = null;
         try
         {
             var psi = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = "-NoProfile -NonInteractive -Command \"Add-MpPreference -ExclusionPath '" + path + "' -ErrorAction SilentlyContinue\"",
+                Arguments = "-NoProfile -NonInteractive -Command \"$ErrorActionPreference='Stop'; Add-MpPreference -ExclusionPath '" + path + "'\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                RedirectStandardInput = true
+                RedirectStandardInput = true,
+                RedirectStandardError = true
             };
-            var p = Process.Start(psi);
-            p.StandardInput.Close();
-            p.WaitForExit(10000);
+            using (var p = Process.Start(psi))
+            {
+                p.StandardInput.Close();
+                if (!p.WaitForExit(20000))
+                {
+                    failReason = "timeout";
+                    try { p.Kill(); } catch { }
+                    return false;
+                }
+                if (p.ExitCode != 0)
+                {
+                    failReason = "exit" + p.ExitCode;
+                    return false;
+                }
+                return true;
+            }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            failReason = ex.GetType().Name;
+            return false;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -853,6 +909,29 @@ class Launcher
                 BackColor = BG_COLOR,
                 Padding = new Padding(60, 20, 60, 0)
             };
+
+            // crab 0.20.5-ac+1: Defender 加白失败时的黄色一次性提示（不阻塞,
+            // 但运行性能可能受损——见 2026-11-25 用户VM判例）。动态插入,默认隐藏。
+            var defenderWarn = new Label
+            {
+                Text = "提示: Windows Defender 加白未成功,软件可正常使用,但运行速度可能偏慢。\n" +
+                       "可在杀毒软件中将以下目录加入信任/排除列表后重启本软件:\n" +
+                       string.Join("\n", s_defenderFailures == null ? new string[0] : s_defenderFailures.ToArray()),
+                Font = new Font("Microsoft YaHei", 8.5f),
+                ForeColor = Color.FromArgb(180, 130, 30),
+                BackColor = Color.FromArgb(45, 40, 25),
+                AutoSize = false,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Dock = DockStyle.Top,
+                Padding = new Padding(12, 8, 12, 8),
+                Height = 30,
+                Visible = s_defenderFailures != null && s_defenderFailures.Count > 0
+            };
+            if (defenderWarn.Visible)
+            {
+                defenderWarn.Height = 30 + 22 * s_defenderFailures.Count;
+            }
+            _donePage.Controls.Add(defenderWarn);
 
             _chkLaunch = new CheckBox
             {
