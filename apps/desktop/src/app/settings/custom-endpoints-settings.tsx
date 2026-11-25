@@ -49,10 +49,10 @@ interface EndpointForm {
 
 // Same choices as `hermes model`'s custom-provider setup; '' = runtime auto-detect.
 const API_MODE_OPTIONS: readonly { id: CustomEndpointApiMode; label: string }[] = [
-  { id: '', label: 'Auto-detect' },
-  { id: 'chat_completions', label: 'Chat Completions' },
-  { id: 'codex_responses', label: 'Responses API' },
-  { id: 'anthropic_messages', label: 'Anthropic Messages' }
+  { id: '', label: '自动检测' },
+  { id: 'chat_completions', label: 'Chat Completions（OpenAI 兼容）' },
+  { id: 'codex_responses', label: 'Responses API（Codex）' },
+  { id: 'anthropic_messages', label: 'Anthropic Messages（Claude 协议）' }
 ]
 
 const EMPTY_FORM: EndpointForm = {

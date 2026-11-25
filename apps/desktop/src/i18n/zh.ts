@@ -2519,8 +2519,8 @@ export const zh = defineLocale({
       searchKeys: '搜索提供方…',
       noKeysMatch: '没有匹配的提供方。',
       localEndpoint: {
-        title: '本地 / 自定义端点',
-        description: '将 螃蟹OPC 指向任意 OpenAI 兼容端点（Zyphra、vLLM、llama.cpp、Ollama 等）。'
+        title: '自定义大模型',
+        description: '接入任意 OpenAI 兼容端点（自有部署、vLLM、Ollama 或其他平台）。'
       },
       loading: '正在加载提供方...'
     },

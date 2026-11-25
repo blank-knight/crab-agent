@@ -44,6 +44,9 @@ HERMES_OVERLAYS: Dict[str, HermesOverlay] = {
     "github-copilot": HermesOverlay(extra_env_vars=("COPILOT_GITHUB_TOKEN", "GH_TOKEN")),
     "anthropic": HermesOverlay(transport="anthropic_messages", extra_env_vars=("ANTHROPIC_TOKEN", "CLAUDE_CODE_OAUTH_TOKEN")),
     "zai": HermesOverlay(extra_env_vars=("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), base_url_env_var="GLM_BASE_URL"),
+    "volcengine": HermesOverlay(extra_env_vars=("ARK_API_KEY", "DOUBAO_API_KEY"), base_url_env_var="ARK_BASE_URL"),
+    "qianfan": HermesOverlay(extra_env_vars=("QIANFAN_API_KEY", "BAIDU_API_KEY"), base_url_env_var="QIANFAN_BASE_URL"),
+    "siliconflow": HermesOverlay(extra_env_vars=("SILICONFLOW_API_KEY",), base_url_env_var="SILICONFLOW_BASE_URL"),
     "kimi-for-coding": HermesOverlay(base_url_env_var="KIMI_BASE_URL"),
     "stepfun": HermesOverlay(extra_env_vars=("STEPFUN_API_KEY",),
                              base_url_override="https://api.stepfun.ai/step_plan/v1",
@@ -113,7 +116,8 @@ class ProviderDef:
 # -- Aliases: human-friendly / legacy names grouped by canonical (models.dev where possible) id;
 # ``ALIASES`` is the inverted lookup table. ---------------------------------------------------
 _ALIAS_GROUPS: Dict[str, Tuple[str, ...]] = {
-    "openrouter": ("openai",), "zai": ("glm", "z-ai", "z.ai", "zhipu"), "xai": ("x-ai", "x.ai", "grok"),
+    "openrouter": ("openai",), "zai": ("glm", "z-ai", "z.ai", "zhipu"), "volcengine": ("doubao", "ark", "volc"),
+    "qianfan": ("baidu", "ernie", "wenxin"), "siliconflow": ("silicon-flow", "sf"), "xai": ("x-ai", "x.ai", "grok"),
     "xai-oauth": ("grok-oauth", "xai-oauth", "x-ai-oauth", "xai-grok-oauth"),
     "nvidia": ("nim", "nvidia-nim", "build-nvidia", "nemotron"),
     "kimi-for-coding": ("kimi", "kimi-coding", "kimi-coding-cn", "moonshot"),

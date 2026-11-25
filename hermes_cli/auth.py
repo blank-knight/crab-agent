@@ -192,6 +192,13 @@ _REGISTRY_ROWS: Tuple[Any, ...] = (
      ("GOOGLE_API_KEY", "GEMINI_API_KEY"), "GEMINI_BASE_URL"),
     ("zai", "Z.AI / GLM", "https://api.z.ai/api/paas/v4",
      ("GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"), "GLM_BASE_URL"),
+    # crab 0.20.5-ab: CN provider presets for the qiji audience (国内精选清单).
+    ("volcengine", "Doubao / Volcengine Ark", "https://ark.cn-beijing.volces.com/api/v3",
+     ("ARK_API_KEY", "DOUBAO_API_KEY"), "ARK_BASE_URL"),
+    ("qianfan", "Baidu Qianfan", "https://qianfan.baidubce.com/v2",
+     ("QIANFAN_API_KEY", "BAIDU_API_KEY"), "QIANFAN_BASE_URL"),
+    ("siliconflow", "SiliconFlow", "https://api.siliconflow.cn/v1",
+     ("SILICONFLOW_API_KEY",), "SILICONFLOW_BASE_URL"),
     # Legacy platform.moonshot.ai keys use this endpoint (OpenAI-compat); sk-kimi- (Kimi Code)
     # keys are auto-redirected to api.kimi.com/coding by _resolve_kimi_base_url().
     ("kimi-coding", "Kimi / Moonshot", "https://api.moonshot.ai/v1",

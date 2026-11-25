@@ -99,7 +99,7 @@ describe('CustomEndpointsSettings', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '名称' }), { target: { value: 'Fixture Ω' } })
     fireEvent.change(screen.getByRole('textbox', { name: '端点 URL' }), { target: { value: 'http://fixture.test/v1' } })
     fireEvent.change(screen.getByRole('combobox', { name: '默认模型' }), { target: { value: 'fixture-model' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Responses API' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Responses API（Codex）' }))
     await act(() => language.setLocale('zh-hant'))
     expect((screen.getByRole('textbox', { name: '名稱' }) as HTMLInputElement).value).toBe('Fixture Ω')
     expect(screen.getByText('API 模式')).toBeTruthy()
@@ -139,7 +139,7 @@ describe('CustomEndpointsSettings', () => {
     fireEvent.change(screen.getByPlaceholderText('http://127.0.0.1:8081/v1'), {
       target: { value: 'https://responses-gateway.example.com/v1' }
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Responses API' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Responses API（Codex）' }))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Test' }))
     })
@@ -208,7 +208,7 @@ describe('CustomEndpointsSettings', () => {
     render(<CustomEndpointsSettings />)
 
     await screen.findByText('Profile A')
-    expect(screen.getByRole('button', { name: 'Anthropic Messages' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Anthropic Messages（Claude 协议）' }).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('drops a pending save completion after its profile-scoped view unmounts', async () => {

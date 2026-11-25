@@ -74,109 +74,140 @@ export const PROVIDER_GROUPS: ProviderPrefix[] = [
     name: 'Anthropic',
     description: 'Claude API access (Sonnet, Opus, Haiku)',
     docsUrl: 'https://console.anthropic.com/settings/keys',
-    priority: 2
+    priority: 17
   },
   {
     prefix: 'XAI_',
     name: 'xAI',
     description: 'Grok models (use OAuth for SuperGrok / Premium+)',
     docsUrl: 'https://console.x.ai/',
-    priority: 3
+    priority: 18
   },
   {
     prefix: 'GOOGLE_',
     name: 'Gemini',
     description: 'Google AI Studio (Gemini 1.5 / 2.0 / 2.5)',
     docsUrl: 'https://aistudio.google.com/app/apikey',
-    priority: 4
+    priority: 19
   },
-  { prefix: 'GEMINI_', name: 'Gemini', priority: 4 },
+  { prefix: 'GEMINI_', name: 'Gemini', priority: 19 },
+  {
+    prefix: 'ARK_',
+    name: '豆包（火山引擎）',
+    description: '火山方舟大模型服务（Doubao 系列）',
+    docsUrl: 'https://console.volcengine.com/ark',
+    priority: 5
+  },
+  { prefix: 'DOUBAO_', name: '豆包（火山引擎）', priority: 5 },
+  {
+    prefix: 'QIANFAN_',
+    name: '文心一言（百度千帆）',
+    description: '百度千帆大模型服务（ERNIE 系列）',
+    docsUrl: 'https://console.bce.baidu.com/qianfan',
+    priority: 6
+  },
+  { prefix: 'BAIDU_', name: '文心一言（百度千帆）', priority: 6 },
+  {
+    prefix: 'HUNYUAN_',
+    name: '腾讯元宝（混元）',
+    description: '腾讯混元大模型服务',
+    docsUrl: 'https://cloud.tencent.com/product/hunyuan',
+    priority: 7
+  },
+  { prefix: 'TOKENHUB_', name: '腾讯元宝（混元）', priority: 7 },
   {
     prefix: 'DEEPSEEK_',
     name: 'DeepSeek',
     description: 'Direct DeepSeek API (V3.x, R1)',
     docsUrl: 'https://platform.deepseek.com/api_keys',
-    priority: 5
-  },
-  {
-    prefix: 'DASHSCOPE_',
-    name: 'DashScope (Qwen)',
-    description: 'Alibaba Cloud DashScope — Qwen and multi-vendor models',
-    docsUrl: 'https://modelstudio.console.alibabacloud.com/',
-    priority: 6
-  },
-  { prefix: 'HERMES_QWEN_', name: 'DashScope (Qwen)', priority: 6 },
-  {
-    prefix: 'GLM_',
-    name: 'GLM / Z.AI',
-    description: 'Zhipu GLM-4.6 and Z.AI hosted endpoints',
-    docsUrl: 'https://z.ai/',
-    priority: 7
-  },
-  { prefix: 'ZAI_', name: 'GLM / Z.AI', priority: 7 },
-  { prefix: 'Z_AI_', name: 'GLM / Z.AI', priority: 7 },
-  {
-    prefix: 'KIMI_',
-    name: 'Kimi / Moonshot',
-    description: 'Moonshot Kimi K2 / coding endpoints',
-    docsUrl: 'https://platform.moonshot.cn/',
     priority: 8
   },
   {
+    prefix: 'DASHSCOPE_',
+    name: '通义千问（阿里 DashScope）',
+    description: 'Alibaba Cloud DashScope — Qwen and multi-vendor models',
+    docsUrl: 'https://modelstudio.console.alibabacloud.com/',
+    priority: 9
+  },
+  { prefix: 'HERMES_QWEN_', name: '通义千问（阿里 DashScope）', priority: 9 },
+  {
+    prefix: 'GLM_',
+    name: '智谱GLM',
+    description: 'Zhipu GLM-4.6 and Z.AI hosted endpoints',
+    docsUrl: 'https://z.ai/',
+    priority: 10
+  },
+  { prefix: 'ZAI_', name: '智谱GLM', priority: 10 },
+  { prefix: 'Z_AI_', name: '智谱GLM', priority: 10 },
+  {
+    prefix: 'SILICONFLOW_',
+    name: '硅基流动',
+    description: '国内模型聚合平台（DeepSeek/Qwen/GLM 开源版一家通吃）',
+    docsUrl: 'https://cloud.siliconflow.cn/apikeys',
+    priority: 11
+  },
+  {
+    prefix: 'KIMI_',
+    name: 'Kimi（月之暗面）',
+    description: 'Moonshot Kimi K2 / coding endpoints',
+    docsUrl: 'https://platform.moonshot.cn/',
+    priority: 11
+  },
+  {
     prefix: 'KIMI_CN_',
-    name: 'Kimi (China)',
+    name: 'Kimi（国内线）',
     description: 'Moonshot China endpoint',
     docsUrl: 'https://platform.moonshot.cn/',
-    priority: 9
+    priority: 11
   },
   {
     prefix: 'MINIMAX_',
     name: 'MiniMax',
     description: 'MiniMax-M2 and Hailuo international endpoints',
     docsUrl: 'https://www.minimax.io/',
-    priority: 10
+    priority: 12
   },
   {
     prefix: 'MINIMAX_CN_',
-    name: 'MiniMax (China)',
+    name: 'MiniMax（国内线）',
     description: 'MiniMax mainland China endpoint',
     docsUrl: 'https://www.minimaxi.com/',
-    priority: 11
+    priority: 12
   },
   {
     prefix: 'HF_',
     name: 'Hugging Face',
     description: 'Inference Providers — 20+ open models via router.huggingface.co',
     docsUrl: 'https://huggingface.co/settings/tokens',
-    priority: 12
+    priority: 27
   },
   {
     prefix: 'OPENCODE_ZEN_',
     name: 'OpenCode Zen',
     description: 'Pay-as-you-go access to curated coding models',
     docsUrl: 'https://opencode.ai/auth',
-    priority: 13
+    priority: 28
   },
   {
     prefix: 'OPENCODE_GO_',
     name: 'OpenCode Go',
     description: '$10/month subscription for open coding models',
     docsUrl: 'https://opencode.ai/auth',
-    priority: 14
+    priority: 29
   },
   {
     prefix: 'NVIDIA_',
     name: 'NVIDIA NIM',
     description: 'build.nvidia.com or your own local NIM endpoint',
     docsUrl: 'https://build.nvidia.com/',
-    priority: 15
+    priority: 30
   },
   {
     prefix: 'OLLAMA_',
     name: 'Ollama Cloud',
     description: 'Cloud-hosted open models from ollama.com',
     docsUrl: 'https://ollama.com/settings',
-    priority: 16
+    priority: 31
   },
   {
     prefix: 'LM_',
