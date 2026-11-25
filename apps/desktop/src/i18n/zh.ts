@@ -4235,7 +4235,7 @@ export const zh = defineLocale({
     placeholderFollowUp: '发送后续消息',
     newSessionPlaceholders: [
       '有什么好的想法吗？立马实现',
-      '给 螃蟹OPC 一个任务，马上开工',
+      '给我一个任务，马上开工',
       '今天想做点什么？说来听听',
       '描述你的需求，剩下的交给 螃蟹OPC',
       '有目标了吗？直接说',
