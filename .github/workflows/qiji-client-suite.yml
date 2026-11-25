@@ -63,7 +63,9 @@ jobs:
 
       - name: 引擎供应商注册表健康(api-key型,含国内新增三家)
         run: |
-          pip install --quiet pytest 'ruamel.yaml<0.19'
+          # 引擎测试import链拉到的核心依赖(auth→hermes_yaml→ruamel; conftest→bedrock→httpx等)
+          # 45项全装太重,按import链实测补:pytest+ruamel+httpx(再缺再补)
+          pip install --quiet pytest 'ruamel.yaml<0.19' 'httpx<0.29'
           python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
 
       - name: Summary
