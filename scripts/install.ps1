@@ -271,7 +271,7 @@ function Stage-VendorFiles {
         # Python onto (VM 2026-11-25). A checkout that carries a healthy venv AND
         # a vendor install stamp is our own fresh staging, not a stale upgrade:
         # skip the retire, robocopy /E merge is idempotent for identical trees.
-        $hasHealthyVenv = (Test-Path (Join-Path $InstallDir "python\python.exe")) -and (Test-Path (Join-Path $InstallDir "venv\Lib\site-packages"))
+        $hasHealthyVenv = (Test-Path (Join-Path $InstallDir "python\python.exe")) -and (Test-Path (Join-Path $InstallDir "venv\Scripts\python.exe")) -and (Test-Path (Join-Path $InstallDir "venv\Lib\site-packages"))
         $hasVendorStamp = Test-Path (Join-Path $InstallDir "install-stamp.json")
         if ($hasHealthyVenv -and $hasVendorStamp) {
             Write-Host "[vendor] Fresh vendor staging detected (python+venv+stamp present); skip retire (upgrade-as-reinstall guard)" -ForegroundColor Cyan
@@ -407,7 +407,7 @@ function Stage-VendorFiles {
         Copy-Item $vendorRuntimeStamp (Join-Path $InstallDir "vendor-runtime-stamp.json") -Force
     }
 
-    if ((Test-Path $vendorPython) -and (Test-Path $vendorSitePackages) -and -not (Test-Path (Join-Path $managedVenv "Scripts\python.exe"))) {
+    if ((Test-Path $vendorPython) -and (Test-Path $vendorSitePackages) -and -not ((Test-Path (Join-Path $managedVenv "Scripts\python.exe")) -and (Test-Path (Join-Path $managedVenv "Lib\site-packages")))) {
         # a) Copy Python interpreter into InstallDir\python\
         #    This is the ONLY copy — no second hop to %APPDATA%\uv\python\.
         if (-not (Test-Path "$managedPython\python.exe")) {
