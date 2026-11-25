@@ -63,13 +63,9 @@ jobs:
 
       - name: 引擎供应商注册表健康(api-key型,含国内新增三家)
         run: |
-          # 引擎测试import链深(env_loader→dotenv, auth→ruamel, conftest→httpx...)
-          # 逐个补是打地鼠,一次装全核心依赖集(pyproject的45项,python3.14分支)
           pip install --quiet pytest
-          pip install --quiet -r <(python3 -c "
-import tomllib
-deps = tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']
-print('\n'.join(d for d in deps if 'python_version' not in d or '3.14' in d))")
+          python3 -c "import tomllib; deps = tomllib.load(open('pyproject.toml','rb'))['project']['dependencies']; open('/tmp/engine-deps.txt','w').write(chr(10).join(d for d in deps if 'python_version' not in d or '3.14' in d))"
+          pip install --quiet -r /tmp/engine-deps.txt
           python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
 
       - name: Summary
