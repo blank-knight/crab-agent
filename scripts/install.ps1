@@ -140,6 +140,20 @@ function Move-OrCopy-Dir {
     param([string]$Source, [string]$Dest)
     if (-not (Test-Path $Source)) { return $false }
 
+    # crab 0.20.5-ab+2 (2026-11-25): vendor sources must NEVER be moved out.
+    # Stage-VendorFiles runs on EVERY install.ps1 invocation (bootstrap calls
+    # it once per stage); a Directory.Move here empties the vendor tree, so the
+    # SECOND stage re-stages from an already-gutted vendor (VM 2026-11-25 round
+    # 2: uv stage moved everything, python stage found vendor hollow — no
+    # python, no venv — "Python 3.11 not available" on a fresh VM). Robocopy
+    # /E merge keeps the vendor tree intact (read-only gold mine) and is
+    # idempotent; the fast NTFS move is only kept for non-vendor callers.
+    if ($script:IsVendorStaging -and -not (Test-Path (Join-Path $Dest 'install-stamp.json'))) {
+        # first staging into a clean dir: copy (not move) so vendor survives
+        & robocopy $Source $Dest /E /NJH /NJS /NFL /NDL /NP /R:1 /W:1 /MT:$script:RobocopyMT 2>$null | Out-Null
+        return $true
+    }
+
     # If dest exists and has files, we can't Move — use robocopy to merge.
     if (Test-Path $Dest) {
         $destItems = @(Get-ChildItem $Dest -Recurse -File -EA SilentlyContinue)
@@ -179,6 +193,7 @@ function Move-OrCopy-Dir {
 # is idempotent: if the target already exists, the copy is skipped.
 function Stage-VendorFiles {
     if (-not $VendorDir -or -not (Test-Path $VendorDir)) { return }
+    $script:IsVendorStaging = $true
 
     # 1. uv.exe -> $HermesHome\bin\uv.exe
     $vendorUv = Join-Path $VendorDir "bin\uv.exe"
@@ -628,6 +643,7 @@ include-system-site-packages = false
             Write-Host "[vendor] Staged Playwright Chromium" -ForegroundColor Cyan
         }
     }
+    $script:IsVendorStaging = $false
 }
 
 # ============================================================================
