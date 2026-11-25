@@ -106,7 +106,7 @@ export function useOnboardingHandoff({
     } catch (error) {
       notify({
         kind: 'error',
-        title: 'First build needs attention',
+        title: '首次构建需要处理',
         message: error instanceof Error ? error.message : 'The first-build receipt could not be read.'
       })
     }
@@ -302,7 +302,7 @@ export function useOnboardingHandoff({
         notify({
           id: 'onboarding-handoff',
           kind: 'error',
-          title: 'First build needs attention',
+          title: '首次构建需要处理',
           message,
           action: { label: 'Retry first build', onClick: retrySetupHandoff }
         })

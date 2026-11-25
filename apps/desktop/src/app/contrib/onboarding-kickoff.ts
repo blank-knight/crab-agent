@@ -213,14 +213,14 @@ export function useOnboardingKickoff({
             ? ensureGatewayAgent(previousConnectionId, previousProfile)
             : ensureGatewayProfile(previousProfile)
         ).catch(restoreError => {
-          notify({ kind: 'error', title: 'Could not restore your profile', message: String(restoreError) })
+          notify({ kind: 'error', title: '无法恢复你的配置', message: String(restoreError) })
         })
       }
 
       console.error('[setup] welcome chat could not start', error)
       notify({
         kind: 'error',
-        title: 'Welcome chat needs attention',
+        title: '欢迎会话需要处理',
         message: error instanceof Error ? error.message : 'The welcome chat could not start.'
       })
 

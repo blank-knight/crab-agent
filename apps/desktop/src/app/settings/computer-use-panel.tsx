@@ -105,8 +105,8 @@ export function ComputerUsePanel({ onConfiguredChange }: ComputerUsePanelProps) 
 
       notify({
         kind: 'info',
-        title: 'Approve in System Settings',
-        message: 'macOS will show a permission dialog attributed to CuaDriver. Approve it, then return here.'
+        title: '请在系统设置中批准',
+        message: 'macOS 会弹出一个归属 CuaDriver 的权限对话框，批准后回到这里即可。'
       })
 
       // The driver waits for the user to flip the switch — poll until it exits.

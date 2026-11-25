@@ -115,7 +115,7 @@ export function QuickEntryApp() {
             ›
           </span>
           <input
-            aria-label="Quick Entry"
+            aria-label="快捷输入"
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
@@ -136,7 +136,7 @@ export function QuickEntryApp() {
                 dispatch({ type: 'dismiss' })
               }
             }}
-            placeholder={state.connected ? 'Ask Hermes…' : 'Not connected — open Hermes to reconnect'}
+            placeholder={state.connected ? '有什么想法，直接说…' : '未连接——打开 螃蟹OPC 重连'}
             ref={inputRef}
             spellCheck={false}
             style={{
@@ -166,7 +166,7 @@ export function QuickEntryApp() {
             Send to
           </label>
           <select
-            aria-label="Target session"
+            aria-label="目标会话"
             disabled={!state.connected}
             id="quick-entry-target"
             onChange={event => dispatch({ target: event.target.value, type: 'target' })}
@@ -187,8 +187,8 @@ export function QuickEntryApp() {
             }}
             value={state.target}
           >
-            <option value={QUICK_TARGET_CURRENT}>Current chat</option>
-            <option value={QUICK_TARGET_NEW}>New session</option>
+            <option value={QUICK_TARGET_CURRENT}>当前会话</option>
+            <option value={QUICK_TARGET_NEW}>新会话</option>
             {state.sessions.map(session => (
               <option key={session.id} value={session.id}>
                 {session.title}

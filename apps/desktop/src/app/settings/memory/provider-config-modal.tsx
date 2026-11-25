@@ -81,11 +81,11 @@ export function ProviderConfigModal({
 
     try {
       await saveMemoryProviderConfig(provider, edited, profile)
-      notify({ kind: 'success', title: `${config.label} saved`, message: 'Memory provider configuration updated.' })
+      notify({ kind: 'success', title: `${config.label} 已保存`, message: '记忆服务配置已更新。' })
       await onSaved()
       onOpenChange(false)
     } catch (err) {
-      notifyError(err, `Failed to save ${config.label} settings`)
+      notifyError(err, `保存 ${config.label} 设置失败`)
     } finally {
       setSaving(false)
     }

@@ -87,10 +87,10 @@ export function registerLayoutPresets() {
   // Simple is always the Basic arrangement; its one choice is which side the
   // sidebar sits. The decks are Advanced — arranging tooling is the point.
   return registerBundledPresets([
-    { id: 'sidebar-left', title: 'Sidebar left', order: 0, tree: BASIC_TREE, resting: BASIC_RESTING, tier: 'simple' },
+    { id: 'sidebar-left', title: '侧栏在左', order: 0, tree: BASIC_TREE, resting: BASIC_RESTING, tier: 'simple' },
     {
       id: 'sidebar-right',
-      title: 'Sidebar right',
+      title: '侧栏在右',
       order: 1,
       tree: mirrorTreeHorizontal(BASIC_TREE),
       resting: BASIC_RESTING,
@@ -99,7 +99,7 @@ export function registerLayoutPresets() {
     { id: 'default', title: 'Default', order: 0, tree: DEFAULT_TREE, tier: 'advanced' },
     { id: 'basic', title: 'Basic', order: 5, tree: BASIC_TREE, resting: BASIC_RESTING, tier: 'advanced' },
     { id: 'focus', title: 'Focus', order: 10, tree: FOCUS_TREE, resting: ['terminal'], tier: 'advanced' },
-    { id: 'terminal-deck', title: 'Terminal deck', order: 20, tree: TERMINAL_TREE, tier: 'advanced' },
+    { id: 'terminal-deck', title: '终端甲板', order: 20, tree: TERMINAL_TREE, tier: 'advanced' },
     { id: 'quad', title: 'Quad', order: 30, tree: QUAD_TREE, tier: 'advanced' }
   ])
 }
