@@ -512,7 +512,10 @@ export function ProvidersSettings({
   const hasOauth = oauthProviders.length > 0
   // The sidebar subnav owns the Accounts/API-keys split now; with no OAuth
   // providers there's nothing for the "Accounts" view to show, so fall to keys.
-  const showApiKeys = view === 'keys' || (!hasOauth && view !== 'custom-endpoints')
+  // crab 0.20.5-ab+4: the Accounts (OAuth subscription) sub-view is gone from
+  // the product; a stale ?pview=accounts deep link lands on the Keys view.
+  const effectiveView: ProviderView = view === 'accounts' ? 'keys' : view
+  const showApiKeys = effectiveView === 'keys' || (!hasOauth && effectiveView !== 'custom-endpoints')
 
   const keyGroups = buildProviderKeyGroups(vars)
 
@@ -577,20 +580,10 @@ export function ProvidersSettings({
     return $localModelsEnabled.get() ? <LocalModelsSettings /> : null
   }
 
-  return (
-    <SettingsContent>
-      <SettingsProfileScope className="mb-5" />
-      <OAuthPicker
-        disconnecting={disconnecting}
-        onDisconnect={provider => void handleDisconnect(provider)}
-        onTerminalDisconnect={provider => void handleTerminalDisconnect(provider)}
-        onWantApiKey={() => onViewChange('keys')}
-        onWantLocalModels={() => onViewChange('local')}
-        profile={scopeProfile}
-        providers={oauthProviders}
-      />
-    </SettingsContent>
-  )
+  // crab 0.20.5-ab+4: 'accounts' never renders (sub-nav entry removed; deep
+  // links normalize via effectiveView). If control still reaches here the
+  // safest landing is the Keys view, never the retired OAuth picker.
+  return <NoProviderKeys />
 }
 
 interface ProviderKeyGroup {

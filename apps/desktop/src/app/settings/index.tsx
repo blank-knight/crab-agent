@@ -187,7 +187,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   }, [activeView, setActiveView])
   // Providers subnav (Accounts vs API keys) lives in its own param so each
   // sub-view is deep-linkable and survives a refresh.
-  const [providerView, setProviderView] = useRouteEnumParam<ProviderView>('pview', PROVIDER_VIEWS, 'accounts')
+  const [providerView, setProviderView] = useRouteEnumParam<ProviderView>('pview', PROVIDER_VIEWS, 'keys')
   const [keysView] = useRouteEnumParam<KeysView>('kview', KEYS_VIEWS, 'tools')
   const [billingView] = useRouteEnumParam<BillingSubView>('bview', BILLING_VIEWS, 'overview')
   const billingState = useBillingState()
@@ -221,7 +221,7 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
   )
 
   const openProviderView = useCallback(
-    (view: ProviderView) => openSubView('providers', 'pview', view, 'accounts'),
+    (view: ProviderView) => openSubView('providers', 'pview', view, 'keys'),
     [openSubView]
   )
 
@@ -309,13 +309,8 @@ export function SettingsView({ onClose, onConfigSaved, onMainModelChanged }: Set
           {
             active: activeView === 'providers',
             children: [
-              {
-                active: activeView === 'providers' && providerView === 'accounts',
-                icon: codiconIcon('account'),
-                id: 'pview:accounts',
-                label: t.settings.nav.providerAccounts,
-                onSelect: () => openProviderView('accounts')
-              },
+              // crab 0.20.5-ab+4 (2026-11-25): 账号(订阅 OAuth)子页移除——国内
+              // 用户全程走 API 密钥,账号页六家全是海外订阅制,纯噪音。keys 为默认。
               {
                 active: activeView === 'providers' && providerView === 'keys',
                 icon: KeyRound,
