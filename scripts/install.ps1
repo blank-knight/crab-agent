@@ -239,6 +239,22 @@ function Stage-VendorFiles {
     $vendorRepo = Join-Path $VendorDir "hermes-agent"
     if (Test-Path $vendorRepo) {
         New-Item -ItemType Directory -Force -Path (Split-Path $InstallDir) | Out-Null
+        # crab 0.20.5-ab (2026-11-25): upgrade-as-reinstall for existing checkouts.
+        # robocopy /E MERGES into $InstallDir: old files are overwritten but files
+        # the old checkout had and the new vendor tree lacks are left behind, and a
+        # stale git dir keeps the "existing checkout" branch of the installer (and
+        # the desktop bootstrap) alive forever. Retire the whole old engine dir
+        # (rename, keep one generation for post-mortem) and stage the vendor tree
+        # into a clean directory instead — the engine becomes byte-identical to a
+        # fresh install, no online channel is ever consulted, and the venv stamp
+        # gate below still decides independently whether the venv needs restaging.
+        if (Test-Path (Join-Path $InstallDir "hermes_cli")) {
+            $retiredEngine = Join-Path (Split-Path $InstallDir) ("hermes-agent.retired-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
+            Write-Host "[vendor] Existing engine checkout detected; retiring to $retiredEngine (upgrade-as-reinstall)" -ForegroundColor Cyan
+            Move-Item $InstallDir $retiredEngine -Force
+            Get-ChildItem (Split-Path $InstallDir) -Directory -Filter "hermes-agent.retired-*" |
+                Sort-Object Name -Descending | Select-Object -Skip 1 | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        }
         & robocopy $vendorRepo $InstallDir /E /NJH /NJS /NFL /NDL /NP /R:1 /W:1 /MT:$script:RobocopyMT 2>$null | Out-Null
         if (-not (Test-Path "$InstallDir\hermes_cli\__init__.py")) {
             Write-Host "[vendor] CRITICAL: hermes_cli\__init__.py missing after staging" -ForegroundColor Red
