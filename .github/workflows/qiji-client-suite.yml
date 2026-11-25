@@ -12,6 +12,9 @@ on:
     paths:
       - 'apps/desktop/src/**'
       - 'apps/desktop/electron/**'
+      - 'hermes_cli/auth.py'
+      - 'hermes_cli/providers.py'
+      - '.github/workflows/qiji-client-suite.yml'
 
 concurrency:
   group: qiji-client-suite
