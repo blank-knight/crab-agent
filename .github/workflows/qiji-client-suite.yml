@@ -51,10 +51,22 @@ jobs:
           src/store/auth-custom-key-review-hardening.test.ts
           src/app/session/hooks/use-prompt-actions/submit-view-binding.test.ts
 
+      - name: qiji i18n与供应商守门(汉化键对齐/池长度/国内清单断言)
+        working-directory: apps/desktop
+        run: npx vitest run --project ui
+          src/i18n/catalog-completeness.test.ts
+          src/app/settings/providers-settings.test.tsx
+          src/app/settings/custom-endpoints-settings.test.tsx
+
+      - name: 引擎供应商注册表健康(api-key型,含国内新增三家)
+        run: python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
+
       - name: Summary
         if: always()
         run: |
           echo "## qiji 客户端独立套件" >> $GITHUB_STEP_SUMMARY
           echo "- typecheck 四段 + 商业核心4测试文件(9断言族)" >> $GITHUB_STEP_SUMMARY
+          echo "- i18n守门(zh/en键+池长度对齐) + 供应商页断言(国内清单)" >> $GITHUB_STEP_SUMMARY
+          echo "- 引擎供应商注册表(59项,含豆包/文心/硅基)" >> $GITHUB_STEP_SUMMARY
           echo "- 零网络:不打任何服务端,纯代码回归" >> $GITHUB_STEP_SUMMARY
           echo "- 联动闸见 qiji API contract(打测试站)" >> $GITHUB_STEP_SUMMARY
