@@ -63,7 +63,7 @@ jobs:
 
       - name: 引擎供应商注册表健康(api-key型,含国内新增三家)
         run: |
-          pip install pytest --quiet --disable-pip-version-warning
+          pip install --quiet pytest
           python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
 
       - name: Summary
