@@ -249,8 +249,14 @@ function downloadInstallScript(ref, destPath) {
   // Fetch from GitHub raw at the install ref: the packaged SHA for a fresh
   // install, the branch for an existing checkout or a non-git fallback stamp
   // (never the all-zero placeholder, which is not a real GitHub commit).
+  // crab 0.20.5-fix (2026-11-25, 公司机实锤): 源仓从上游 NousResearch/hermes-agent
+  // 切到本产品仓 blank-knight/crab-agent —— 上游脚本没有 -VendorDir/-KeepVendor 私有
+  // 参数,老用户升级通道拉上游脚本秒炸 NamedParameterNotFound → prerequisites 阶段
+  // 失败 → 后端永不启动 → 登录页输入框永久禁用(用户报"点输入框没反应")。
+  // 本仓是 fork,scripts/install.ps1 与包内 bundled 版同源;公司网络实测可直连
+  // raw.githubusercontent.com(2026-11-25 验证 HTTP 200)。
   const scriptName = installScriptName()
-  const url = `https://raw.githubusercontent.com/NousResearch/hermes-agent/${ref}/scripts/${scriptName}`
+  const url = `https://raw.githubusercontent.com/blank-knight/crab-agent/${ref}/scripts/${scriptName}`
 
   return new Promise((resolve, reject) => {
     fs.mkdirSync(path.dirname(destPath), { recursive: true })
