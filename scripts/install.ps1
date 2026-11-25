@@ -248,7 +248,19 @@ function Stage-VendorFiles {
         # into a clean directory instead — the engine becomes byte-identical to a
         # fresh install, no online channel is ever consulted, and the venv stamp
         # gate below still decides independently whether the venv needs restaging.
-        if (Test-Path (Join-Path $InstallDir "hermes_cli")) {
+        # crab 0.20.5-ab+1 (2026-11-25): freshness guard. The installer runs once
+        # PER STAGE (uv stage stages the engine, then the python stage runs the
+        # script again and saw its own fresh staging as an "existing checkout",
+        # retired it — taking the staged Python 3.11 interpreter with it — and
+        # died with "Python 3.11 not available" on a machine it had just staged
+        # Python onto (VM 2026-11-25). A checkout that carries a healthy venv AND
+        # a vendor install stamp is our own fresh staging, not a stale upgrade:
+        # skip the retire, robocopy /E merge is idempotent for identical trees.
+        $hasHealthyVenv = (Test-Path (Join-Path $InstallDir "python\python.exe")) -and (Test-Path (Join-Path $InstallDir "venv\Lib\site-packages"))
+        $hasVendorStamp = Test-Path (Join-Path $InstallDir "install-stamp.json")
+        if ($hasHealthyVenv -and $hasVendorStamp) {
+            Write-Host "[vendor] Fresh vendor staging detected (python+venv+stamp present); skip retire (upgrade-as-reinstall guard)" -ForegroundColor Cyan
+        } elseif (Test-Path (Join-Path $InstallDir "hermes_cli")) {
             $retiredEngine = Join-Path (Split-Path $InstallDir) ("hermes-agent.retired-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
             Write-Host "[vendor] Existing engine checkout detected; retiring to $retiredEngine (upgrade-as-reinstall)" -ForegroundColor Cyan
             Move-Item $InstallDir $retiredEngine -Force
