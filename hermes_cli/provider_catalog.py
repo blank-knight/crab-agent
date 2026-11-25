@@ -105,6 +105,20 @@ def provider_catalog() -> list[ProviderDescriptor]:
                 base_url_env_var=base_url_var, signup_url=signup_url, order=order,
             )
         )
+    # crab 0.20.5-ab+3 (2026-11-25): domestic-first ordering for the desktop Keys tab.
+    # The catalog order mirrors CANONICAL_PROVIDERS (shared with `hermes model` and the
+    # TUI picker), which is international-first. Reordering that array would break every
+    # order-index consumer; instead pin the domestic providers to the top of the catalog
+    # (stable within-group order preserved) at this exit point. Non-domestic order is
+    # untouched, and the `order` field itself still carries the canonical index.
+    _DOMESTIC_FIRST_SLUGS = (
+        "doubao", "wenxin", "deepseek", "zai", "kimi-coding-cn", "minimax-cn",
+        "alibaba", "xiaomi", "siliconflow", "tencent-tokenhub", "tencent-tokenplan", "qwen-oauth",
+    )
+    out.sort(key=lambda d: (
+        0 if d.slug in _DOMESTIC_FIRST_SLUGS else 1,
+        _DOMESTIC_FIRST_SLUGS.index(d.slug) if d.slug in _DOMESTIC_FIRST_SLUGS else d.order,
+    ))
     return out
 
 
