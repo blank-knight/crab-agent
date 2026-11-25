@@ -4225,7 +4225,18 @@ export const frOverrides = {
     message: 'Message',
     wakingProfile: profile => `Réveil de ${profile}…`,
     placeholderStarting: 'Démarrage de 螃蟹OPC…',
+    placeholderStartingPool: [
+      'Démarrage de 螃蟹OPC…',
+      'Démarrage de 螃蟹OPC…',
+      'Démarrage de 螃蟹OPC…'
+    ],
     placeholderReconnecting: 'Reconnexion à 螃蟹OPC…',
+    placeholderReconnectingPool: [
+      'Reconnexion à 螃蟹OPC…',
+      'Reconnexion à 螃蟹OPC…',
+      'Reconnexion à 螃蟹OPC…',
+      'Reconnexion à 螃蟹OPC…'
+    ],
     placeholderFollowUp: 'Envoyer un suivi',
     newSessionPlaceholders: [
       'Sur quoi travaillons-nous ?',

@@ -4216,7 +4216,18 @@ export const deOverrides = {
     message: 'Nachricht',
     wakingProfile: profile => `Wecke ${profile}…`,
     placeholderStarting: '螃蟹OPC wird gestartet…',
+    placeholderStartingPool: [
+      '螃蟹OPC wird gestartet…',
+      '螃蟹OPC wird gestartet…',
+      '螃蟹OPC wird gestartet…'
+    ],
     placeholderReconnecting: 'Verbindung zu 螃蟹OPC wird wiederhergestellt…',
+    placeholderReconnectingPool: [
+      'Verbindung zu 螃蟹OPC wird wiederhergestellt…',
+      'Verbindung zu 螃蟹OPC wird wiederhergestellt…',
+      'Verbindung zu 螃蟹OPC wird wiederhergestellt…',
+      'Verbindung zu 螃蟹OPC wird wiederhergestellt…'
+    ],
     placeholderFollowUp: 'Folge senden',
     newSessionPlaceholders: [
       'Was bauen wir?',

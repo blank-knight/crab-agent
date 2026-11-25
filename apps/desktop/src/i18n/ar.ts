@@ -2349,7 +2349,18 @@ export const ar = defineLocale({
     message: 'الرسالة',
     wakingProfile: profile => `جار إيقاظ ${profile}`,
     placeholderStarting: 'جار بدء 螃蟹OPC...',
+    placeholderStartingPool: [
+      'جار بدء 螃蟹OPC...',
+      'جار بدء 螃蟹OPC...',
+      'جار بدء 螃蟹OPC...'
+    ],
     placeholderReconnecting: 'جار إعادة الاتصال...',
+    placeholderReconnectingPool: [
+      'جار إعادة الاتصال...',
+      'جار إعادة الاتصال...',
+      'جار إعادة الاتصال...',
+      'جار إعادة الاتصال...'
+    ],
     placeholderFollowUp: 'اكتب متابعة...',
     newSessionPlaceholders: ['اسأل 螃蟹OPC عن شيء...', 'اطلب من 螃蟹OPC تنفيذ مهمة...', 'ابدأ محادثة جديدة...'],
     followUpPlaceholders: ['اكتب متابعة...', 'أضف توجيها...', 'اسأل سؤالا آخر...'],

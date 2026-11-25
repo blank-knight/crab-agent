@@ -3342,7 +3342,9 @@ export interface Translations {
     message: string
     wakingProfile: (profile: string) => string
     placeholderStarting: string
+    placeholderStartingPool: readonly string[]
     placeholderReconnecting: string
+    placeholderReconnectingPool: readonly string[]
     placeholderFollowUp: string
     newSessionPlaceholders: readonly string[]
     followUpPlaceholders: readonly string[]

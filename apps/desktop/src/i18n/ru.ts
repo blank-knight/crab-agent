@@ -2943,7 +2943,18 @@ export const ru = defineLocale({
     message: 'Сообщение',
     wakingProfile: profile => `Пробуждаем ${profile}…`,
     placeholderStarting: 'Запуск 螃蟹OPC...',
+    placeholderStartingPool: [
+      'Запуск 螃蟹OPC...',
+      'Запуск 螃蟹OPC...',
+      'Запуск 螃蟹OPC...'
+    ],
     placeholderReconnecting: 'Переподключение к 螃蟹OPC…',
+    placeholderReconnectingPool: [
+      'Переподключение к 螃蟹OPC…',
+      'Переподключение к 螃蟹OPC…',
+      'Переподключение к 螃蟹OPC…',
+      'Переподключение к 螃蟹OPC…'
+    ],
     placeholderFollowUp: 'Отправить продолжение',
     newSessionPlaceholders: [
       'Что будем делать?',

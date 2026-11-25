@@ -53,9 +53,21 @@ export function useComposerPlaceholder({ disabled, reconnecting, sessionId }: Us
   // we're trying to restore. During reconnect, keep the textbox editable so a
   // flaky network doesn't block drafting; only submit/backend actions stay
   // disabled until the gateway is open again.
+  // 运行/重连态也从各自的池子里轮换(同样只在真实状态切换时重掷,不逐帧跳变)
+  const [busyPlaceholder, setBusyPlaceholder] = useState(() => pickPlaceholder(t.composer.placeholderStartingPool))
+  const [reconnectingPlaceholder, setReconnectingPlaceholder] = useState(() =>
+    pickPlaceholder(t.composer.placeholderReconnectingPool)
+  )
+
+  // eslint-disable-next-line no-restricted-syntax -- legitimate non-atom ref write (see eslint rule comment)
+  useEffect(() => {
+    setBusyPlaceholder(pickPlaceholder(t.composer.placeholderStartingPool))
+    setReconnectingPlaceholder(pickPlaceholder(t.composer.placeholderReconnectingPool))
+  }, [t.composer.placeholderStartingPool, t.composer.placeholderReconnectingPool])
+
   return disabled
     ? reconnecting
-      ? t.composer.placeholderReconnecting
-      : t.composer.placeholderStarting
+      ? reconnectingPlaceholder
+      : busyPlaceholder
     : restingPlaceholder
 }

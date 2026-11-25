@@ -2739,7 +2739,18 @@ export const ja = defineLocale({
     message: 'メッセージ',
     wakingProfile: profile => `${profile} を起動中…`,
     placeholderStarting: '螃蟹OPC を起動中...',
+    placeholderStartingPool: [
+      '螃蟹OPC を起動中...',
+      '螃蟹OPC を起動中...',
+      '螃蟹OPC を起動中...'
+    ],
     placeholderReconnecting: '螃蟹OPC に再接続中…',
+    placeholderReconnectingPool: [
+      '螃蟹OPC に再接続中…',
+      '螃蟹OPC に再接続中…',
+      '螃蟹OPC に再接続中…',
+      '螃蟹OPC に再接続中…'
+    ],
     placeholderFollowUp: 'フォローアップを送信',
     newSessionPlaceholders: [
       '何を作りますか？',

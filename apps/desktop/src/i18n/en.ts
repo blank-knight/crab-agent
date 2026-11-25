@@ -3926,7 +3926,18 @@ export const en: Translations = {
     message: 'Message',
     wakingProfile: profile => `Waking up ${profile}…`,
     placeholderStarting: 'Starting 螃蟹OPC...',
+    placeholderStartingPool: [
+      'Starting 螃蟹OPC...',
+      'Warming up the claws...',
+      'Getting ready, one moment…'
+    ],
     placeholderReconnecting: 'Reconnecting to 螃蟹OPC…',
+    placeholderReconnectingPool: [
+      'Reconnecting to 螃蟹OPC…',
+      'Link hiccuped — pulling it back…',
+      'Reconnecting, hang tight…',
+      'Waking the link up again…'
+    ],
     placeholderFollowUp: 'Send follow-up',
     newSessionPlaceholders: [
       'What are we building?',

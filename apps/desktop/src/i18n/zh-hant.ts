@@ -2951,7 +2951,18 @@ export const zhHant = defineLocale({
     message: '訊息',
     wakingProfile: profile => `正在喚醒 ${profile}…`,
     placeholderStarting: '正在啟動 螃蟹OPC...',
+    placeholderStartingPool: [
+      '正在啟動 螃蟹OPC...',
+      '正在啟動 螃蟹OPC...',
+      '正在啟動 螃蟹OPC...'
+    ],
     placeholderReconnecting: '正在重新連線至 螃蟹OPC…',
+    placeholderReconnectingPool: [
+      '正在重新連線至 螃蟹OPC…',
+      '正在重新連線至 螃蟹OPC…',
+      '正在重新連線至 螃蟹OPC…',
+      '正在重新連線至 螃蟹OPC…'
+    ],
     placeholderFollowUp: '傳送後續訊息',
     newSessionPlaceholders: [
       '我們要建立什麼？',

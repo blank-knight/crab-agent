@@ -4218,7 +4218,20 @@ export const zh = defineLocale({
     message: '消息',
     wakingProfile: profile => `${profile} 正在努力工作，马上就好…`,
     placeholderStarting: '正在努力工作，马上就好…',
+    placeholderStartingPool: [
+      '正在努力工作，马上就好…',
+      '马不停蹄处理中…',
+      '干得火热，稍等片刻…',
+      '正在全力搞定…',
+      '就快好了，别眨眼…'
+    ],
     placeholderReconnecting: '连接开小差了，正在拉回来…',
+    placeholderReconnectingPool: [
+      '连接开小差了，正在拉回来…',
+      '网线打了个盹，马上叫醒它…',
+      '正在重连，稳住…',
+      '稍等，正在恢复连接…'
+    ],
     placeholderFollowUp: '发送后续消息',
     newSessionPlaceholders: [
       '有什么好的想法吗？立马实现',
@@ -4230,13 +4243,13 @@ export const zh = defineLocale({
       '从一个想法开始'
     ],
     followUpPlaceholders: [
-      '发送后续消息',
-      '补充更多上下文',
-      '细化这个请求',
-      '下一步是什么？',
-      '继续推进',
-      '再深入一点',
-      '调整或继续'
+      '继续，听你的',
+      '接下来做什么？',
+      '再补充点什么？',
+      '有想法直接说',
+      '继续推进吧',
+      '换个思路也行',
+      '接着聊'
     ],
     startVoice: '开始语音对话',
     openDirective: '打开',
