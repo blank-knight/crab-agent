@@ -62,7 +62,9 @@ jobs:
           src/app/settings/custom-endpoints-settings.test.tsx
 
       - name: 引擎供应商注册表健康(api-key型,含国内新增三家)
-        run: python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
+        run: |
+          pip install pytest --quiet --disable-pip-version-warning
+          python3 -m pytest tests/hermes_cli/test_api_key_providers.py -q
 
       - name: Summary
         if: always()
