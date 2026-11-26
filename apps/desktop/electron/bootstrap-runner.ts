@@ -209,6 +209,22 @@ function resolveBundledInstallScript(resourcesPath) {
   }
 }
 
+// crab 0.20.5-ac+1 (2026-11-26): restore install.ps1 to its expected path from
+// the asar copy, for the vanish-then-spawn race (AV quarantines between
+// resolve and spawn). Returns the healed path or null.
+function healVanishedInstallScript(scriptPath) {
+  try {
+    const resourcesDir = path.dirname(scriptPath)
+    const appRoot = path.dirname(resourcesDir)
+    const asarCopy = path.join(appRoot, 'app.asar', 'scripts', 'install.ps1')
+    fs.accessSync(asarCopy, fs.constants.R_OK)
+    fs.copyFileSync(asarCopy, scriptPath)
+    return scriptPath
+  } catch {
+    return null
+  }
+}
+
 // crab 0.20.5-ac+1 (2026-11-26): extraResources 落盘的 resources/install.ps1 被
 // 杀软隔离后(用户实测: app.asar 完好、install.ps1 单独消失,"无法识别…cmdlet"无限重试),
 // 从 asar 内副本(scripts/install.ps1,同字节)恢复一份到 resources/ 下再返回。恢复失败
@@ -764,19 +780,51 @@ async function fetchManifest({
   })
 
   if (result.code !== 0) {
+    // crab 0.20.5-ac+1 (2026-11-26): the AV can quarantine install.ps1 BETWEEN
+    // resolve (accessSync passed) and spawn (CommandNotFound with the script
+    // path in stderr). One heal-and-retry round: copy the asar copy back out,
+    // re-spawn once. Still failing falls through to the original error.
+    const raw = stripAnsi(result.stderr || result.stdout).trim()
+    const pathVanished = /CommandNotFoundException|ObjectNotFound|\u65e0\u6cd5\u8bc6\u522b/.test(raw)
+
+    if (!isPosix && pathVanished && scriptPath) {
+      const healed = healVanishedInstallScript(scriptPath)
+      if (healed) {
+        emit({ type: 'log', line: `[bootstrap] install.ps1 vanished (AV quarantine?); restored from asar copy, retrying manifest once` })
+        const retry = await (spawnPowerShell)(healed, args, {
+          emit,
+          stageName: '__manifest__',
+          abortSignal,
+          hermesHome
+        })
+        if (retry.code === 0) {
+          return parseManifestStdout(retry.stdout)
+        }
+        throw new Error(
+          `install.ps1 -Manifest failed after heal-retry: exit ${retry.code}\n${stripAnsi(retry.stderr || retry.stdout).trim()}`
+        )
+      }
+    }
+
     // The tail lands in the Setup failure banner, not the log ring, so strip
     // the installer's colour/OSC bytes here too (#112675).
-    const tail = stripAnsi(result.stderr || result.stdout).trim()
+    const tail = raw
 
     throw new Error(
       `${isPosix ? 'install.sh --manifest' : 'install.ps1 -Manifest'} failed: exit ${result.code}\n${tail}`
     )
   }
 
+  return parseManifestStdout(result.stdout)
+}
+
+// crab 0.20.5-ac+1: manifest stdout parsing extracted so the AV heal-retry
+// path above can reuse it.
+function parseManifestStdout(stdout) {
   // The manifest is the LAST JSON line on stdout (install.ps1 may print
   // banner / info lines first depending on Console.OutputEncoding effects).
   // Find the last line that parses as JSON with a `stages` field.
-  const lines = result.stdout.split(/\r?\n/).filter(Boolean)
+  const lines = stdout.split(/\r?\n/).filter(Boolean)
 
   for (let i = lines.length - 1; i >= 0; i--) {
     try {
@@ -791,7 +839,7 @@ async function fetchManifest({
   }
 
   throw new Error(
-    `${isPosix ? 'install.sh --manifest' : 'install.ps1 -Manifest'} produced no parseable JSON payload\n${result.stdout}`
+    `install.ps1 -Manifest produced no parseable JSON payload\n${stdout}`
   )
 }
 
@@ -864,13 +912,37 @@ async function runStage({
         ...vendorArgs
       ]
 
-  const result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
+  let result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
     emit,
     stageName: stage.name,
     abortSignal,
     hermesHome,
     desktopVersion
   })
+
+  // crab 0.20.5-ac+1 (2026-11-26): AV can quarantine install.ps1 mid-run (it
+  // survived manifest, vanished by this stage's spawn). Same heal-retry as
+  // fetchManifest: restore from the asar copy and re-spawn once.
+  if (
+    !isPosix &&
+    result.code !== 0 &&
+    /CommandNotFoundException|ObjectNotFound|\u65e0\u6cd5\u8bc6\u522b/.test(
+      stripAnsi(result.stderr || result.stdout || '')
+    )
+  ) {
+    const healed = healVanishedInstallScript(scriptPath)
+
+    if (healed) {
+      emit({ type: 'log', line: `[bootstrap] install.ps1 vanished before stage ${stage.name} (AV quarantine?); restored, retrying once`, stage: stage.name })
+      result = await spawnPowerShell(healed, args, {
+        emit,
+        stageName: stage.name,
+        abortSignal,
+        hermesHome,
+        desktopVersion
+      })
+    }
+  }
 
   const durationMs = Date.now() - startedAt
 
