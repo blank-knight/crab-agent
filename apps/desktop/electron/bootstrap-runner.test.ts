@@ -17,6 +17,7 @@ import {
   resolveMarkerPinnedCommit,
   runBootstrap,
   cleanupEphemeralInstallScript,
+  cleanupEphemeralInstallScriptsInDir,
   materializeEphemeralInstallScript
 } from './bootstrap-runner'
 
@@ -439,3 +440,55 @@ test.skipIf(process.platform !== 'win32')(
     }
   }
 )
+
+// crab 0.20.5-ad+2 (verifier finding #1): the finally must SWEEP the whole
+// bootstrap-cache dir — an orphaned ephemeral file (written by an aborted
+// materialize, a half-failed one, or a heal path the registry never saw)
+// would otherwise be a standing PS file, exactly what this feature removes.
+test('cleanupEphemeralInstallScriptsInDir sweeps orphans the registry never saw', () => {
+  const home = mkTmpHome()
+
+  try {
+    const cacheDir = path.join(home, 'bootstrap-cache')
+    fs.mkdirSync(cacheDir, { recursive: true })
+
+    // Orphan patterns: every shape the registry could have missed.
+    const orphans = [
+      'ephemeral-install-aaaaaaaaaaaa.ps1',
+      'ephemeral-install-0123456789ab.ps1'
+    ]
+    for (const o of orphans) {
+      fs.writeFileSync(path.join(cacheDir, o), 'orphan')
+    }
+
+    // Foreign files in the same dir must survive (defensive contract).
+    fs.writeFileSync(path.join(cacheDir, 'install-main.ps1'), 'downloaded-cache-script')
+    fs.writeFileSync(path.join(cacheDir, 'ephemeral-install-short.ps1'), 'not-ephemeral-shape')
+    fs.writeFileSync(path.join(cacheDir, 'ephemeral-install-0123456789ab.ps1.tmp'), 'temp')
+
+    // An unregistered heal materialization (the third orphan window).
+    const healMade = path.join(cacheDir, 'ephemeral-install-bbbbbbbbbbbb.ps1')
+    fs.writeFileSync(healMade, 'heal-orphan')
+
+    // cleanupEphemeralInstallScript(null, ...) style: sweep by dir only.
+    // Direct function under test (exported):
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // (imported at top as cleanupEphemeralInstallScriptsInDir)
+
+    assert.equal(fs.existsSync(healMade), true, 'precondition: orphan exists before sweep')
+
+    // Trigger the sweep via the finally path with an unrelated scriptPath
+    // (posix dev standing script — registry path is a no-op, sweep must run):
+    // we call the dir-sweep directly to keep the test deterministic.
+    cleanupEphemeralInstallScriptsInDir(home)
+
+    assert.equal(fs.existsSync(path.join(cacheDir, orphans[0])), false, 'orphan a swept')
+    assert.equal(fs.existsSync(path.join(cacheDir, orphans[1])), false, 'orphan b swept')
+    assert.equal(fs.existsSync(healMade), false, 'heal orphan swept')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'install-main.ps1')), true, 'foreign file survives')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'ephemeral-install-short.ps1')), true, 'non-12-hex shape survives')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'ephemeral-install-0123456789ab.ps1.tmp')), true, '.tmp suffix survives')
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})

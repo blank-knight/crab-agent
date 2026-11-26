@@ -236,9 +236,35 @@ function materializeEphemeralInstallScript(resourcesPath, hermesHome) {
   }
 }
 
-// Delete the ephemeral script at the end of a bootstrap run. Best effort:
-// a locked file (AV mid-scan) must not fail the run that otherwise succeeded.
-// A left-behind file is inert — the next run overwrites it.
+// crab 0.20.5-ad+2 (verifier finding #1): cleanup is a DIRECTORY SWEEP, not a
+// registry — resolveInstallScript's materialize runs BEFORE
+// scriptPathForCleanup is assigned (abort between the two leaves an orphan),
+// a materialize can half-succeed (file written, utimes EPERM → catch null →
+// never registered), and heal materializes a second path the registry never
+// sees. Sweep every ephemeral-install-*.ps1 under HERMES_HOME/bootstrap-cache/
+// at run end; the directory is app-owned so the sweep cannot hit foreign
+// files. Best effort: locked files are inert (next run overwrites them).
+function cleanupEphemeralInstallScriptsInDir(hermesHome) {
+  try {
+    const cacheDir = path.join(hermesHome, 'bootstrap-cache')
+    const entries = fs.readdirSync(cacheDir)
+
+    for (const entry of entries) {
+      if (/^ephemeral-install-[0-9a-f]{12}\.ps1$/.test(entry)) {
+        try {
+          fs.unlinkSync(path.join(cacheDir, entry))
+        } catch {
+          void 0
+        }
+      }
+    }
+  } catch {
+    void 0
+  }
+}
+
+// Legacy single-path cleanup kept for API compatibility (tests): removes the
+// file only when the basename matches the ephemeral pattern.
 function cleanupEphemeralInstallScript(scriptPath) {
   try {
     if (scriptPath && /ephemeral-install-[0-9a-f]{12}\.ps1$/.test(path.basename(scriptPath))) {
@@ -255,12 +281,19 @@ function cleanupEphemeralInstallScript(scriptPath) {
 // path is now the ephemeral file itself — re-extract fresh bytes from the
 // asar copy rather than reviving a possibly-tampered standing file. Returns
 // the re-materialized path or null.
+// crab 0.20.5-ad+2 (verifier finding #2): heal only when the run's script IS
+// the ephemeral one (basename matches) — a downloaded/pinned script that got
+// quarantined must NOT be silently swapped for the asar copy (script version
+// drift mid-run); its ladder is the GitHub re-download, not asar.
 function healVanishedInstallScript(scriptPath, resourcesPath, hermesHome) {
-  // The ephemeral path is inside HERMES_HOME/bootstrap-cache and was
-  // extracted from app.asar; regenerate it. Standing paths (dev/local
-  // checkout, downloaded cache) fall through to null — the original
-  // GitHub fallback ladder remains the last resort.
-  if (!scriptPath || !resourcesPath || process.platform !== 'win32') {
+  if (
+    !scriptPath ||
+    !resourcesPath ||
+    process.platform !== 'win32' ||
+    // Only the ephemeral script heals from the asar copy; downloaded/local
+    // standing scripts fall through to null (original fallback ladder).
+    !/ephemeral-install-[0-9a-f]{12}\.ps1$/.test(path.basename(scriptPath))
+  ) {
     return null
   }
 
@@ -1244,8 +1277,12 @@ async function runBootstrap(opts) {
   } finally {
     // crab 0.20.5-ad+1 (feat/ps1-ephemeral): the bundled install.ps1 is
     // short-lived by design — remove it now that the run is over, so the
-    // AV never sees a standing PS script to quarantine. Best effort: a
-    // locked file must not fail a run that otherwise succeeded.
+    // AV never sees a standing PS script to quarantine.
+    // ad+2 (verifier #1): DIRECTORY SWEEP (registry path only missed
+    // abort-window/half-failed-materialize/heal orphans).
+    cleanupEphemeralInstallScriptsInDir(hermesHome)
+    // Defensive single-path sweep too: a non-bundled scriptPath (posix dev)
+    // is a no-op, a registered ephemeral path is covered twice, harmless.
     cleanupEphemeralInstallScript(scriptPathForCleanup)
 
     try {
@@ -1273,5 +1310,6 @@ export {
   runBootstrap,
   // crab 0.20.5-ad+1 (feat/ps1-ephemeral): ephemeral script lifecycle
   cleanupEphemeralInstallScript,
+  cleanupEphemeralInstallScriptsInDir,
   materializeEphemeralInstallScript
 }
