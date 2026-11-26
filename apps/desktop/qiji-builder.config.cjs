@@ -24,7 +24,11 @@ module.exports = {
   executableName: BRAND.executableName || BRAND.userDataDirName,
   compression: 'maximum',
   directories: { output: 'release' },
-  files: ['dist/**', 'assets/**', 'public/**', 'package.json'],
+  // crab 0.20.5-ac+1 (2026-11-26): install.ps1 同时打进 asar 一份 —— extraResources
+  // 落盘的 resources/install.ps1 会被部分杀软当 PS 脚本单独隔离(用户实测: D:\qijiagent
+  // 场景 app.asar 完好而 install.ps1 消失,bootstrap 无限重试)。asar 内副本作为自愈
+  // 源:bootstrap-runner 缺文件时解出落盘(见 electron/bootstrap-runner.ts 同批改动)。
+  files: ['dist/**', 'assets/**', 'public/**', 'package.json', 'scripts/install.ps1'],
   // 渲染层大 JS 与主进程 enc 走 unpacked(qiji 加密链物理文件布局)
   asar: {
     unpack: ['**/*.node', '**/prebuilds/**', 'dist/**'],

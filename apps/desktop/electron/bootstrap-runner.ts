@@ -205,6 +205,25 @@ function resolveBundledInstallScript(resourcesPath) {
 
     return candidate
   } catch {
+    return healBundledInstallScript(resourcesPath)
+  }
+}
+
+// crab 0.20.5-ac+1 (2026-11-26): extraResources 落盘的 resources/install.ps1 被
+// 杀软隔离后(用户实测: app.asar 完好、install.ps1 单独消失,"无法识别…cmdlet"无限重试),
+// 从 asar 内副本(scripts/install.ps1,同字节)恢复一份到 resources/ 下再返回。恢复失败
+// 返回 null 走原有 GitHub fallback 阶梯,行为不劣化。
+function healBundledInstallScript(resourcesPath) {
+  try {
+    // resources/ 的上一级是 app 根;asar 内路径相对 app 根解析(Electron 的 fs 补丁
+    // 直接支持读 asar 内文件)。
+    const appRoot = path.dirname(resourcesPath)
+    const asarCopy = path.join(appRoot, 'app.asar', 'scripts', 'install.ps1')
+    fs.accessSync(asarCopy, fs.constants.R_OK)
+    const healed = path.join(resourcesPath, 'install.ps1')
+    fs.copyFileSync(asarCopy, healed)
+    return healed
+  } catch {
     return null
   }
 }
