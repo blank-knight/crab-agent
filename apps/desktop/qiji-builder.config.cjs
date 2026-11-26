@@ -24,10 +24,12 @@ module.exports = {
   executableName: BRAND.executableName || BRAND.userDataDirName,
   compression: 'maximum',
   directories: { output: 'release' },
-  // crab 0.20.5-ac+1 (2026-11-26): install.ps1 同时打进 asar 一份 —— extraResources
-  // 落盘的 resources/install.ps1 会被部分杀软当 PS 脚本单独隔离(用户实测: D:\qijiagent
-  // 场景 app.asar 完好而 install.ps1 消失,bootstrap 无限重试)。asar 内副本作为自愈
-  // 源:bootstrap-runner 缺文件时解出落盘(见 electron/bootstrap-runner.ts 同批改动)。
+  // crab 0.20.5-ad+1 (2026-11-26, feat/ps1-ephemeral): install.ps1 ships ONLY
+  // inside app.asar now — extraResources 落盘的裸 resources/install.ps1 是杀软
+  // 隔离的头号靶子(两次用户实测:b24ab344 启动缺件+1ae7f0ec spawn竞态)。运行时由
+  // bootstrap-runner 从 asar 解出到 HERMES_HOME/bootstrap-cache/ 短命文件,run 结束
+  // 即删(见 electron/bootstrap-runner.ts materializeEphemeralInstallScript)。
+  // 判定/守卫逻辑同步迁入编译 TS(electron/engine-retirement-gate.ts),杀软不可达。
   files: ['dist/**', 'assets/**', 'public/**', 'package.json', 'scripts/install.ps1'],
   // 渲染层大 JS 与主进程 enc 走 unpacked(qiji 加密链物理文件布局)
   asar: {
@@ -40,7 +42,8 @@ module.exports = {
     { from: 'build/install-stamp.json', to: 'install-stamp.json' },
     { from: 'build/native-deps', to: 'native-deps' },
     { from: 'assets/icon.ico', to: 'icon.ico' },
-    { from: '../../scripts/install.ps1', to: 'install.ps1' },
+    // crab 0.20.5-ad+1: install.ps1 NO LONGER lands in resources/ — it is
+    // asar-only and materialized ephemeral at runtime (see files comment).
     { from: 'build/vendor', to: 'vendor' }
   ],
   // eb27 把 rebuild 开关收进 nativeModules 组;禁掉 rebuild(本机无 VS BuildTools,
