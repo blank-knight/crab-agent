@@ -15,7 +15,11 @@ import {
   isPinnedCommit,
   resolveInstallScript,
   resolveMarkerPinnedCommit,
-  runBootstrap
+  runBootstrap,
+  cleanupEphemeralInstallScript,
+  cleanupEphemeralInstallScriptsInDir,
+  materializeEphemeralInstallScript,
+  refreshEphemeralScript
 } from './bootstrap-runner'
 
 const SCRIPT_NAME = process.platform === 'win32' ? 'install.ps1' : 'install.sh'
@@ -317,5 +321,238 @@ test.skipIf(process.platform === 'win32')(
 
     assert.equal(result.ok, false)
     assert.equal(result.error, 'install.sh --manifest failed: exit 3\n✗ manifest broke')
+  }
+)
+
+// --- crab 0.20.5-ad+1 (feat/ps1-ephemeral): ephemeral script lifecycle ------
+
+// The asar source (app.asar/scripts/install.ps1) only exists in a packaged
+// Windows build; the lifecycle contract is still testable on any platform by
+// pointing the resources layout at a temp tree with the same shape.
+// crab 0.20.5-ae: REAL layout — app.asar lives INSIDE resources/ (electron-
+// builder standard). The pre-ae synthetic layout (<pkg>/app.asar beside
+// resources/) matched the production bug and kept the tests green while the
+// real path never resolved (GBJ-1094 incident).
+function fakePackageLayout(home: string) {
+  // <home>/resources/           (resourcesPath)
+  // <home>/resources/app.asar/scripts/install.ps1   (Electron fs shim reads here)
+  const resourcesPath = path.join(home, 'resources')
+  const asarScripts = path.join(resourcesPath, 'app.asar', 'scripts')
+  fs.mkdirSync(asarScripts, { recursive: true })
+  fs.writeFileSync(path.join(asarScripts, 'install.ps1'), 'Write-Host "ephemeral"\n')
+  return { resourcesPath, asarScripts }
+}
+
+test.skipIf(process.platform !== 'win32')(
+  'materializeEphemeralInstallScript extracts the asar copy to a sha-keyed bootstrap-cache path',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const scriptPath = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.ok(scriptPath, 'extract should succeed against a fake asar layout')
+      assert.match(scriptPath, /ephemeral-install-[0-9a-f]{12}\.ps1$/)
+      assert.match(path.dirname(scriptPath), /bootstrap-cache$/)
+      assert.equal(fs.readFileSync(scriptPath, 'utf8'), 'Write-Host "ephemeral"\n')
+
+      // Deterministic: same bytes → same path (no copy accumulation).
+      const again = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.equal(again, scriptPath)
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
+
+test.skipIf(process.platform !== 'win32')(
+  'materializeEphemeralInstallScript rewrites fresh bytes over a quarantined-tampered file',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const scriptPath = materializeEphemeralInstallScript(resourcesPath, home)
+      // Simulate AV tampering: file present but content mangled.
+      fs.writeFileSync(scriptPath, 'MANGLED')
+      const again = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.equal(again, scriptPath)
+      assert.equal(fs.readFileSync(scriptPath, 'utf8'), 'Write-Host "ephemeral"\n')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
+
+test('cleanupEphemeralInstallScript removes only ephemeral paths, best-effort', () => {
+  const home = mkTmpHome()
+
+  try {
+    const cacheDir = path.join(home, 'bootstrap-cache')
+    fs.mkdirSync(cacheDir, { recursive: true })
+    const ephemeral = path.join(cacheDir, 'ephemeral-install-0123456789ab.ps1')
+    fs.writeFileSync(ephemeral, 'x')
+
+    // Standing install.sh (posix dev path) must never be deleted.
+    const standing = path.join(home, 'scripts', 'install.sh')
+    fs.mkdirSync(path.dirname(standing), { recursive: true })
+    fs.writeFileSync(standing, '#!/bin/sh\n')
+
+    cleanupEphemeralInstallScript(ephemeral)
+    assert.equal(fs.existsSync(ephemeral), false, 'ephemeral script must be deleted')
+
+    cleanupEphemeralInstallScript(standing)
+    assert.equal(fs.existsSync(standing), true, 'standing (non-ephemeral) scripts are never deleted')
+
+    // Absent / null paths are a no-op, not a throw.
+    cleanupEphemeralInstallScript(null)
+    cleanupEphemeralInstallScript(path.join(home, 'gone.ps1'))
+    assert.ok(true)
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})
+
+test.skipIf(process.platform !== 'win32')(
+  'runBootstrap deletes the ephemeral script in its finally — even when the manifest fails',
+  async () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      // A packaged layout with no sourceRepoRoot: resolveInstallScript takes
+      // the bundled path (ephemeral). The script content is not a real
+      // installer, so -Manifest fails — which is exactly the failure path we
+      // want: the finally must still clean up.
+      const result = await runBootstrap({
+        installStamp: null,
+        activeRoot: path.join(home, 'hermes-agent'),
+        sourceRepoRoot: null,
+        hermesHome: home,
+        logRoot: home,
+        resourcesPath,
+        onEvent: () => {}
+      })
+
+      assert.equal(result.ok, false)
+
+      const cacheDir = path.join(home, 'bootstrap-cache')
+      const leftovers =
+        fs.existsSync(cacheDir) ? fs.readdirSync(cacheDir).filter(f => f.startsWith('ephemeral-install-')) : []
+      assert.deepEqual(leftovers, [], 'no ephemeral script may outlive a bootstrap run')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
+
+// crab 0.20.5-ad+2 (verifier finding #1): the finally must SWEEP the whole
+// bootstrap-cache dir — an orphaned ephemeral file (written by an aborted
+// materialize, a half-failed one, or a heal path the registry never saw)
+// would otherwise be a standing PS file, exactly what this feature removes.
+test('cleanupEphemeralInstallScriptsInDir sweeps orphans the registry never saw', () => {
+  const home = mkTmpHome()
+
+  try {
+    const cacheDir = path.join(home, 'bootstrap-cache')
+    fs.mkdirSync(cacheDir, { recursive: true })
+
+    // Orphan patterns: every shape the registry could have missed.
+    const orphans = [
+      'ephemeral-install-aaaaaaaaaaaa.ps1',
+      'ephemeral-install-0123456789ab.ps1'
+    ]
+    for (const o of orphans) {
+      fs.writeFileSync(path.join(cacheDir, o), 'orphan')
+    }
+
+    // Foreign files in the same dir must survive (defensive contract).
+    fs.writeFileSync(path.join(cacheDir, 'install-main.ps1'), 'downloaded-cache-script')
+    fs.writeFileSync(path.join(cacheDir, 'ephemeral-install-short.ps1'), 'not-ephemeral-shape')
+    fs.writeFileSync(path.join(cacheDir, 'ephemeral-install-0123456789ab.ps1.tmp'), 'temp')
+
+    // An unregistered heal materialization (the third orphan window).
+    const healMade = path.join(cacheDir, 'ephemeral-install-bbbbbbbbbbbb.ps1')
+    fs.writeFileSync(healMade, 'heal-orphan')
+
+    // cleanupEphemeralInstallScript(null, ...) style: sweep by dir only.
+    // Direct function under test (exported):
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // (imported at top as cleanupEphemeralInstallScriptsInDir)
+
+    assert.equal(fs.existsSync(healMade), true, 'precondition: orphan exists before sweep')
+
+    // Trigger the sweep via the finally path with an unrelated scriptPath
+    // (posix dev standing script — registry path is a no-op, sweep must run):
+    // we call the dir-sweep directly to keep the test deterministic.
+    cleanupEphemeralInstallScriptsInDir(home)
+
+    assert.equal(fs.existsSync(path.join(cacheDir, orphans[0])), false, 'orphan a swept')
+    assert.equal(fs.existsSync(path.join(cacheDir, orphans[1])), false, 'orphan b swept')
+    assert.equal(fs.existsSync(healMade), false, 'heal orphan swept')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'install-main.ps1')), true, 'foreign file survives')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'ephemeral-install-short.ps1')), true, 'non-12-hex shape survives')
+    assert.equal(fs.existsSync(path.join(cacheDir, 'ephemeral-install-0123456789ab.ps1.tmp')), true, '.tmp suffix survives')
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})
+
+// crab 0.20.5-ae (GBJ-1094): pre-spawn refresh rewrites fresh bytes so the
+// AV's ~100ms quarantine window cannot span materialize→spawn; standing
+// scripts pass through untouched.
+test('refreshEphemeralScript rewrites quarantined bytes and passes standing scripts through', () => {
+  const home = mkTmpHome()
+
+  try {
+    // Standing script: untouched.
+    const standing = path.join(home, 'scripts', 'install.sh')
+    fs.mkdirSync(path.dirname(standing), { recursive: true })
+    fs.writeFileSync(standing, '#!/bin/sh\n')
+    assert.equal(refreshEphemeralScript(standing, null, null), standing)
+    assert.equal(refreshEphemeralScript(null, null, null), null)
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})
+
+test.skipIf(process.platform !== 'win32')(
+  'refreshEphemeralScript rewrites fresh bytes over an AV-mangled ephemeral file',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const first = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.ok(first)
+      // AV tampered between materialize and spawn:
+      fs.writeFileSync(first, 'MANGLED-BY-AV')
+      const refreshed = refreshEphemeralScript(first, resourcesPath, home)
+      assert.ok(refreshed)
+      assert.equal(refreshed, first, 'deterministic path, same file')
+      assert.equal(fs.readFileSync(first, 'utf8'), 'Write-Host "ephemeral"\n', 'fresh asar bytes restored')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
+
+// crab 0.20.5-ae: the REAL packaged layout (app.asar INSIDE resources/) is the
+// form that must resolve. This is the regression test for the GBJ-1094
+// incident — the pre-ae code joined app.asar to the app root and silently
+// fell to the GitHub ladder on every real install.
+test.skipIf(process.platform !== 'win32')(
+  'materialize resolves app.asar from the REAL electron-builder layout (resources/app.asar)',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const scriptPath = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.ok(scriptPath, 'must resolve against resources/app.asar (real layout)')
+      assert.equal(fs.readFileSync(scriptPath, 'utf8'), 'Write-Host "ephemeral"\n')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
   }
 )
