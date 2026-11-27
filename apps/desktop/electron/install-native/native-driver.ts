@@ -43,7 +43,7 @@ export interface NativeDriverResult {
  *  Each stage maps to a verification of one staged component, emitted in the
  *  same order the ps1 driver would run them, so the progress UI shows the
  *  familiar ladder. */
-const OFFLINE_STAGES: Array<{ name: string; title: string; category: string; needs_user_input: boolean }> = [
+export const OFFLINE_STAGES: Array<{ name: string; title: string; category: string; needs_user_input: boolean }> = [
   { name: 'uv', title: 'Installing uv package manager', category: 'prereqs', needs_user_input: false },
   { name: 'python', title: 'Verifying Python 3.11', category: 'prereqs', needs_user_input: false },
   { name: 'git', title: 'Installing Git', category: 'prereqs', needs_user_input: false },
@@ -68,6 +68,8 @@ export function shouldUseNativeInstall(input: {
 export async function runNativeInstall(input: NativeDriverInput): Promise<NativeDriverResult> {
   const { vendorDir, hermesHome, installDir, emit, abortSignal } = input
 
+  const startedAt = Date.now()
+
   emit({
     type: 'manifest',
     stages: OFFLINE_STAGES,
@@ -78,16 +80,6 @@ export async function runNativeInstall(input: NativeDriverInput): Promise<Native
 
   // Single staging pass replaces the per-stage Stage-VendorFiles re-runs.
   emit({ type: 'log', line: '[bootstrap] native install driver: staging vendor payload' })
-
-  let stageIdx = 0
-  const stageOf = (name: string) => OFFLINE_STAGES.find(s => s.name === name)
-
-  // Emit running/ok for the prereq/install ladder as components complete.
-  const emitStageOk = (component: string, stageName: string): void => {
-    const stage = stageOf(stageName)
-    emit({ type: 'stage', name: stageName, title: stage?.title, state: 'running' })
-    emit({ type: 'stage', name: stageName, state: 'ok', skipped: false })
-  }
 
   try {
     const result = await stageVendorFiles({
@@ -100,7 +92,7 @@ export async function runNativeInstall(input: NativeDriverInput): Promise<Native
 
     if (!result.ok) {
       const failedStage = mapErrorToStage(result.error)
-      emit({ type: 'stage', name: failedStage, state: 'running' })
+      emit({ type: 'stage', name: failedStage, state: 'failed', error: result.error || 'native staging failed', durationMs: Date.now() - startedAt })
       emit({ type: 'failed', stage: failedStage, error: result.error || 'native staging failed' })
       return { ok: false, failedStage, error: result.error }
     }
@@ -116,9 +108,8 @@ export async function runNativeInstall(input: NativeDriverInput): Promise<Native
     for (const stage of OFFLINE_STAGES) {
       abortSignal?.throwIfAborted()
       emit({ type: 'stage', name: stage.name, state: 'running' })
-      emit({ type: 'stage', name: stage.name, state: 'ok', skipped: false })
+      emit({ type: 'stage', name: stage.name, state: 'succeeded', json: { ok: true, skipped: false, stage: stage.name } })
     }
-    void stageIdx
 
     if (!isVendorStagingComplete(installDir)) {
       const error = 'vendor staging incomplete after native install'

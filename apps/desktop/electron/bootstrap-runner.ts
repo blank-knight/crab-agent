@@ -1253,9 +1253,13 @@ async function runBootstrap(opts) {
           ? writeMarker({ pinnedCommit: pinnedNative, pinnedBranch: installStamp ? installStamp.branch : null })
           : { pinnedCommit: pinnedNative, pinnedBranch: installStamp ? installStamp.branch : null }
 
+        // crab 0.20.5-af 终审修: native 提前 return 不得跳过 ps1 路径在
+        // 尾部发的 complete 事件(broadcastBootstrapEvent 靠它翻
+        // active=false,否则安装 overlay 永挂"进行中")。
+        emit({ type: 'complete', marker: markerNative })
         emit({ type: 'log', line: `[bootstrap] native install complete; marker commit=${(markerNative.pinnedCommit || '').slice(0, 12)}` })
 
-        return { ok: true, driver: 'native' as const }
+        return { ok: true, marker: markerNative, driver: 'native' as const }
       }
 
       // Native failed: log and fall through to the ps1 ladder. On AV machines
