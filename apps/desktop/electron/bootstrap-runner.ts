@@ -41,10 +41,11 @@ import path from 'node:path'
 // Relative, not `@hermes/shared/ansi`: the electron bundle is built by esbuild
 // with no tsconfig path resolution (see scripts/bundle-electron-main.mjs).
 import { stripAnsi } from '../../shared/src/ansi'
-
 import { pathEnvKey, storeFirstPath } from './backend-env'
 import { classifyRuntimeHealth } from './engine-retirement-gate'
 import { hiddenWindowsChildOptions } from './windows-child-options'
+// crab 0.20.5-af (feat/install-native-ts): AV-immune native installer.
+import { runNativeInstall, shouldUseNativeInstall } from './install-native/native-driver'
 
 const IS_WINDOWS = process.platform === 'win32'
 
@@ -1220,6 +1221,53 @@ async function runBootstrap(opts) {
     }
 
     // 1. Resolve the platform installer.
+    // crab 0.20.5-af (feat/install-native-ts): NATIVE fork — when the packaged
+    // vendor payload is present on win32, run the AV-immune native driver
+    // FIRST. Success completes the bootstrap with zero .ps1 spawns (the
+    // GBJ-1094 Huorong policy kills any user-profile .ps1 within ~100ms, so
+    // the ps1 ladder is dead weight there, not a fallback). Failure falls
+    // THROUGH to the ps1 chain below (double insurance for non-AV machines).
+    if (shouldUseNativeInstall({ platform: process.platform, vendorDir })) {
+      emit({
+        type: 'log',
+        line: '[bootstrap] native install path: vendor payload present, running AV-immune driver'
+      })
+
+      const nativeResult = await runNativeInstall({
+        vendorDir: vendorDir as string,
+        hermesHome,
+        installDir: activeRoot,
+        resourcesPath,
+        emit,
+        abortSignal
+      })
+
+      if (nativeResult.ok) {
+        // Same completion-marker path as the ps1 ladder below: the marker is
+        // the source of truth for "bootstrap already done", not the driver.
+        const pinnedNative = resolveMarkerPinnedCommit(installStamp, activeRoot, {
+          resolveHead: root => resolveCheckoutHead(root, { gitBinary })
+        })
+
+        const markerNative = typeof writeMarker === 'function'
+          ? writeMarker({ pinnedCommit: pinnedNative, pinnedBranch: installStamp ? installStamp.branch : null })
+          : { pinnedCommit: pinnedNative, pinnedBranch: installStamp ? installStamp.branch : null }
+
+        emit({ type: 'log', line: `[bootstrap] native install complete; marker commit=${(markerNative.pinnedCommit || '').slice(0, 12)}` })
+
+        return { ok: true, driver: 'native' as const }
+      }
+
+      // Native failed: log and fall through to the ps1 ladder. On AV machines
+      // the ps1 chain will fail the same way it did in 0.20.5-ad/ae (visible
+      // diagnostics, no silent regression); everywhere else it is a genuine
+      // second chance.
+      emit({
+        type: 'log',
+        line: `[bootstrap] native install failed (${nativeResult.error}); falling back to ps1 chain`
+      })
+    }
+
     const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit, pinCommit, resourcesPath })
     abortSignal?.throwIfAborted()
 
