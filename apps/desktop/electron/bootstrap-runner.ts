@@ -211,17 +211,52 @@ function resolveBundledInstallScript(resourcesPath, hermesHome) {
 // stable per (appRoot, script sha) so a same-machine retry finds the same
 // file instead of accumulating copies; each runBootstrap deletes it in its
 // finally block.
+// crab 0.20.5-ae (2026-11-27, GBJ-1094 field incident): app.asar lives INSIDE
+// resources/ (electron-builder standard layout, verified against the real
+// win-unpacked tree). The pre-ae code joined app.asar to the app ROOT
+// (<install>/app.asar/...), which does not exist on a real install — every
+// materialize silently failed, the runner fell to the GitHub ladder, and the
+// company AV ate the downloaded .ps1 (field log bootstrap-2026-11-27:
+// CommandNotFoundException on install-branch-main.ps1). The same wrong path
+// had been silently disabling the b24ab344/1ae7f0ecdf asar heals all along —
+// synthetic test layouts matched the wrong path, so the tests stayed green.
+// Primary candidate = resources/app.asar; the legacy appRoot form is kept as
+// a fallback for exotic layouts. readFileSync is the best-shimmed asar read
+// (no accessSync — one less shim dependency).
 function materializeEphemeralInstallScript(resourcesPath, hermesHome) {
-  try {
-    const appRoot = path.dirname(resourcesPath)
-    const asarCopy = path.join(appRoot, 'app.asar', 'scripts', 'install.ps1')
-    fs.accessSync(asarCopy, fs.constants.R_OK)
+  if (!resourcesPath || process.platform !== 'win32') {
+    return null
+  }
 
+  let scriptBytes = null
+
+  const asarCandidates = [
+    path.join(resourcesPath, 'app.asar', 'scripts', 'install.ps1'),
+    path.join(path.dirname(resourcesPath), 'app.asar', 'scripts', 'install.ps1')
+  ]
+
+  for (const candidate of asarCandidates) {
+    try {
+      const bytes = fs.readFileSync(candidate)
+
+      if (bytes && bytes.length > 0) {
+        scriptBytes = bytes
+        break
+      }
+    } catch {
+      void 0
+    }
+  }
+
+  if (!scriptBytes) {
+    return null
+  }
+
+  try {
     const cacheDir = path.join(hermesHome || path.join(resourcesPath, '..', '..'), 'bootstrap-cache')
 
     fs.mkdirSync(cacheDir, { recursive: true })
 
-    const scriptBytes = fs.readFileSync(asarCopy)
     const scriptSha = createHash('sha256').update(scriptBytes).digest('hex').slice(0, 12)
     const ephemeralPath = path.join(cacheDir, `ephemeral-install-${scriptSha}.ps1`)
 
@@ -234,6 +269,25 @@ function materializeEphemeralInstallScript(resourcesPath, hermesHome) {
   } catch {
     return null
   }
+}
+
+// crab 0.20.5-ae (GBJ-1094 incident): re-materialize fresh bytes immediately
+// before EVERY spawn of the ephemeral script. The company AV quarantines
+// .ps1 files within ~100ms of creation; rewriting right before each spawn
+// shrinks the exposure window to write→spawn (~10ms) and self-heals any
+// stage-to-stage quarantine without waiting for the heal-retry path.
+// Standing paths (posix dev / downloaded cache) pass through untouched.
+function refreshEphemeralScript(scriptPath, resourcesPath, hermesHome) {
+  if (
+    !scriptPath ||
+    !resourcesPath ||
+    process.platform !== 'win32' ||
+    !/ephemeral-install-[0-9a-f]{12}\.ps1$/.test(path.basename(scriptPath))
+  ) {
+    return scriptPath
+  }
+
+  return materializeEphemeralInstallScript(resourcesPath, hermesHome) || scriptPath
 }
 
 // crab 0.20.5-ad+2 (verifier finding #1): cleanup is a DIRECTORY SWEEP, not a
@@ -827,6 +881,13 @@ async function fetchManifest({
   abortSignal?.throwIfAborted()
   const isPosix = installerKind === 'posix'
 
+  // crab 0.20.5-ae (GBJ-1094): refresh fresh bytes right before every spawn
+  // — the AV's .ps1 quarantine window (~100ms after creation) must not span
+  // materialize→spawn. No-op for standing (posix/downloaded) scripts.
+  if (!isPosix) {
+    scriptPath = refreshEphemeralScript(scriptPath, resourcesPath, hermesHome)
+  }
+
   const args = isPosix
     ? ['--manifest', ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome, pinCommit })]
     : ['-Manifest', ...buildPinArgs(installStamp, { pinCommit })]
@@ -942,6 +1003,12 @@ async function runStage({
   emit({ type: 'stage', name: stage.name, state: 'running' })
 
   const isPosix = installerKind === 'posix'
+
+  // crab 0.20.5-ae (GBJ-1094): same pre-spawn refresh as fetchManifest —
+  // a stage-to-stage quarantine self-heals here instead of failing the run.
+  if (!isPosix) {
+    scriptPath = refreshEphemeralScript(scriptPath, resourcesPath, hermesHome)
+  }
 
   // crab 0.20.5n: vendor args — point install.ps1 at the packaged vendor
   // tree (resources/vendor) so staging happens offline, keep the tree for
@@ -1311,5 +1378,6 @@ export {
   // crab 0.20.5-ad+1 (feat/ps1-ephemeral): ephemeral script lifecycle
   cleanupEphemeralInstallScript,
   cleanupEphemeralInstallScriptsInDir,
-  materializeEphemeralInstallScript
+  materializeEphemeralInstallScript,
+  refreshEphemeralScript
 }

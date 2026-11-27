@@ -18,7 +18,8 @@ import {
   runBootstrap,
   cleanupEphemeralInstallScript,
   cleanupEphemeralInstallScriptsInDir,
-  materializeEphemeralInstallScript
+  materializeEphemeralInstallScript,
+  refreshEphemeralScript
 } from './bootstrap-runner'
 
 const SCRIPT_NAME = process.platform === 'win32' ? 'install.ps1' : 'install.sh'
@@ -328,11 +329,15 @@ test.skipIf(process.platform === 'win32')(
 // The asar source (app.asar/scripts/install.ps1) only exists in a packaged
 // Windows build; the lifecycle contract is still testable on any platform by
 // pointing the resources layout at a temp tree with the same shape.
+// crab 0.20.5-ae: REAL layout — app.asar lives INSIDE resources/ (electron-
+// builder standard). The pre-ae synthetic layout (<pkg>/app.asar beside
+// resources/) matched the production bug and kept the tests green while the
+// real path never resolved (GBJ-1094 incident).
 function fakePackageLayout(home: string) {
-  // <home>/package/resources  (resourcesPath)
-  // <home>/package/app.asar/scripts/install.ps1  (Electron fs shim reads here)
-  const resourcesPath = path.join(home, 'package', 'resources')
-  const asarScripts = path.join(home, 'package', 'app.asar', 'scripts')
+  // <home>/resources/           (resourcesPath)
+  // <home>/resources/app.asar/scripts/install.ps1   (Electron fs shim reads here)
+  const resourcesPath = path.join(home, 'resources')
+  const asarScripts = path.join(resourcesPath, 'app.asar', 'scripts')
   fs.mkdirSync(asarScripts, { recursive: true })
   fs.writeFileSync(path.join(asarScripts, 'install.ps1'), 'Write-Host "ephemeral"\n')
   return { resourcesPath, asarScripts }
@@ -492,3 +497,62 @@ test('cleanupEphemeralInstallScriptsInDir sweeps orphans the registry never saw'
     fs.rmSync(home, { recursive: true, force: true })
   }
 })
+
+// crab 0.20.5-ae (GBJ-1094): pre-spawn refresh rewrites fresh bytes so the
+// AV's ~100ms quarantine window cannot span materialize→spawn; standing
+// scripts pass through untouched.
+test('refreshEphemeralScript rewrites quarantined bytes and passes standing scripts through', () => {
+  const home = mkTmpHome()
+
+  try {
+    // Standing script: untouched.
+    const standing = path.join(home, 'scripts', 'install.sh')
+    fs.mkdirSync(path.dirname(standing), { recursive: true })
+    fs.writeFileSync(standing, '#!/bin/sh\n')
+    assert.equal(refreshEphemeralScript(standing, null, null), standing)
+    assert.equal(refreshEphemeralScript(null, null, null), null)
+  } finally {
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})
+
+test.skipIf(process.platform !== 'win32')(
+  'refreshEphemeralScript rewrites fresh bytes over an AV-mangled ephemeral file',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const first = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.ok(first)
+      // AV tampered between materialize and spawn:
+      fs.writeFileSync(first, 'MANGLED-BY-AV')
+      const refreshed = refreshEphemeralScript(first, resourcesPath, home)
+      assert.ok(refreshed)
+      assert.equal(refreshed, first, 'deterministic path, same file')
+      assert.equal(fs.readFileSync(first, 'utf8'), 'Write-Host "ephemeral"\n', 'fresh asar bytes restored')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
+
+// crab 0.20.5-ae: the REAL packaged layout (app.asar INSIDE resources/) is the
+// form that must resolve. This is the regression test for the GBJ-1094
+// incident — the pre-ae code joined app.asar to the app root and silently
+// fell to the GitHub ladder on every real install.
+test.skipIf(process.platform !== 'win32')(
+  'materialize resolves app.asar from the REAL electron-builder layout (resources/app.asar)',
+  () => {
+    const home = mkTmpHome()
+    const { resourcesPath } = fakePackageLayout(home)
+
+    try {
+      const scriptPath = materializeEphemeralInstallScript(resourcesPath, home)
+      assert.ok(scriptPath, 'must resolve against resources/app.asar (real layout)')
+      assert.equal(fs.readFileSync(scriptPath, 'utf8'), 'Write-Host "ephemeral"\n')
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true })
+    }
+  }
+)
