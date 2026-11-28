@@ -12,8 +12,15 @@ name: Canary Release
 # conclusion=failure is a canary failure signal.
 
 on:
-  schedule:
-    - cron: "41 6 * * *" # daily, 06:41 UTC
+  # crab fork (2026-11-28): daily schedule DISABLED. The upstream canary
+  # pipeline needs the NousResearch R2 release channels; the fork's channel
+  # records still point at NousResearch/hermes-agent, so every scheduled run
+  # died at "Channel repository authority mismatch" (~40s, run #23 and prior).
+  # The fork ships via its own white-label Setup.exe pipeline (rebuild.ps1 +
+  # verify-package.ps1), not R2 canary distribution. workflow_dispatch stays
+  # so a manual canary is still possible if ever needed.
+  # schedule:
+  #   - cron: "41 6 * * *" # daily, 06:41 UTC
   workflow_dispatch:
 
 permissions:
